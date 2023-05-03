@@ -1,0 +1,27 @@
+---
+title: "default"
+# scope and resolution
+periods: [2000, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050,
+          2055, 2060, 2070, 2080, 2090, 2100, 2110, 2130, 2150]
+startyear: 2005
+regionmapping: NULL # NULL: country-level resolution
+regions: NULL       # NULL: all regions from mapping
+# data
+inputRevision: "0.0.1"
+startingPoint: NULL # previous model run to start from
+# solvers
+gamsCall:  gams
+solverLP:  cplex
+solverNLP: knitro
+# model switches
+switches:
+  SOLVEPROBLEM:    lpnlp    # lp: linear problem, nlp: non-linear problem, lpnlp: first lp then start nlp from there
+  SOLVEMODE:       parallel # no: solve entire nlp if applies, parallel: parallel solving of nlp for each subs
+  EARLYDEMOLITION: 0        # 1: allow demolition before end of life time, 0: demolition determined by life time
+  FILTERSUBS:      off      # off: default setting without filtering, reg.loc.typ.inc:
+  INITIALGDX:      FALSE    # TRUE: read existing GDX as start value if existent
+# gams parameters
+gamsOptions:
+  logoption: 2   # 2: log output to log file
+  pw:        185 # page width of log file
+...
