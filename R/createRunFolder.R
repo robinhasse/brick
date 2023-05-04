@@ -7,6 +7,7 @@
 #' @author Robin Hasse
 #'
 #' @param path character vector, containing
+#' @param config list with run configuration
 #' @param overwrite logical; Should exiting folders be overwritten?
 #' @param recursive logical; Should exiting folders be overwritten?
 #' @param showWarnings logical; Should exiting folders be overwritten?
@@ -52,14 +53,15 @@ createRunFolder <- function(path,
   dir.create(newPaths, recursive = recursive)
 
   # warnings for paths that could not be created
-  if (showWarnings & length(missingPaths > 0)) {
+  if (showWarnings && length(missingPaths > 0)) {
     warning(length(missingPaths), " out of ", length(path), " paths have not ",
             "been created:\n  ",
             paste(missingPaths, collapse = "\n  "))
   }
 
   # copy gams files
-  file.copy("gams/.", newPaths, recursive = TRUE, overwrite = overwrite)
+  gamsFiles <- file.path("inst", "gams", ".")
+  file.copy(gamsFiles, newPaths, recursive = TRUE, overwrite = overwrite)
 
   # copy starting point
   if (!is.null(initialGdxFile)) {

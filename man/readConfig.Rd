@@ -6,6 +6,15 @@
 \usage{
 readConfig(config = NULL, basisOf = NULL)
 }
+\arguments{
+\item{config}{character, config file, either a path to a yaml file or the
+name of the file in `inst/config/`}
+
+\item{basisOf}{character, name of other config that is based on this config}
+}
+\value{
+named list with run config
+}
 \description{
 Read config file in yaml format
 }

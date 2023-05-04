@@ -7,10 +7,13 @@
 #' @author Robin Hasse
 #'
 #' @param path character vector with folders to run gams in
-#' @param flags list of gams flags
+#' @param gamsOptions named list of GAMS options
+#' @param switches named list of model switches
 #' @param fileName character vector with gams file names
 #' @param gamsCall system command to call gams
 #'
+#' @importFrom purrr pmap
+#' @importFrom withr with_dir
 #' @export
 #'
 runGams <- function(path,
@@ -29,36 +32,33 @@ runGams <- function(path,
          ifelse(length(path) > 1, " or 1", ""), ", not ", length(gamsCall))
   }
 
-
   # call this function for each path
   if (length(path) > 1) {
-    return(mapply(runGams, path, fileName, gamsCall))
+    stop("You need to run gams in one path one at a time! ",
+         "Multiple paths are not supported yet.")
+    pmap(list(path, gamsOptions, switches, fileName, gamsCall), runGams)
+  } else {
+
+    # standard gams options
+    if (is.null(gamsOptions)) {
+      gamsOptions <- list()
+    }
+    if (!"logoption" %in% tolower(names(gamsOptions))) {
+      gamsOptions[["logoption"]] <- 2  # Log output to logfile
+    }
+
+    # helpers
+    flagString <- paste(toolMakeHandle(gamsOptions),
+                        toolMakeHandle(switches, "model"))
+
+    # check if input.gdx exists
+    if (!file.exists(file.path(path, "input.gdx"))) {
+      stop("There is no 'input.gdx' in ", path)
+    }
+
+    # run gams
+    with_dir(path, system(paste(gamsCall, fileName, flagString)))
+
+    cat("GAMS started:", file.path(path, fileName))
   }
-
-  # standard gams options
-  if (is.null(gamsOptions)) {
-    gamsOptions <- list()
-  }
-  if (!"logoption" %in% tolower(names(gamsOptions))) {
-    gamsOptions[["logoption"]] <- 2  # Log output to logfile
-  }
-
-  # helpers
-  flagString <- paste(toolMakeHandle(gamsOptions),
-                      toolMakeHandle(switches, "model"))
-
-  # check if input.gdx exists
-  if (!file.exists(file.path(path, "input.gdx"))) {
-    stop("There is no 'input.gdx' in ", path)
-  }
-
-  # run gams
-  wd <- getwd()
-  setwd(path)
-
-  system(paste(gamsCall, fileName, flagString))
-
-  setwd(wd)
-
-  cat("GAMS started:", file.path(path, fileName))
 }

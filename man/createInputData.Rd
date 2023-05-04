@@ -9,6 +9,10 @@ createInputData(path, config, aggregateProblem = FALSE, overwrite = FALSE)
 \arguments{
 \item{path}{character vector with folders to write input data into}
 
+\item{config}{named list with run configuration}
+
+\item{aggregateProblem}{boolean, should the problem be agregated?}
+
 \item{overwrite}{boolean, should existing input.gdx be overwritten?}
 }
 \description{
