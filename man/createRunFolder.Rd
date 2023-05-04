@@ -15,6 +15,8 @@ createRunFolder(
 \arguments{
 \item{path}{character vector, containing}
 
+\item{config}{list with run configuration}
+
 \item{overwrite}{logical; Should exiting folders be overwritten?}
 
 \item{recursive}{logical; Should exiting folders be overwritten?}

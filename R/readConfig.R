@@ -6,12 +6,18 @@
 #'
 #' @author Robin Hasse
 #'
+#' @param config character, config file, either a path to a yaml file or the
+#'   name of the file in `inst/config/`
+#' @param basisOf character, name of other config that is based on this config
+#' @returns named list with run config
+#'
 #' @importFrom yaml read_yaml
 #' @export
 
 readConfig <- function(config = NULL, basisOf = NULL) {
 
-  defaultCfgPath <- file.path("config", "default.yaml")
+  configFolder <- file.path("inst", "config")
+  defaultCfgPath <- file.path(configFolder, "default.yaml")
 
   if (!file.exists(defaultCfgPath)) {
     stop("Default config ", defaultCfgPath, " does not exist.")
@@ -42,7 +48,7 @@ readConfig <- function(config = NULL, basisOf = NULL) {
     if (file.exists(config)) {
       customCfgPath <- config
     } else {
-      matchingFiles <- list.files("config", config, full.names = TRUE,
+      matchingFiles <- list.files(configFolder, config, full.names = TRUE,
                                   recursive = TRUE)
       if (length(matchingFiles) == 0) {
         stop("Cannot find a config yaml file matching your input: ", config)

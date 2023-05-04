@@ -15,11 +15,13 @@ runGams(
 \arguments{
 \item{path}{character vector with folders to run gams in}
 
+\item{gamsOptions}{named list of GAMS options}
+
+\item{switches}{named list of model switches}
+
 \item{fileName}{character vector with gams file names}
 
 \item{gamsCall}{system command to call gams}
-
-\item{flags}{list of gams flags}
 }
 \description{
 Run the gams model in a given directory.

@@ -12,8 +12,6 @@ startModel(config = NULL, path = NULL, outputFolder = "output")
 \item{path}{character vector with folders to run the model in}
 
 \item{outputFolder}{directory of output folder}
-
-\item{runName}{run configurations}
 }
 \description{
 Run the model with given configuration.

@@ -1,26 +1,65 @@
-# BRICK - Building sector model with heterogeuous RenovatIon and Construction of the stocK
+# Building sector model with heterogeuous renovation and construction of
+    the stock
 
+R package **brick**, version **0.0.2**
+
+[![CRAN status](https://www.r-pkg.org/badges/version/brick)](https://cran.r-project.org/package=brick)  [![R build status](https://github.com/pik-piam/brick/workflows/check/badge.svg)](https://github.com/pik-piam/brick/actions) [![codecov](https://codecov.io/gh/pik-piam/brick/branch/master/graph/badge.svg)](https://app.codecov.io/gh/pik-piam/brick) 
 
 ## Purpose and Functionality
 
-This building stock model represents residential and commercial buildings at
-customisable regional and temporal resolution. The building stock is quantified
-in floor are and distinuished by building type (SFH/MFH) and location
-(rural/urban). In each building category, construction cohorts are tracked
-explicitly. This allows to characterise buildings specifically for each of
-subset of buildings. The evolution of the building stock follows from the flows
-of constructed, renovated and demolished buildings and is optimised under cost
-minimisation with a benefit for heterogeneity in the choice of construction and
-renovation alternatives. This benefit captures heterogeneity in the preferences
-of the inhabitants and the building structure.
+This building stock model represents residential and commercial
+    buildings at customisable regional and temporal resolution. The building
+    stock is quantified in floor area and distinuished by building type
+    (SFH/MFH) and location (rural/urban). In each building category,
+    construction cohorts are tracked explicitly. This allows to characterise
+    buildings specifically for each of subset of buildings. The evolution of the
+    building stock follows from the flows of constructed, renovated and
+    demolished buildings and is optimised under cost minimisation with a benefit
+    for heterogeneity in the choice of construction and renovation alternatives.
+    This benefit captures heterogeneity in the preferences of the aganets and
+    the building structure.
+
 
 ## Installation
 
-This package requires a working installation of GAMS and a license or a Lp and a
-NLP solver. The solvers can be individually selected. By default, it uses CPLEX
-and KNITRO.
+For installation of the most recent package version an additional repository has to be added in R:
 
-The dependencies should be available from CRAN and the RSE server with the
-exception of `gamstransfer`, the R API of GAMS. See the
-[GAMS documentation](https://www.gams.com/latest/docs/API_R_GAMSTRANSFER.html)
-on how to install it.
+```r
+options(repos = c(CRAN = "@CRAN@", pik = "https://rse.pik-potsdam.de/r/packages"))
+```
+The additional repository can be made available permanently by adding the line above to a file called `.Rprofile` stored in the home folder of your system (`Sys.glob("~")` in R returns the home directory).
+
+After that the most recent version of the package can be installed using `install.packages`:
+
+```r 
+install.packages("brick")
+```
+
+Package updates can be installed using `update.packages` (make sure that the additional repository has been added before running that command):
+
+```r 
+update.packages()
+```
+
+## Questions / Problems
+
+In case of questions / problems please contact Robin Hasse <robin.hasse@pik-potsdam.de>.
+
+## Citation
+
+To cite package **brick** in publications use:
+
+Hasse R (2023). _brick: Building sector model with heterogeuous renovation and construction of the stock_. R package version 0.0.2, <https://github.com/pik-piam/brick>.
+
+A BibTeX entry for LaTeX users is
+
+ ```latex
+@Manual{,
+  title = {brick: Building sector model with heterogeuous renovation and construction of
+the stock},
+  author = {Robin Hasse},
+  year = {2023},
+  note = {R package version 0.0.2},
+  url = {https://github.com/pik-piam/brick},
+}
+```

@@ -8,18 +8,22 @@
 #' @author Robin Hasse
 #'
 #' @param path character vector with folders to write input data into
+#' @param config named list with run configuration
+#' @param aggregateProblem boolean, should the problem be agregated?
 #' @param overwrite boolean, should existing input.gdx be overwritten?
 #'
 #' @importFrom quitte inline.data.frame as.quitte interpolate_missing_periods
 #'   revalue.levels calc_addVariable
 #' @importFrom dplyr %>% mutate select group_by summarise filter ungroup arrange
-#'   right_join .data rename lag all_of across sym rename_with
+#'   left_join right_join .data rename lag all_of across sym rename_with
 #' @importFrom tidyr complete
 #' @importFrom madrat calcOutput readSource
 #' @importFrom magclass collapseDim mselect getYears mbind getItems<- getItems
 #'   add_dimension
 #' @importFrom gdxrrw igdx wgdx
 #' @importFrom gamstransfer Container
+#' @importFrom stats pweibull
+#' @importFrom utils head tail
 #' @export
 #'
 createInputData <- function(path,
@@ -188,7 +192,7 @@ createInputData <- function(path,
 
 
 
-  # PARAMETER ------------------------------------------------------------------
+  # PARAMETERS -----------------------------------------------------------------
 
 
   ## periods ====
@@ -247,9 +251,9 @@ createInputData <- function(path,
 
   ### operation ####
   ueDem <- c(original = 150,
-             # rLight = 0.873 * 150,
+             # rLight = 0.873 * 150, # nolint
              rMedium = 0.589 * 150)
-             # rDeep = 0.34 * 150)
+             # rDeep = 0.34 * 150) # nolint
   eff <- c(reel = 0.95,
            ehp1 = 3,
            libo = 0.83,
@@ -319,7 +323,7 @@ createInputData <- function(path,
     description = "minimum share of demolition at end of life")
 
   ### building shell ####
-  p_shareRenBS <- expandSets(bs,ttot2 = ttot,ttot) %>%
+  p_shareRenBS <- expandSets(bs, ttot2 = ttot, ttot) %>%
     mutate(ttot  = as.numeric(as.character(.data[["ttot"]])),
            ttot2 = as.numeric(as.character(.data[["ttot2"]]))) %>%
     left_join(p_dt$records %>%
@@ -338,7 +342,7 @@ createInputData <- function(path,
     description = "minimum share of renovation from the building shell reaching end of life")
 
   ### heating system ####
-  p_shareRenHS <- expandSets(hs,ttot2 = ttot,ttot) %>%
+  p_shareRenHS <- expandSets(hs, ttot2 = ttot, ttot) %>%
     mutate(ttot  = as.numeric(as.character(.data[["ttot"]])),
            ttot2 = as.numeric(as.character(.data[["ttot2"]]))) %>%
     left_join(p_dt$records %>%
@@ -447,7 +451,7 @@ createInputData <- function(path,
 
   p_stockHist <- m$addParameter(
     "p_stockHist",
-    c(bs,hs,vin,reg,loc,typ,inc,ttot),
+    c(bs, hs, vin, reg, loc, typ, inc, ttot),
     p_stockHist,
     description = "historic stock of buildings in million m2"
   )
@@ -522,11 +526,10 @@ createInputData <- function(path,
     interpolate_missing_periods(ttot = ttotNum, expand.values = TRUE)
   p_floorPerCap <- m$addParameter(
     "p_floorPerCap",
-    c(reg,loc,typ,inc,ttot),
+    c(reg, loc, typ, inc, ttot),
     p_floorPerCap,
     description = "floor space per capita in m2"
   )
-
 
 
 

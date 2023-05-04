@@ -4,3 +4,7 @@
 ^\.pre-commit-config\.yaml$
 ^Makefile$
 ^workflow$
+^output$
+^.lintr$
+^tests/.lintr$
+^.*CITATION.cff$

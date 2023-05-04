@@ -7,7 +7,6 @@
 #'
 #' @author Robin Hasse
 #'
-#' @param runName run configurations
 #' @param config run configurations
 #' @param path character vector with folders to run the model in
 #' @param outputFolder directory of output folder
@@ -30,5 +29,8 @@ startModel <- function(config = NULL,
 
   createInputData(path, cfg)
 
-  runGams(path, cfg[["gamsOptions"]], cfg[["switches"]])
+  runGams(path,
+          cfg[["gamsOptions"]],
+          cfg[["switches"]],
+          gamsCall = cfg[["gamsCall"]])
 }

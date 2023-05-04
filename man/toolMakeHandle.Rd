@@ -6,6 +6,14 @@
 \usage{
 toolMakeHandle(lst, type = c("gams", "model"))
 }
+\arguments{
+\item{lst}{named list of flags}
+
+\item{type}{character, type of flags (either `"gams"` or `"model`)}
+}
+\value{
+character of flags
+}
 \description{
 Helper function to turn a named list into a string appended to the gams
 command line call
