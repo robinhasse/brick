@@ -17,6 +17,8 @@ p_stockHist(bs,hs,vin,reg,loc,typ,inc,ttot) "historic stock of buildings in mill
 p_shareDem(vin,ttot)           "minimum share of demolition at end of life"
 p_shareRenBS(bs,ttot,ttot)     "minimum share of renovation from the building shell reaching end of life"
 p_shareRenHS(hs,ttot,ttot)     "minimum share of renovation from the heating system reaching end of life"
+p_shareRenBSinit(bs,ttot,ttot) "minimum share of renovation from the building shell of initial stock reaching end of life"
+p_shareRenHSinit(hs,ttot,ttot) "minimum share of renovation from the heating system of initial stock reaching end of life"
 
 p_discountFac(ttot)         "discount factor w.r.t. t0"
 p_renAllowed(bs,hs,bsr,hsr) "1 if renovation is allowed else 0"

@@ -21,6 +21,7 @@ tall        "all time steps"
 ttot(tall)  "all modelling time steps"
 t(ttot)     "modelled time steps"
 thist(ttot) "historic time steps"
+tinit(ttot) "initial modelling time step"
 ;
 
 *** aliases
@@ -37,7 +38,7 @@ alias(ttot,ttot2)
 $gdxin input.gdx
 $load bsr hsr bs hs
 $load reg loc typ inc
-$load tall ttot t thist
+$load tall ttot t thist tinit
 $load vin
 $gdxin
 ;
