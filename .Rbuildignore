@@ -2,6 +2,7 @@
 ^\.Rproj\.user$
 ^\.buildlibrary$
 ^\.pre-commit-config\.yaml$
+^\.github$
 ^Makefile$
 ^workflow$
 ^output$

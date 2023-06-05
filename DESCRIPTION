@@ -31,6 +31,8 @@ Imports:
     dplyr,
     gamstransfer,
     gdxrrw,
+    ggplot2,
+    ggpubr,
     purrr,
     quitte,
     tidyr,
