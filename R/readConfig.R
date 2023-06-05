@@ -27,18 +27,21 @@ readConfig <- function(config = NULL, basisOf = NULL) {
 
   # check input ----------------------------------------------------------------
 
+  # list all config files this config is based on
   readCfg <- function(file) {
     cfg <- read_yaml(file)
     if (!"title" %in% names(cfg)) {
       stop("There is no title given in the config file: ", file)
     }
+    attr(cfg, "file") <- file
+    attr(cfg, "files") <- file
     return(cfg)
   }
 
   # use default.yaml by default
   if (is.null(config)) {
     if (is.null(basisOf)) {
-      cat("Using default config:", config, "\n")
+      cat("Using default config:", config)
     }
     return(readCfg(defaultCfgPath))
   }
@@ -55,7 +58,7 @@ readConfig <- function(config = NULL, basisOf = NULL) {
       } else if (length(matchingFiles) == 1) {
         customCfgPath <- matchingFiles
         if (is.null(basisOf)) {
-          cat("Using matching config ", matchingFiles)
+          cat("Using matching config", matchingFiles)
         }
       } else {
         stop("Be more specific! There is more than one matching config file:\n",
@@ -137,8 +140,8 @@ readConfig <- function(config = NULL, basisOf = NULL) {
   # read base config and overwrite it with given config
   basedOnCfg <- readConfig(basedOn, customCfgPath)
   cfg <- overwriteList(basedOnCfg, customCfg)
-
-
+  attr(cfg, "file") <- customCfgPath
+  attr(cfg, "files") <- c(attr(basedOnCfg, "files"), customCfgPath)
 
   return(cfg)
 }

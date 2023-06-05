@@ -34,7 +34,7 @@ runGams <- function(path,
 
   # call this function for each path
   if (length(path) > 1) {
-    stop("You need to run gams in one path one at a time! ",
+    stop("You need to run gams in one path at a time! ",
          "Multiple paths are not supported yet.")
     pmap(list(path, gamsOptions, switches, fileName, gamsCall), runGams)
   } else {

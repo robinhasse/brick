@@ -12,14 +12,14 @@ startingPoint: NULL # previous model run to start from
 # solvers
 gamsCall:  gams
 solverLP:  cplex
-solverNLP: knitro
+solverNLP: conopt4
 # model switches
 switches:
-  SOLVEPROBLEM:    lpnlp    # lp: linear problem, nlp: non-linear problem, lpnlp: first lp then start nlp from there
-  SOLVEMODE:       parallel # no: solve entire nlp if applies, parallel: parallel solving of nlp for each subs
-  EARLYDEMOLITION: 0        # 1: allow demolition before end of life time, 0: demolition determined by life time
-  FILTERSUBS:      off      # off: default setting without filtering, reg.loc.typ.inc:
-  INITIALGDX:      FALSE    # TRUE: read existing GDX as start value if existent
+  RUNTYPE:         scenario # scenario: run of future scenario, calibartion: calibrateion to historic stock, matching: matching historic stocks and flows to sources
+  SOLVEPROBLEM:    lpnlp    # no: solve entire nlp if applies, parallel: parallel solving of nlp for each subs
+  PARALLEL:        TRUE     # parallel solving of nlp for each subs
+  EARLYDEMOLITION: TRUE     # allow demolition before end of life time
+  FILTERSUBS:      FALSE    # off: default setting without filtering, reg.loc.typ.inc:
 # gams parameters
 gamsOptions:
   logoption: 2   # 2: log output to log file
