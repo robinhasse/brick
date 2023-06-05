@@ -336,7 +336,7 @@ createInputData <- function(path,
     group_by(.data[["vin"]]) %>%
     arrange(.data[["ttot"]]) %>%
     mutate(value = c(0, diff(.data[["p"]])) /
-             (1 - lag(.data[["p"]], default = 0) / .data[["dt"]])) %>%
+             (1 - lag(.data[["p"]], default = 0)) / .data[["dt"]]) %>%
     select("vin", "ttot", "value")
   p_shareDem <- m$addParameter(
     "p_shareDem",
