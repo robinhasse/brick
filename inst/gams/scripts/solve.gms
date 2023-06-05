@@ -1,3 +1,5 @@
+*** models ---------------------------------------------------------------------
+
 model fullSysLP "full system linear optimisation"
   /
   q_totSysCost
@@ -42,25 +44,36 @@ model fullSysNLP "full system linear optimisation"
 
 
 
-*** filter subs
+
+*** prepare solving ------------------------------------------------------------
+
+* filter subs
 $ifthen.filtersubs %FILTERSUBS% == "TRUE"
 subs(all_subs) = no;
 subs("DEU","rural","SFH","all") = yes;
 $endif.filtersubs
 
 
+* solvers
+option lp  = %solverLP%;
+option nlp = %solverNLP%;
 
-*** approximate with linear model then solve full non-linear model
+
+
+*** scenario run ---------------------------------------------------------------
+
+$ifthen.scenario "%RUNTYPE%" == "scenario"
+
+* linear model
 $ifthenE.lp (sameas("%SOLVEPROBLEM%","lp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
 solve fullSysLP minimizing v_totSysCost using lp;
 !!execute_unload "outputLP.gdx"
 $endif.lp
 
 
-option nlp = knitro;
-
+* non-linear model
 $ifthenE.nlp (sameas("%SOLVEPROBLEM%","nlp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
-$ifthen.parallel "%SOLVEMODE%" == parallel
+$ifthen.parallel "%PARALLEL%" == "TRUE"
 subs(all_subs) = no;
 fullSysNLP.SolveLink = 3;
 
@@ -90,4 +103,5 @@ subs(all_subs) = yes;
 $else.parallel
 solve fullSysNLP minimizing v_totSysCost using nlp;
 $endif.parallel
+
 $endif.nlp

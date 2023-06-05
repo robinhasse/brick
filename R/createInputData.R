@@ -412,7 +412,7 @@ createInputData <- function(path,
 
   # stock of residential floor space
   p_stockHist <- calcOutput("BuildingStock", subtype = "residential",
-                      aggregate = FALSE) %>%
+                            aggregate = FALSE) %>%
     as.quitte(na.rm = TRUE) %>%
     filter(.data[["variable"]] == "floor",
            .data[["region"]] %in% reg$getUELs(),
