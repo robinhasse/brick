@@ -33,4 +33,6 @@ startModel <- function(config = NULL,
           cfg[["gamsOptions"]],
           cfg[["switches"]],
           gamsCall = cfg[["gamsCall"]])
+
+  plotSummary(path)
 }
