@@ -23,8 +23,10 @@ p_shareRenHSinit(hs,ttot,ttot) "minimum share of renovation from the heating sys
 p_discountFac(ttot)         "discount factor w.r.t. t0"
 p_renAllowed(bs,hs,bsr,hsr) "1 if renovation is allowed else 0"
 
-p_runtime(reg,loc,typ,inc) "model runtime"
-p_handle(reg,loc,typ,inc)  "parallel model handle parameter"
+p_runtime(reg,loc,typ,inc)                  "model runtime"
+p_handle(reg,loc,typ,inc)                   "parallel model handle parameter"
+p_repyFullSysLP(solveinfo)                  "model and solver summary: fullSysLP"
+p_repyFullSysNLP(reg,loc,typ,inc,solveinfo) "model and solver summary: fullSysNLP"
 ;
 
 scalars

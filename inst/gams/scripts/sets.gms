@@ -22,6 +22,15 @@ ttot(tall)  "all modelling time steps"
 t(ttot)     "modelled time steps"
 thist(ttot) "historic time steps"
 tinit(ttot) "initial modelling time step"
+
+*** model analytics
+solveinfo	"model and solver stats"
+  /
+  solvestat "solver termination condition"
+  modelstat "model status"
+  resusd    "time the solver used to solve the model in seconds"
+  objval    "objective function value"
+  /
 ;
 
 *** aliases

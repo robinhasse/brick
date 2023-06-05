@@ -67,7 +67,10 @@ $ifthen.scenario "%RUNTYPE%" == "scenario"
 * linear model
 $ifthenE.lp (sameas("%SOLVEPROBLEM%","lp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
 solve fullSysLP minimizing v_totSysCost using lp;
-!!execute_unload "outputLP.gdx"
+p_repyFullSysLP('solvestat') = fullSysLP.solvestat;
+p_repyFullSysLP('modelstat') = fullSysLP.modelstat;
+p_repyFullSysLP('resusd')    = fullSysLP.resusd;
+p_repyFullSysLP('objval')    = fullSysLP.objval;
 $endif.lp
 
 
@@ -81,6 +84,11 @@ loop(all_subs,
   subs(all_subs) = yes;
 
   solve fullSysNLP minimizing v_totSysCost using nlp;
+
+  p_repyFullSysNLP(subs,'solvestat') = fullSysNLP.solvestat;
+  p_repyFullSysNLP(subs,'modelstat') = fullSysNLP.modelstat;
+  p_repyFullSysNLP(subs,'resusd')    = fullSysNLP.resusd;
+  p_repyFullSysNLP(subs,'objval')    = fullSysNLP.objval;
 
   subs(all_subs) = no;
 
@@ -102,6 +110,10 @@ until card(p_handle) = 0;
 subs(all_subs) = yes;
 $else.parallel
 solve fullSysNLP minimizing v_totSysCost using nlp;
+p_repyFullSysNLP(subs,'solvestat') = fullSysNLP.solvestat;
+p_repyFullSysNLP(subs,'modelstat') = fullSysNLP.modelstat;
+p_repyFullSysNLP(subs,'resusd')    = fullSysNLP.resusd;
+p_repyFullSysNLP(subs,'objval')    = fullSysNLP.objval;
 $endif.parallel
 
 $endif.nlp
