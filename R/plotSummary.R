@@ -55,7 +55,7 @@ plotSummary <- function(path, showHistStock = FALSE) {
                  sobo = "Solids boiler",
                  dihe = "District heating",
                  biom = "Biomass boiler")
-  gap = 0.5
+  gap <- 0.5
   addTheme <- function(p, title = "", yLabel = "",
                        removeXLabels = FALSE,
                        removeFacetLabels = TRUE) {
@@ -80,11 +80,13 @@ plotSummary <- function(path, showHistStock = FALSE) {
            hs = {
              pOut <- pOut +
                scale_fill_manual(values = techColour, labels = techLabel) +
-               labs(fill = "Heating system")},
+               labs(fill = "Heating system")
+             },
            vin = {
              pOut <- pOut +
                scale_fill_manual(values = vinColour) +
-               labs(fill = "Construction cohort")}
+               labs(fill = "Construction cohort")
+             }
     )
     return(pOut)
   }

@@ -16,7 +16,7 @@ solverNLP: conopt4
 # model switches
 switches:
   RUNTYPE:         scenario # scenario: run of future scenario, calibartion: calibrateion to historic stock, matching: matching historic stocks and flows to sources
-  SOLVEPROBLEM:    lpnlp    # no: solve entire nlp if applies, parallel: parallel solving of nlp for each subs
+  SOLVEPROBLEM:    lpnlp    # lp: linear problem, nlp: non-linear problem, lpnlp: first lp then start nlp from there
   PARALLEL:        TRUE     # parallel solving of nlp for each subs
   EARLYDEMOLITION: TRUE     # allow demolition before end of life time
   FILTERSUBS:      FALSE    # off: default setting without filtering, reg.loc.typ.inc:

@@ -106,7 +106,7 @@ createInputData <- function(path,
     "t",
     records = ttot$getUELs()[which(ttot$getUELs() >= startyear)],
     description = "modelled time steps")
-  thist <- m$addSet(
+  thist <- m$addSet( # nolint: object_usage_linter.
     "thist",
     records = setdiff(ttot$getUELs(), t$getUELs()),
     description = "modelled time steps")
@@ -345,24 +345,24 @@ createInputData <- function(path,
     description = "minimum share of demolition at end of life")
 
   ### building shell ####
-  p_shareRenBS <- m$addParameter(
+  p_shareRenBS <- m$addParameter(  # nolint: object_usage_linter.
     "p_shareRenBS",
     c(bs, ttot2, ttot),
     shareRen("bs", ttot, 3, 40),
     description = "minimum share of renovation from the building shell reaching end of life")
-  p_shareRenBSinit <- m$addParameter(
+  p_shareRenBSinit <- m$addParameter( # nolint: object_usage_linter.
     "p_shareRenBSinit",
     c(bs, ttot2, ttot),
     shareRen("bs", tinit, 3, 40, 12),
     description = "minimum share of renovation from the building shell of initial stock reaching end of life")
 
   ### heating system ####
-  p_shareRenHS <- m$addParameter(
+  p_shareRenHS <- m$addParameter( # nolint: object_usage_linter.
     "p_shareRenHS",
     c(hs, ttot2, ttot),
     shareRen("hs", ttot, 3, 20),
     description = "minimum share of renovation from the heating system reaching end of life")
-  p_shareRenHSinit <- m$addParameter(
+  p_shareRenHSinit <- m$addParameter( # nolint: object_usage_linter.
     "p_shareRenHSinit",
     c(hs, ttot2, ttot),
     shareRen("hs", tinit, 3, 20, 6),
