@@ -2,9 +2,11 @@
 ^\.Rproj\.user$
 ^\.buildlibrary$
 ^\.pre-commit-config\.yaml$
+^\.github$
 ^Makefile$
 ^workflow$
 ^output$
 ^.lintr$
 ^tests/.lintr$
 ^.*CITATION.cff$
+^codecov\.yml$

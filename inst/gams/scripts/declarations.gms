@@ -5,24 +5,28 @@ p_dtVin(ttot,vin) "intersection of time step and vintage cohort in yr"
 p_householdSize(reg,loc,typ,inc,ttot) "household size in cap"
 p_floorPerCap(reg,loc,typ,inc,ttot)   "average floor space per capita in stock in m2/cap"
 
-p_specCostCon                  "floor-space specific construction cost in USD/m2"
-p_specCostRen(bsr,hsr,bsr,hsr) "floor-space specific renovation cost in USD/m2"
-p_specCostOpe(bs,hs,ttot)      "floor-space specific operation cost in USD/(m2.yr)"
-p_specCostDem                  "floor-space specific demolition cost in USD/m2"
+p_specCostCon                "floor-space specific construction cost in USD/m2"
+p_specCostRen(bs,hs,bsr,hsr) "floor-space specific renovation cost in USD/m2"
+p_specCostOpe(bs,hs,ttot)    "floor-space specific operation cost in USD/(m2.yr)"
+p_specCostDem                "floor-space specific demolition cost in USD/m2"
 
 p_population(reg,loc,typ,inc,ttot)          "number of people in million"
 p_floorPerCap(reg,loc,typ,inc,ttot)         "floor space per capita in m2"
 p_stockHist(bs,hs,vin,reg,loc,typ,inc,ttot) "historic stock of buildings in million m2"
 
-p_shareDem(vin,ttot)        "minimum share of demolition at end of life"
-p_shareRenBS(bs,ttot2,ttot) "minimum share of renovation from the building shell reaching end of life"
-p_shareRenHS(hs,ttot2,ttot) "minimum share of renovation from the heating system reaching end of life"
+p_shareDem(vin,ttot)           "minimum share of demolition at end of life"
+p_shareRenBS(bs,ttot,ttot)     "minimum share of renovation from the building shell reaching end of life"
+p_shareRenHS(hs,ttot,ttot)     "minimum share of renovation from the heating system reaching end of life"
+p_shareRenBSinit(bs,ttot,ttot) "minimum share of renovation from the building shell of initial stock reaching end of life"
+p_shareRenHSinit(hs,ttot,ttot) "minimum share of renovation from the heating system of initial stock reaching end of life"
 
 p_discountFac(ttot)         "discount factor w.r.t. t0"
 p_renAllowed(bs,hs,bsr,hsr) "1 if renovation is allowed else 0"
 
-p_runtime(reg,loc,typ,inc) "model runtime"
-p_handle(reg,loc,typ,inc)  "parallel model handle parameter"
+p_runtime(reg,loc,typ,inc)                  "model runtime"
+p_handle(reg,loc,typ,inc)                   "parallel model handle parameter"
+p_repyFullSysLP(solveinfo)                  "model and solver summary: fullSysLP"
+p_repyFullSysNLP(reg,loc,typ,inc,solveinfo) "model and solver summary: fullSysNLP"
 ;
 
 scalars

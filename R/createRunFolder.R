@@ -11,6 +11,8 @@
 #' @param overwrite logical; Should exiting folders be overwritten?
 #' @param recursive logical; Should exiting folders be overwritten?
 #' @param showWarnings logical; Should exiting folders be overwritten?
+#'
+#' @importFrom yaml write_yaml
 #' @export
 #'
 createRunFolder <- function(path,
@@ -18,6 +20,8 @@ createRunFolder <- function(path,
                             overwrite = FALSE,
                             recursive = FALSE,
                             showWarnings = TRUE) {
+
+  # find files -----------------------------------------------------------------
 
   # recognised file names for inital gdx (in order of priority)
   initialGdxNames <- c("output.gdx")
@@ -47,7 +51,10 @@ createRunFolder <- function(path,
     NULL
   }
 
-  # create new run folders
+
+
+  # create new run folders -----------------------------------------------------
+
   newPaths <- unique(path[!dir.exists(path) | overwrite])
   missingPaths <- setdiff(path, newPaths)
   dir.create(newPaths, recursive = recursive)
@@ -59,13 +66,32 @@ createRunFolder <- function(path,
             paste(missingPaths, collapse = "\n  "))
   }
 
-  # copy gams files
+
+
+  # copy files -----------------------------------------------------------------
+
+  ## gams files ====
   gamsFiles <- file.path("inst", "gams", ".")
   file.copy(gamsFiles, newPaths, recursive = TRUE, overwrite = overwrite)
 
-  # copy starting point
+
+  ## starting point ====
   if (!is.null(initialGdxFile)) {
     file.copy(initialGdxFile, file.path(newPaths, "start.gdx"),
-              overwrite = overwrite())
+              overwrite = overwrite)
+    cat("Using", initialGdxFile, "as start.gdx")
   }
+
+
+  ## config ====
+  configFile <- attr(config, "file", exact = TRUE)
+  configFolder <- file.path(newPaths, "config")
+  if (!dir.exists(configFolder)) {
+    dir.create(configFolder)
+  }
+  if (file.exists(configFile)) {
+    file.copy(configFile, configFolder, overwrite = overwrite)
+  }
+  write_yaml(config, file.path(configFolder, "config.yaml"))
+
 }

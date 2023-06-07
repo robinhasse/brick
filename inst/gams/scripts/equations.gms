@@ -308,6 +308,9 @@ q_buildingShellLifeTime(bs,vin,subs,ttot)$(    vinExists(ttot,vin)
             v_renovation(state,bs,hs,vin,subs,ttot2) * p_dt(ttot2)
           )
         )
+      +
+      p_shareRenBSinit(bs,ttot2,ttot)
+      * v_stock(bs,hs,vin,subs,ttot2)$(tinit(ttot2))
     )
   )
 ;
@@ -342,6 +345,9 @@ q_heatingSystemLifeTime(hs,vin,subs,ttot)$(    vinExists(ttot,vin)
             v_renovation(state,bs,hs,vin,subs,ttot2) * p_dt(ttot2)
           )
         )
+      +
+      p_shareRenHSinit(hs,ttot2,ttot)
+      * v_stock(bs,hs,vin,subs,ttot2)$(tinit(ttot2))
     )
   )
 ;

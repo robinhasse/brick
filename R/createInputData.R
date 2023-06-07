@@ -98,11 +98,15 @@ createInputData <- function(path,
     "ttot",
     records = ttotNum,
     description = "all modelling time steps")
+  tinit <- m$addSet(
+    "tinit",
+    records = min(ttotNum),
+    description = "initial modelling time step")
   t <- m$addSet(
     "t",
     records = ttot$getUELs()[which(ttot$getUELs() >= startyear)],
     description = "modelled time steps")
-  thist <- m$addSet(
+  thist <- m$addSet( # nolint: object_usage_linter.
     "thist",
     records = setdiff(ttot$getUELs(), t$getUELs()),
     description = "modelled time steps")
@@ -301,6 +305,24 @@ createInputData <- function(path,
   # cut off Weibull above this value and assume 1 for technology life time
   cutOffShare <- 0.95
 
+  # calculate share of buildings that need to be renovated or demolished between
+  # given time steps assuming a Weibull distribution of thetechnology life time
+  shareRen <- function(tech, ttot2, shape, scale, standingLifetTime = 0) {
+    expandSets(switch(tech, bs = bs, hs = hs), ttot2 = ttot2, ttot) %>%
+      mutate(ttot  = as.numeric(as.character(.data[["ttot"]])),
+             ttot2 = as.numeric(as.character(.data[["ttot2"]]))) %>%
+      left_join(p_dt$records %>%
+                  mutate(ttot_1 = as.numeric(as.character(.data[["ttot_1"]]))) %>%
+                  rename(dt = "value"),
+                by = c(ttot = "ttot_1")) %>%
+      mutate(lifetime = .data[["ttot"]] - .data[["ttot2"]]
+             + .data[["dt"]] / 2 + standingLifetTime,
+             value = pweibull(.data[["lifetime"]], shape, scale),
+             value = ifelse(.data[["value"]] > cutOffShare,
+                            1, .data[["value"]])) %>%
+      select(tech, "ttot2", "ttot", "value")
+  }
+
   ### building ####
   p_shareDem <- expandSets(vin, ttot) %>%
     left_join(vintages, by = "vin") %>%
@@ -314,7 +336,7 @@ createInputData <- function(path,
     group_by(.data[["vin"]]) %>%
     arrange(.data[["ttot"]]) %>%
     mutate(value = c(0, diff(.data[["p"]])) /
-             (1 - lag(.data[["p"]], default = 0) / .data[["dt"]])) %>%
+             (1 - lag(.data[["p"]], default = 0)) / .data[["dt"]]) %>%
     select("vin", "ttot", "value")
   p_shareDem <- m$addParameter(
     "p_shareDem",
@@ -323,42 +345,28 @@ createInputData <- function(path,
     description = "minimum share of demolition at end of life")
 
   ### building shell ####
-  p_shareRenBS <- expandSets(bs, ttot2 = ttot, ttot) %>%
-    mutate(ttot  = as.numeric(as.character(.data[["ttot"]])),
-           ttot2 = as.numeric(as.character(.data[["ttot2"]]))) %>%
-    left_join(p_dt$records %>%
-                mutate(ttot_1 = as.numeric(as.character(.data[["ttot_1"]]))) %>%
-                rename(dt = "value"),
-              by = c(ttot = "ttot_1")) %>%
-    mutate(lifetime = .data[["ttot"]] - .data[["ttot2"]] + .data[["dt"]] / 2,
-           value = pweibull(.data[["lifetime"]], shape = 3, scale = 40),
-           value = ifelse(.data[["value"]] > cutOffShare,
-                          1, .data[["value"]])) %>%
-    select("bs", "ttot2", "ttot", "value")
-  p_shareRenBS <- m$addParameter(
+  p_shareRenBS <- m$addParameter(  # nolint: object_usage_linter.
     "p_shareRenBS",
     c(bs, ttot2, ttot),
-    p_shareRenBS,
+    shareRen("bs", ttot, 3, 40),
     description = "minimum share of renovation from the building shell reaching end of life")
+  p_shareRenBSinit <- m$addParameter( # nolint: object_usage_linter.
+    "p_shareRenBSinit",
+    c(bs, ttot2, ttot),
+    shareRen("bs", tinit, 3, 40, 12),
+    description = "minimum share of renovation from the building shell of initial stock reaching end of life")
 
   ### heating system ####
-  p_shareRenHS <- expandSets(hs, ttot2 = ttot, ttot) %>%
-    mutate(ttot  = as.numeric(as.character(.data[["ttot"]])),
-           ttot2 = as.numeric(as.character(.data[["ttot2"]]))) %>%
-    left_join(p_dt$records %>%
-                mutate(ttot_1 = as.numeric(as.character(.data[["ttot_1"]]))) %>%
-                rename(dt = "value"),
-              by = c(ttot = "ttot_1")) %>%
-    mutate(lifetime = .data[["ttot"]] - .data[["ttot2"]] + .data[["dt"]] / 2,
-           value = pweibull(.data[["lifetime"]], shape = 3, scale = 20),
-           value = ifelse(.data[["value"]] > cutOffShare,
-                          1, .data[["value"]])) %>%
-    select("hs", "ttot2", "ttot", "value")
-  p_shareRenHS <- m$addParameter(
+  p_shareRenHS <- m$addParameter( # nolint: object_usage_linter.
     "p_shareRenHS",
     c(hs, ttot2, ttot),
-    p_shareRenHS,
+    shareRen("hs", ttot, 3, 20),
     description = "minimum share of renovation from the heating system reaching end of life")
+  p_shareRenHSinit <- m$addParameter( # nolint: object_usage_linter.
+    "p_shareRenHSinit",
+    c(hs, ttot2, ttot),
+    shareRen("hs", tinit, 3, 20, 6),
+    description = "minimum share of renovation from the heating system of initial stock reaching end of life")
 
 
   ## other ====
@@ -412,7 +420,7 @@ createInputData <- function(path,
 
   # stock of residential floor space
   p_stockHist <- calcOutput("BuildingStock", subtype = "residential",
-                      aggregate = FALSE) %>%
+                            aggregate = FALSE) %>%
     as.quitte(na.rm = TRUE) %>%
     filter(.data[["variable"]] == "floor",
            .data[["region"]] %in% reg$getUELs(),

@@ -16,6 +16,9 @@ startModel <- function(config = NULL,
                        path = NULL,
                        outputFolder = "output") {
 
+  if (!dir.exists(outputFolder)) {
+    dir.create(outputFolder)
+  }
 
   cfg <- readConfig(config)
   title <- cfg[["title"]]
@@ -25,12 +28,14 @@ startModel <- function(config = NULL,
     path <- file.path(outputFolder, paste0(title, stamp))
   }
 
-  createRunFolder(path)
+  createRunFolder(path, cfg)
 
   createInputData(path, cfg)
 
   runGams(path,
           cfg[["gamsOptions"]],
-          cfg[["switches"]],
+          c(cfg[["switches"]], cfg[c("solverLP", "solverNLP")]),
           gamsCall = cfg[["gamsCall"]])
+
+  plotSummary(path)
 }
