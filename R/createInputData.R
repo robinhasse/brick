@@ -9,6 +9,7 @@
 #'
 #' @param path character vector with folders to write input data into
 #' @param config named list with run configuration
+#' @param brickDir Directory where brick is placed
 #' @param aggregateProblem boolean, should the problem be agregated?
 #' @param overwrite boolean, should existing input.gdx be overwritten?
 #'
@@ -28,6 +29,7 @@
 #'
 createInputData <- function(path,
                             config,
+                            brickDir
                             aggregateProblem = FALSE,
                             overwrite = FALSE) {
 

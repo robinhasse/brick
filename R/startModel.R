@@ -9,28 +9,22 @@
 #'
 #' @param config run configurations
 #' @param path character vector with folders to run the model in
-#' @param outputFolder directory of output folder
+#' @param brickDir Directory of all Brick folders
 #' @export
 #'
-startModel <- function(config = NULL,
-                       path = NULL,
-                       outputFolder = "output") {
-
-  if (!dir.exists(outputFolder)) {
-    dir.create(outputFolder)
-  }
+startModel <- function(config,
+                       path,
+                       brickDir) {
 
   cfg <- readConfig(config)
-  title <- cfg[["title"]]
 
-  if (is.null(path)) {
-    stamp <- format(Sys.time(), "_%Y-%m-%d_%H.%M.%S")
-    path <- file.path(outputFolder, paste0(title, stamp))
+  createInputData(path, cfg, brickDir)
+
+  if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
+    # createMatchingData(path, cfg, references)
+  } else if (cfg[["switches"]][["RUNTYPE"]] == "calibration") {
+    aggregateMatching(path, cfg)
   }
-
-  createRunFolder(path, cfg)
-
-  createInputData(path, cfg)
 
   runGams(path,
           cfg[["gamsOptions"]],
