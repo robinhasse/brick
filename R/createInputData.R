@@ -14,7 +14,6 @@
 #'
 #' @importFrom quitte calc_addVariable
 #' @importFrom tidyr complete pivot_wider replace_na
-#' @importFrom gamstransfer Container
 #' @importFrom stats pweibull
 #' @importFrom utils head
 #' @importFrom dplyr %>% mutate select group_by filter ungroup arrange left_join
@@ -50,12 +49,22 @@ createInputData <- function(path,
 
   ## load madrat input data ====
 
-  inputDir <- loadMadratData(config)
+  loadReturn <- loadMadratData(config)
+  inputDir <- loadReturn[["inputDir"]]
+  regionmapping <- loadReturn[["regionmapping"]]
+
+  missingRegions <- setdiff(config[["regions"]], regionmapping[["RegionCode"]])
+  if (length(missingRegions) > 1) {
+    stop("The regions in your config don't match the region mapping. ",
+         "The following regions are not part of the mapping:\n  ",
+         paste(missingRegions, collapse = c(", ")))
+  }
 
 
   ## create container ====
 
-  m <- Container$new()
+  m <- gamstransfer::Container$new()
+  message("Start input data creation...")
 
 
 
@@ -120,7 +129,7 @@ createInputData <- function(path,
   thist <- m$addSet(
     "thist",
     records = setdiff(ttot$getUELs(), t$getUELs()),
-    description = "modelled time steps"
+    description = "historic time steps"
   )
 
 
@@ -481,16 +490,16 @@ createInputData <- function(path,
 
   # calculate share of buildings that need to be renovated or demolished between
   # given time steps assuming a Weibull distribution of the technology life time
-  shareRen <- function(ttot2, params, standingLifetTime = 0) {
+  shareRen <- function(ttot2, params, standingLifeTime = 0) {
 
     expandSets(ttot2 = ttot2, ttot) %>%
       left_join(readSymbol(p_dt) %>%
                   rename(dt = "value"),
-                by = c(ttot = "ttot")) %>%
+                by = c(ttot2 = "ttot")) %>%
       cross_join(params) %>%
       pivot_wider(names_from = "variable") %>%
       mutate(lt = .data[["ttot"]] - .data[["ttot2"]]
-             + .data[["dt"]] / 2 + standingLifetTime,
+             + .data[["dt"]] / 2 + standingLifeTime,
              value = pweibull(.data[["lt"]], .data[["shape"]], .data[["scale"]]),
              value = ifelse(.data[["value"]] > cutOffShare,
                             1, .data[["value"]])) %>%
@@ -717,5 +726,6 @@ createInputData <- function(path,
   # WRITE GDX ------------------------------------------------------------------
 
   m$write(inputFilePath, compress = TRUE)
+  message("  ... done.")
 
 }

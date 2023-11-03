@@ -35,7 +35,7 @@ loadMadratData <- function(config) {
          "character vector of length 2, not ", class(regionmapping), ".")
   }
 
-  regionmapping <- toolGetMapping(name, "regional", where, returnPathOnly = TRUE)
+  regionmapping <- toolGetMapping(name, "regional", where)
 
 
 
@@ -85,5 +85,6 @@ loadMadratData <- function(config) {
             "delete input/source_files.log or set forceDownload to TRUE.")
   }
 
-  return(inputDir)
+  return(list(inputDir = inputDir,
+              regionmapping = regionmapping))
 }

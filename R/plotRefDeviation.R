@@ -4,7 +4,6 @@
 #'
 #' @author Robin Hasse
 #'
-#' @importFrom gamstransfer Container
 #' @importFrom dplyr mutate left_join case_when full_join
 #' @importFrom ggplot2 ggplot geom_tile facet_wrap aes theme_minimal theme
 #'   element_blank geom_text scale_x_discrete scale_y_discrete scale_fill_manual
@@ -28,7 +27,7 @@ plotRefDeviation <- function(path) {
     return(NULL)
   }
 
-  m <- Container$new(gdx)
+  m <- gamstransfer::Container$new(gdx)
 
   refs <- readSymbol(m, "r") %>%
     getElement("ref") %>%

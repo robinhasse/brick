@@ -8,6 +8,7 @@
 copyGamsFiles <- function(path, overwrite = FALSE) {
 
   gamsFiles <- file.path(brick.file("gams"), ".")
+  message("Copy gams files from ", gamsFiles)
   file.copy(gamsFiles, path, recursive = TRUE, overwrite = overwrite)
 
 }

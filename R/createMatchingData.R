@@ -7,7 +7,6 @@
 #' @param refs named list of matching references
 #' @param overwrite logical, should existing data be overwritten?
 #'
-#' @importFrom gamstransfer Container
 #' @importFrom madrat calcOutput toolGetMapping
 #' @importFrom quitte as.quitte
 #' @importFrom tidyr matches
@@ -32,7 +31,7 @@ createMatchingData <- function(path, config, refs, overwrite = FALSE) {
   regions <- config[["regions"]]
   periods <- config[["periods"]]
 
-  m <- Container$new()
+  m <- gamstransfer::Container$new()
 
 
 

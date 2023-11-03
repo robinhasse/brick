@@ -9,7 +9,6 @@
 #' @author Robin Hasse
 #'
 #' @importFrom quitte revalue.levels
-#' @importFrom gamstransfer Container
 #' @importFrom tidyr replace_na unite
 #' @importFrom dplyr row_number n bind_rows any_of group_by across mutate filter
 #'   arrange select left_join rename .data %>% bind_rows summarise
@@ -47,7 +46,7 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE) {
 
   # READ DATA ------------------------------------------------------------------
 
-  m <- Container$new(gdx)
+  m <- gamstransfer::Container$new(gdx)
 
 
   dt <- readSymbol(m, "p_dt") %>%

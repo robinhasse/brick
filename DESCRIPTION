@@ -3,7 +3,7 @@ Package: brick
 Title: Building sector model with heterogeuous renovation and construction of
     the stock
 Version: 0.1.0
-Date: 2023-11-01
+Date: 2023-11-03
 Authors@R:
     person("Robin", "Hasse", , "robin.hasse@pik-potsdam.de",
            role = c("aut", "cre"),
@@ -26,7 +26,6 @@ Depends:
     magclass
 Imports:
     dplyr,
-    gamstransfer,
     ggplot2,
     gms (>= 0.26.0),
     pkgload,
@@ -38,6 +37,7 @@ Imports:
     yaml
 Suggests:
     covr,
+    gamstransfer,
     testthat
 Encoding: UTF-8
 RoxygenNote: 7.2.3
