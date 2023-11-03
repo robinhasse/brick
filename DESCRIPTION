@@ -2,7 +2,7 @@ Type: Package
 Package: brick
 Title: Building sector model with heterogeuous renovation and construction of
     the stock
-Version: 0.1.0
+Version: 0.1.1
 Date: 2023-11-03
 Authors@R:
     person("Robin", "Hasse", , "robin.hasse@pik-potsdam.de",
