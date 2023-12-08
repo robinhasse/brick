@@ -8,7 +8,7 @@
 #' @importFrom madrat toolGetMapping regionscode getConfig
 #' @importFrom gms download_distribute
 
-loadMadratData <- function(config) {
+loadMadratData <- function(config, brickDir) {
 
 
   # find region mapping --------------------------------------------------------
@@ -22,6 +22,7 @@ loadMadratData <- function(config) {
   } else if (is.character(regionmapping)) {
     name <- regionmapping[1]
     if (length(regionmapping) == 1) {
+      name <- file.path(brickDir, name)
       where <- "local"
     } else if (length(regionmapping) == 2) {
       where <- regionmapping[2]

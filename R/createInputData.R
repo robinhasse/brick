@@ -49,7 +49,7 @@ createInputData <- function(path,
 
   ## load madrat input data ====
 
-  loadReturn <- loadMadratData(config)
+  loadReturn <- loadMadratData(config, brickDir)
   inputDir <- loadReturn[["inputDir"]]
   regionmapping <- loadReturn[["regionmapping"]]
 

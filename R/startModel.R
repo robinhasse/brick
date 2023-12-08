@@ -21,7 +21,7 @@ startModel <- function(config,
   createInputData(path, cfg, brickDir)
 
   if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
-    # createMatchingData(path, cfg, references)
+    createMatchingData(path, cfg, references)
   } else if (cfg[["switches"]][["RUNTYPE"]] == "calibration") {
     aggregateMatching(path, cfg)
   }
