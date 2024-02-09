@@ -28,8 +28,14 @@ startModel <- function(config,
 
   runGams(path,
           cfg[["gamsOptions"]],
-          c(cfg[["switches"]], cfg[c("solverLP", "solverNLP")]),
+          c(cfg[["switches"]], cfg[c("solverLP", "solverNLP", "solverQCP",
+                                     "ignoreShell")]),
           gamsCall = cfg[["gamsCall"]])
 
-  plotSummary(path)
+  plotSummary(path, NULL, showHistStock = cfg[["switches"]][["RUNTYPE"]] %in% c("calibration", "matching") ||
+                cfg[["title"]] == "iamc_base")
+
+  if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
+    plotRefDeviation(path)
+  }
 }

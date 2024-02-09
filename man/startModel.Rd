@@ -4,7 +4,7 @@
 \alias{startModel}
 \title{Start the model}
 \usage{
-startModel(config = NULL, path = NULL, outputFolder = "output")
+startModel(config = NULL, path = NULL, outputFolder = NULL, references = NULL)
 }
 \arguments{
 \item{config}{run configurations}
@@ -12,6 +12,8 @@ startModel(config = NULL, path = NULL, outputFolder = "output")
 \item{path}{character vector with folders to run the model in}
 
 \item{outputFolder}{directory of output folder}
+
+\item{references}{named list of matching references}
 }
 \description{
 Run the model with given configuration.
