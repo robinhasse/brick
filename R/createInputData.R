@@ -22,6 +22,7 @@
 
 createInputData <- function(path,
                             config,
+                            brickDir,
                             overwrite = FALSE) {
 
 

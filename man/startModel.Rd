@@ -4,14 +4,14 @@
 \alias{startModel}
 \title{Start the model}
 \usage{
-startModel(config = NULL, path = NULL, outputFolder = NULL, references = NULL)
+startModel(config, path, brickDir, references)
 }
 \arguments{
 \item{config}{run configurations}
 
 \item{path}{character vector with folders to run the model in}
 
-\item{outputFolder}{directory of output folder}
+\item{brickDir}{Directory of all Brick folders}
 
 \item{references}{named list of matching references}
 }

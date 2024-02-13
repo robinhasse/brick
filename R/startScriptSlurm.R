@@ -27,5 +27,6 @@ if (sys.nframe() == 0L) {
     message(paste("This is a development run. Loading brick from local folder", brickDir))
   }
 
-  brick::startModel(config = config, path = path, brickDir = brickDir)
+  # References to null is a patch to make this lintr warning free. Need a proper solution.
+  brick::startModel(config = config, path = path, brickDir = brickDir, references = NULL)
 }

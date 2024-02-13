@@ -4,10 +4,12 @@
 \alias{loadMadratData}
 \title{Load Input data from mredgebuildings}
 \usage{
-loadMadratData(config)
+loadMadratData(config, brickDir)
 }
 \arguments{
 \item{config}{named list with run configuration}
+
+\item{brickDir}{character, path to directory of the brick installation used}
 }
 \value{
 directory of input folder

@@ -43,9 +43,10 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE) {
   }
 
 
+
   # READ DATA ------------------------------------------------------------------
 
-  # READ DATA ----
+  m <- gamstransfer::Container$new(gdx)
 
 
   dt <- readSymbol(m, "p_dt") %>%

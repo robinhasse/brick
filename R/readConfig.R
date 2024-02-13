@@ -35,13 +35,13 @@ readConfig <- function(config = NULL, basisOf = NULL, readDirect = FALSE) {
     return(readCfg(config))
   } else {
 
-    configFolder <- file.path("inst", "config")
+    configFolder <- brick.file("config")
     defaultCfgPath <- file.path(configFolder, "default.yaml")
 
     if (!file.exists(defaultCfgPath)) {
       stop("Default config ", defaultCfgPath, " does not exist.")
     }
-      
+
     # use default.yaml by default
     if (is.null(config)) {
       if (is.null(basisOf)) {
@@ -65,12 +65,12 @@ readConfig <- function(config = NULL, basisOf = NULL, readDirect = FALSE) {
           }
         } else {
           stop("Be more specific! There is more than one matching config file:\n  ",
-              paste(matchingFiles, collapse = "\n  "))
+               paste(matchingFiles, collapse = "\n  "))
         }
       }
     } else {
       stop("'config' has to be a character object pointing to a config file, ",
-          "not a ", class(config))
+           "not a ", class(config))
     }
 
     # interrupt circle dependenncy
@@ -105,14 +105,14 @@ readConfig <- function(config = NULL, basisOf = NULL, readDirect = FALSE) {
       }
       out <- list()
       for (key in names(x)) {
-        out[[key]] <- if (key %in% names(y)) {
+        if (key %in% names(y)) {
           if (is.list(x[[key]])) {
             if (length(x[[key]]) > 0) {
               if (is.list(y[[key]])) {
                 out[[key]] <- overwriteList(x[[key]], y[[key]])
               } else {
                 stop("For the key '", key, "', your config has only one value ",
-                    "but there is a list in the default config ", defaultCfgPath)
+                     "but there is a list in the default config ", defaultCfgPath)
               }
             } else {
               if (is.list(y[[key]]) || length(y[[key]] > 1)) {
@@ -121,8 +121,8 @@ readConfig <- function(config = NULL, basisOf = NULL, readDirect = FALSE) {
                 out[key] <- list(NULL)
               } else {
                 stop("For the key '", key, "', your config has a single value ",
-                    "where it should have either a list or NULL as there is an ",
-                    "empty list in the default config ", defaultCfgPath)
+                     "where it should have either a list or NULL as there is an ",
+                     "empty list in the default config ", defaultCfgPath)
               }
             }
           } else {
@@ -130,8 +130,8 @@ readConfig <- function(config = NULL, basisOf = NULL, readDirect = FALSE) {
               out[key] <- list(NULL)
             } else if (is.list(y[[key]])) {
               stop("For the key '", key, "', your config has a list of values ",
-                  "but there is just one value in the default config ",
-                  defaultCfgPath)
+                   "but there is just one value in the default config ",
+                   defaultCfgPath)
             } else {
               out[[key]] <- y[[key]]
             }
@@ -162,7 +162,6 @@ readConfig <- function(config = NULL, basisOf = NULL, readDirect = FALSE) {
     } else {
       stop("Don't give more than one other config that this config is based on.")
     }
-
     # read base config and overwrite it with given config
     basedOnCfg <- readConfig(basedOn, customCfgPath)
     cfg <- overwriteList(basedOnCfg, customCfg)

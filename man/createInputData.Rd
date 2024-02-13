@@ -4,12 +4,14 @@
 \alias{createInputData}
 \title{Create input data}
 \usage{
-createInputData(path, config, overwrite = FALSE)
+createInputData(path, config, brickDir, overwrite = FALSE)
 }
 \arguments{
 \item{path}{character vector with folders to write input data into}
 
 \item{config}{named list with run configuration}
+
+\item{brickDir}{character, path to directory of the brick installation used}
 
 \item{overwrite}{logical, should existing input.gdx be overwritten?}
 }
