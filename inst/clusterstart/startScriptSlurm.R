@@ -28,5 +28,5 @@ if (sys.nframe() == 0L) {
   }
 
   # References to null is a patch to make this lintr warning free. Need a proper solution.
-  brick::startModel(config = config, path = path, brickDir = brickDir, references = NULL)
+  brick::startModel(config = config, path = path, references = NULL)
 }

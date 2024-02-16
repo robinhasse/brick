@@ -9,18 +9,16 @@
 #'
 #' @param config run configurations
 #' @param path character vector with folders to run the model in
-#' @param brickDir Directory of all Brick folders
 #' @param references named list of matching references
 #' @export
 #'
 startModel <- function(config,
                        path,
-                       brickDir,
                        references) {
 
   cfg <- readConfig(config, readDirect = TRUE)
 
-  createInputData(path, cfg, brickDir)
+  createInputData(path, cfg)
 
   if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
     createMatchingData(path, cfg, references)

@@ -4,7 +4,7 @@ type: software
 title: |-
   brick: Building sector model with heterogeuous renovation and construction of
       the stock
-version: 0.1.3.9002
+version: 0.1.3.9004
 date-released: '2024-02-16'
 abstract: This building stock model represents residential and commercial buildings
   at customisable regional and temporal resolution. The building stock is quantified

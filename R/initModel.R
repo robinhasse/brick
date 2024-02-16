@@ -44,14 +44,14 @@ initModel <- function(config = NULL,
 
   copyHistoryGdx(path, cfg)
 
-  brickDir <- find.package("brick")
-
   if (!sendToSlurm) {
     config <- file.path(path, "config", "config.yaml")
-    startModel(config, path, brickDir)
+    startModel(config, path)
   } else {
+    brickDir <- find.package("brick")
+
     isDev <- as.character(is_dev_package("brick"))
-    slurmScriptPath <- file.path(brickDir, "R", "startScriptSlurm.R")
+    slurmScriptPath <- file.path(brick.file("clusterstart"), "startScriptSlurm.R")
     logFilePath <- file.path(path, "log.txt")
     slurmConfig <- setSlurmConfig(slurmQOS = slurmQOS, tasks32 = tasks32)
 

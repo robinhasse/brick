@@ -3,13 +3,12 @@
 #' @author Robin Hasse
 #'
 #' @param config named list with run configuration
-#' @param brickDir character, path to directory of the brick installation used
 #' @returns directory of input folder
 #'
 #' @importFrom madrat toolGetMapping regionscode getConfig
 #' @importFrom gms download_distribute
 
-loadMadratData <- function(config, brickDir) {
+loadMadratData <- function(config) {
 
 
   # find region mapping --------------------------------------------------------
@@ -23,7 +22,7 @@ loadMadratData <- function(config, brickDir) {
   } else if (is.character(regionmapping)) {
     name <- regionmapping[1]
     if (length(regionmapping) == 1) {
-      name <- file.path(brickDir, name)
+      name <- brick.file(name)
       where <- "local"
     } else if (length(regionmapping) == 2) {
       where <- regionmapping[2]

@@ -10,7 +10,6 @@
 #'
 #' @param path character vector with folders to write input data into
 #' @param config named list with run configuration
-#' @param brickDir character, path to directory of the brick installation used
 #' @param overwrite logical, should existing input.gdx be overwritten?
 #'
 #' @importFrom quitte calc_addVariable
@@ -22,7 +21,6 @@
 
 createInputData <- function(path,
                             config,
-                            brickDir,
                             overwrite = FALSE) {
 
 
@@ -51,7 +49,7 @@ createInputData <- function(path,
 
   ## load madrat input data ====
 
-  loadReturn <- loadMadratData(config, brickDir)
+  loadReturn <- loadMadratData(config)
   inputDir <- loadReturn[["inputDir"]]
   regionmapping <- loadReturn[["regionmapping"]]
 
@@ -351,7 +349,7 @@ createInputData <- function(path,
               by = c("bs", "hs", "reg", "typ", "ttot"))
   p_specCostConIntang <- p_specCostCon %>%
     filter(.data[["cost"]] == "intangible") %>%
-    addAssump("inst/assump/costIntangCon.csv")
+    addAssump(brick.file("assump/costIntangCon.csv"))
   p_specCostCon <- rbind(p_specCostConTang, p_specCostConIntang)
   p_specCostCon <- m$addParameter(
     "p_specCostCon",
@@ -373,7 +371,7 @@ createInputData <- function(path,
               by = c("ttot", "reg", "bs", "hs", "bsr", "hsr", "typ", "vin"))
   p_specCostRenIntang <- p_specCostRen %>%
     filter(.data[["cost"]] == "intangible") %>%
-    addAssump("inst/assump/costIntangRen.csv")
+    addAssump(brick.file("assump/costIntangRen.csv"))
   p_specCostRen <- rbind(p_specCostRenTang, p_specCostRenIntang)
   p_specCostRen <- m$addParameter(
     "p_specCostRen",
