@@ -51,11 +51,8 @@ initModel <- function(config = NULL,
     startModel(config, path, brickDir)
   } else {
     isDev <- as.character(is_dev_package("brick"))
-    slurmScriptPath <- file.path("R", "startScriptSlurm.R")
-    file.copy(slurmScriptPath, path)
-
+    slurmScriptPath <- file.path(brickDir, "R", "startScriptSlurm.R")
     logFilePath <- file.path(path, "log.txt")
-    slurmScriptRun <- file.path(path, "startScriptSlurm.R")
     slurmConfig <- setSlurmConfig(slurmQOS = slurmQOS, tasks32 = tasks32)
 
     exitCode <- system(paste0("sbatch --job-name=",
@@ -64,7 +61,7 @@ initModel <- function(config = NULL,
                               " --mail-type=END",
                               " --comment=BRICK",
                               " --wrap=\"",
-                              paste("Rscript", slurmScriptRun, path, brickDir, isDev),
+                              paste("Rscript", slurmScriptPath, path, brickDir, isDev),
                               "\" ",
                               slurmConfig))
     Sys.sleep(1)
