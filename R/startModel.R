@@ -18,12 +18,18 @@ startModel <- function(config,
 
   cfg <- readConfig(config, readDirect = TRUE)
 
-  createInputData(path, cfg)
+  restart <- read.csv2(file.path(path, "restartOptions.csv"))[["restart"]]
 
-  if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
-    createMatchingData(path, cfg, references)
-  } else if (cfg[["switches"]][["RUNTYPE"]] == "calibration") {
-    aggregateMatching(path, cfg)
+  if (is.null(restart) || "crInp" %in% restart) {
+    createInputData(path, cfg, overwrite = !is.null(restart))
+  }
+
+  if (is.null(restart) || "crMatch" %in% restart) {
+    if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
+      createMatchingData(path, cfg, references, overwrite = !is.null(restart))
+    } else if (cfg[["switches"]][["RUNTYPE"]] == "calibration") {
+      aggregateMatching(path, cfg, overwrite = !is.null(restart))
+    }
   }
 
   runGams(path,

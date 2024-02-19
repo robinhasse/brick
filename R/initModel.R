@@ -11,6 +11,12 @@
 #' @param path character vector with folders to run the model in
 #' @param outputFolder directory of output folder
 #' @param references named list of matching references
+#' @param restart character vector of elements to be restarted.
+#' Allowed elements are:
+#'  "cpGms" to recopy the Gams scripts (necessary if changes were made in Gams code)
+#'  "crInp" to recreate input data,
+#'  "crMatch" to either recreate the matching data or reaggregate the matching
+#'  "none" (or any other string) to do none of the above
 #' @param sendToSlurm boolean whether or not the run should be started via SLURM
 #' @param slurmQOS character, slurm QOS to be used
 #' @param tasks32 boolean whether or not the SLURM run should be with 32 tasks
@@ -20,6 +26,7 @@ initModel <- function(config = NULL,
                       path = NULL,
                       outputFolder = "output",
                       references = NULL,
+                      restart = NULL,
                       sendToSlurm = TRUE,
                       slurmQOS = "default",
                       tasks32 = FALSE) {
@@ -36,9 +43,27 @@ initModel <- function(config = NULL,
     path <- file.path(outputFolder, paste0(title, stamp))
   }
 
-  createRunFolder(path, cfg)
+  # Check if the given path already exists
+  if (file.exists(path)) {
+    message("Given path already exists. Restarting on this path.")
+    if (is.null(restart)) {
+      message("No restart options were specified.",
+              "Default options are applied: Recreating input data and recreate/reaggregate matching.")
+      restart <- c("crInp", "crMatch")
+    }
+    write.csv2(data.frame(restart = restart), file.path(path, "restartOptions.csv"))
+  } else {
+    if (!is.null(restart)) {
+      message("Restart options were given, but no existing path was specified. Starting a new run.")
+      restart <- NULL
+    }
+    createRunFolder(path, cfg)
+  }
 
-  copyGamsFiles(path)
+  # Copy gams files if this is not a restart run or if this is specified in restart parameters
+  if (is.null(restart) || "cpGms" %in% restart) {
+    copyGamsFiles(path, overwrite = !is.null(restart))
+  }
 
   copyInitialGdx(path, cfg)
 

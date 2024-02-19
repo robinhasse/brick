@@ -9,6 +9,7 @@ initModel(
   path = NULL,
   outputFolder = "output",
   references = NULL,
+  restart = NULL,
   sendToSlurm = TRUE,
   slurmQOS = "default",
   tasks32 = FALSE
@@ -22,6 +23,13 @@ initModel(
 \item{outputFolder}{directory of output folder}
 
 \item{references}{named list of matching references}
+
+\item{restart}{character vector of elements to be restarted.
+Allowed elements are:
+ "cpGms" to recopy the Gams scripts (necessary if changes were made in Gams code)
+ "crInp" to recreate input data,
+ "crMatch" to either recreate the matching data or reaggregate the matching
+ "none" (or any other string) to do none of the above}
 
 \item{sendToSlurm}{boolean whether or not the run should be started via SLURM}
 
