@@ -22,7 +22,7 @@ initModel(
 
 \item{outputFolder}{directory of output folder}
 
-\item{references}{named list of matching references}
+\item{references}{named character vector of matching references}
 
 \item{restart}{character vector of elements to be restarted.
 Allowed elements are:

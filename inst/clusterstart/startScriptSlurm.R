@@ -20,7 +20,7 @@ if (sys.nframe() == 0L) {
   config <- file.path(path, "config", "config.yaml")
   brickDir <- argsCL[2]
 
-  # NEVER move this out of the if-clause to avoid recursive loading of brick. Or move the file outside the R folder.
+  # If we are in developing mode: load brick via devtools
   isDev <- as.logical(argsCL[3])
   if (isDev) {
     devtools::load_all(brickDir)
@@ -28,5 +28,5 @@ if (sys.nframe() == 0L) {
   }
 
   # References to null is a patch to make this lintr warning free. Need a proper solution.
-  brick::startModel(config = config, path = path, references = NULL)
+  brick::startModel(config = config, path = path)
 }

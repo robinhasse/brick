@@ -1,7 +1,8 @@
-ValidationKey: '2747970076'
+ValidationKey: '395460'
 AutocreateReadme: yes
 AcceptedWarnings:
 - 'Warning: package ''.*'' was built under R version'
 - 'Warning: namespace ''.*'' is not available and has been replaced'
 AcceptedNotes: 'Package suggested but not available for checking: .gamstransfer.'
 allowLinterWarnings: no
+enforceVersionUpdate: no

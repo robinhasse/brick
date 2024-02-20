@@ -10,7 +10,7 @@
 #' @param config run configurations
 #' @param path character vector with folders to run the model in
 #' @param outputFolder directory of output folder
-#' @param references named list of matching references
+#' @param references named character vector of matching references
 #' @param restart character vector of elements to be restarted.
 #' Allowed elements are:
 #'  "cpGms" to recopy the Gams scripts (necessary if changes were made in Gams code)
@@ -21,6 +21,7 @@
 #' @param slurmQOS character, slurm QOS to be used
 #' @param tasks32 boolean whether or not the SLURM run should be with 32 tasks
 #' @importFrom pkgload is_dev_package
+#' @importFrom utils write.csv2
 #' @export
 initModel <- function(config = NULL,
                       path = NULL,
@@ -69,6 +70,11 @@ initModel <- function(config = NULL,
 
   copyHistoryGdx(path, cfg)
 
+  # In matching run: Save references to csv
+  if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
+    write.csv2(data.frame(references), file.path(path, "references.csv"))
+  }
+
   if (!sendToSlurm) {
     config <- file.path(path, "config", "config.yaml")
     startModel(config, path)
@@ -92,7 +98,7 @@ initModel <- function(config = NULL,
     Sys.sleep(1)
 
     if (exitCode > 0) {
-      print("Executing initModel failed.")
+      message("Executing initModel failed.")
     }
   }
 }

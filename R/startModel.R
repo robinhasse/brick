@@ -9,16 +9,18 @@
 #'
 #' @param config run configurations
 #' @param path character vector with folders to run the model in
-#' @param references named list of matching references
 #' @export
 #'
 startModel <- function(config,
-                       path,
-                       references) {
+                       path) {
 
   cfg <- readConfig(config, readDirect = TRUE)
 
-  restart <- read.csv2(file.path(path, "restartOptions.csv"))[["restart"]]
+  if (file.exists(file.path(path, "restartOptions.csv"))) {
+    restart <- read.csv2(file.path(path, "restartOptions.csv"))[["restart"]]
+  } else {
+    restart <- NULL
+  }
 
   if (is.null(restart) || "crInp" %in% restart) {
     createInputData(path, cfg, overwrite = !is.null(restart))
@@ -26,7 +28,7 @@ startModel <- function(config,
 
   if (is.null(restart) || "crMatch" %in% restart) {
     if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
-      createMatchingData(path, cfg, references, overwrite = !is.null(restart))
+      createMatchingData(path, cfg, overwrite = !is.null(restart))
     } else if (cfg[["switches"]][["RUNTYPE"]] == "calibration") {
       aggregateMatching(path, cfg, overwrite = !is.null(restart))
     }
