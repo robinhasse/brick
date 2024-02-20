@@ -38,6 +38,7 @@ Imports:
 Suggests:
     covr,
     gamstransfer,
+    devtools,
     testthat
 Encoding: UTF-8
 RoxygenNote: 7.3.1
