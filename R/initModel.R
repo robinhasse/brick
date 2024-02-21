@@ -45,17 +45,19 @@ initModel <- function(config = NULL,
   if (!is.null(path) && file.exists(path)) {
     message("Given path already exists. Restarting on this path.")
     if (is.null(restart)) {
-      message("No restart options were specified.",
+      message("No restart options were specified. ",
               "Default options are applied: Recreating input data and recreate/reaggregate matching.")
       restart <- c("crInp", "crMatch")
     }
     write.csv2(data.frame(restart = restart), file.path(path, "config", "restartOptions.csv"))
 
     if (!is.null(config)) {
-      warning("You passed a config in a restart run.",
+      warning("You passed a config in a restart run. ",
               "This config will be ignored and the existing config in 'config/config.yaml' will be used.")
     }
+
     cfg <- readConfig(file.path(path, "config", "config.yaml"))
+    title <- cfg[["title"]]
   } else {
     if (!is.null(restart)) {
       message("Restart options were given, but no existing path was specified. Starting a new run.")

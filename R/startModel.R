@@ -8,14 +8,16 @@
 #' @author Robin Hasse
 #'
 #' @param path character vector with folders to run the model in
+#'
+#' @importFrom utils read.csv2
 #' @export
 #'
 startModel <- function(path) {
 
   cfg <- readConfig(file.path(path, "config", "config.yaml"), readDirect = TRUE)
 
-  if (file.exists(file.path(path, "restartOptions.csv"))) {
-    restart <- read.csv2(file.path(path, "restartOptions.csv"))[["restart"]]
+  if (file.exists(file.path(path, "config", "restartOptions.csv"))) {
+    restart <- read.csv2(file.path(path, "config", "restartOptions.csv"))[["restart"]]
   } else {
     restart <- NULL
   }

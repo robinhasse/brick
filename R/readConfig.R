@@ -33,7 +33,7 @@ readConfig <- function(config = NULL, basisOf = NULL, readDirect = FALSE) {
   # Directly read the file in the given config file path - used after the final config has already been compiled
   if (readDirect) {
     if (!file.exists(config)) {
-      stop("The config", config, "that was called to be read directly does not exist.",
+      stop("The config", config, "that was called to be read directly does not exist. ",
            "If this is a restart run, your folder to restart in likely misses the config file.")
     }
     return(readCfg(config))
