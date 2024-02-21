@@ -12,13 +12,13 @@
 #'
 #' @importFrom quitte revalue.levels
 #' @importFrom tidyr replace_na unite
+#' @importFrom scales gradient_n_pal brewer_pal
 #' @importFrom dplyr row_number n bind_rows any_of group_by across mutate filter
 #'   arrange select left_join rename .data %>% bind_rows summarise
-#' @importFrom scales gradient_n_pal brewer_pal
-#' @importFrom ggplot2 ggplot geom_col geom_area aes_string scale_x_continuous
-#'   scale_y_continuous ggtitle theme_classic theme aes geom_line facet_wrap
-#'   element_blank element_line scale_fill_manual labs position_stack geom_hline
-#'   expand_limits ggsave geom_point facet_grid margin unit scale_alpha_manual
+#' @importFrom ggplot2 ggplot geom_col geom_area scale_x_continuous expansion
+#'   scale_y_continuous theme_classic theme aes geom_line scale_alpha_manual
+#'   element_blank element_line scale_fill_manual labs geom_hline ggsave unit
+#'   facet_grid
 #' @export
 
 plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
@@ -72,6 +72,13 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
   data <- lapply(vars, function(v) {
     var <- readSymbol(m, v)
 
+    if (showHistStock && v == "v_stock") {
+      var[["historic"]] <- FALSE
+      var <- readSymbol(m, "p_stockHist") %>%
+        mutate(historic = TRUE) %>%
+        rbind(var)
+    }
+
     if (is.null(facet)) {
       var[["facet"]] <- "all"
     } else {
@@ -88,7 +95,7 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
                  ifelse(as.character(.data[["bs"]]) == as.character(.data[["bsr"]]),
                         "bs", "")))
       if (!splitRen) {
-        var[["tranparent"]] <- ""
+        var[["transparent"]] <- ""
       }
 
       var <- rbind(
@@ -152,7 +159,7 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
   addTheme <- function(p, yLabel, fillDim) {
     pOut <- p +
       scale_y_continuous(yLabel, expand = c(0, 0)) +
-      scale_x_continuous(expand = c(0, 1, 0, 1)) +
+      scale_x_continuous(expand = expansion(add = c(0.5, 1))) +
       theme_classic() +
       theme(strip.background = element_blank(),
             panel.grid.major.y = element_line(colour = "grey", linewidth = .25),
@@ -186,10 +193,11 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
       }
 
       d <- d %>%
-        group_by(across(any_of(c("facet", fillDim, "ttot", "renovation",
+        group_by(across(any_of(c("facet", fillDim, "ttot", "renovation", "historic",
                                  "transparent")))) %>%
         summarise(value = sum(.data[["value"]], na.rm = TRUE),
                   .groups = "drop")  %>%
+        filter(.data[["value"]] != 0) %>%
         mutate(quantity = v)
 
       return(d)
@@ -200,9 +208,11 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
     pData <- pData %>%
       left_join(dt, by = "ttot") %>%
       mutate(width = ifelse(.data[["quantity"]] == "Stock",
-                            1.5, 0.9 * .data[["dt"]]),
+                            if (showHistStock) 0.75 else 1.5,
+                            0.9 * .data[["dt"]]),
              pos = .data[["ttot"]] - ifelse(.data[["quantity"]] == "Stock",
-                                            0, 0.5 * .data[["dt"]]),
+                                            if (showHistStock) ifelse(.data[["historic"]], -0.4, 0.4) else 0,
+                                            0.5 * .data[["dt"]]),
              quantity = factor(.data[["quantity"]], names(vars)),
              value = .data[["value"]] / 1000) # million to billion
 
@@ -225,7 +235,7 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
       summarise(value = sum(.data[["value"]]), .groups = "drop") %>%
       group_by(across(all_of(c("quantity")))) %>%
       summarise(value = max(.data[["value"]]), .groups = "drop") %>%
-      mutate(pos = min(pData[["ttot"]]) - dt[1, "dt"] / 2,
+      mutate(pos = min(pData[["ttot"]]) - dt[1, "dt"] / 3,
              facet = head(pData[["facet"]], 1))
 
 
@@ -254,7 +264,7 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
       dir.create(plotDir)
     }
     plotFile <- file.path(plotDir, paste0(paste("summary", paste(facet, collapse = "_"), fillDim, sep = "_"), ".png"))
-    ggsave(plotFile, p, height = 14.6 / 2.54, width = 25 / 2.54, dpi = 300)
+    ggsave(plotFile, p, height = 17 / 2.54, width = 25 / 2.54, dpi = 300)
 
   }
 
