@@ -51,7 +51,7 @@ p_calibDeviationRen(iteration,bs,hs,bsr,hsr,vin,reg,loc,typ,inc,ttot) "Ratio of 
 scalars
 t0 "reference year for discounting"
 
-epsilon "offset to avoid log(0)" /1E-4/
+epsilon "offset to avoid log(0)" /1E-5/
 
 priceSensBS "price sensitivity of building shell choice" /5E-2/
 priceSensHS "price sensitivity of heating system choice" /1E-1/
@@ -70,11 +70,12 @@ v_refDeviationTot          "total weighted squared deviation of quantities from 
 v_refDeviationVar(ref,refVar,reg,ttot) "deviation from each variable in reference sources"
 v_matchingObj              "matching objective: reference deviation and flow variation"
 $endif.matching
+
+v_ConCost(reg,loc,typ,inc,ttot) "construction cost cash flow in EUR/yr"
+v_RenCost(reg,loc,typ,inc,ttot) "renovation cost cash flow in EUR/yr"
 ;
 
 positive variables
-v_ConCost(reg,loc,typ,inc,ttot) "construction cost cash flow in EUR/yr"
-v_RenCost(reg,loc,typ,inc,ttot) "renovation cost cash flow in EUR/yr"
 v_OpeCost(reg,loc,typ,inc,ttot) "operational cost cash flow in EUR/yr"
 v_DemCost(reg,loc,typ,inc,ttot) "demolition cost cash flow in EUR/yr"
 

@@ -5,8 +5,8 @@
 #' @param path character, path to the run
 #' @param facet character, dimension to resolve as facets
 #' @param showHistStock logical, show given historic next to the modeled stock
-#' @param showHistStock logical, plot renovation with identical replacement
-#'   transparent
+#' @param splitRen logical, plot renovation with identical replacement
+#'   semi-transparent
 #'
 #' @author Robin Hasse
 #'
@@ -90,10 +90,11 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
       # mark identical replacement of heating systems and building shell
       var <- var %>%
         mutate(transparent = paste0(
-                 ifelse(as.character(.data[["hs"]]) == as.character(.data[["hsr"]]),
-                        "hs", ""),
-                 ifelse(as.character(.data[["bs"]]) == as.character(.data[["bsr"]]),
-                        "bs", "")))
+          ifelse(as.character(.data[["hs"]]) == as.character(.data[["hsr"]]),
+                 "hs", ""),
+          ifelse(as.character(.data[["bs"]]) == as.character(.data[["bsr"]]),
+                 "bs", "")
+        ))
       if (!splitRen) {
         var[["transparent"]] <- ""
       }

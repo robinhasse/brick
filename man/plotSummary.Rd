@@ -11,8 +11,10 @@ plotSummary(path, facet = "typ", showHistStock = FALSE, splitRen = FALSE)
 
 \item{facet}{character, dimension to resolve as facets}
 
-\item{showHistStock}{logical, plot renovation with identical replacement
-transparent}
+\item{showHistStock}{logical, show given historic next to the modeled stock}
+
+\item{splitRen}{logical, plot renovation with identical replacement
+semi-transparent}
 }
 \description{
 Plot an overview of the stock and flows
