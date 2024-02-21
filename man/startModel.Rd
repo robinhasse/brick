@@ -4,11 +4,9 @@
 \alias{startModel}
 \title{Start the model}
 \usage{
-startModel(config, path)
+startModel(path)
 }
 \arguments{
-\item{config}{run configurations}
-
 \item{path}{character vector with folders to run the model in}
 }
 \description{

@@ -3,11 +3,15 @@ Package: brick
 Title: Building sector model with heterogeuous renovation and construction of
     the stock
 Version: 0.2.0
-Date: 2024-02-20
-Authors@R:
+Date: 2024-02-21
+Authors@R: c(
     person("Robin", "Hasse", , "robin.hasse@pik-potsdam.de",
            role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0003-1818-3186"))
+           comment = c(ORCID = "0000-0003-1818-3186")),
+    person("Ricarda", "Rosemann", , "ricarda.rosemann@pik-potsdam.de",
+           role = "aut",
+           comment = c(ORCID = "0009-0006-5939-3197"))
+    )
 Description: This building stock model represents residential and commercial
     buildings at customisable regional and temporal resolution. The building
     stock is quantified in floor area and distinguished by building type 

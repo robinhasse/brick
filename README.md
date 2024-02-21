@@ -49,7 +49,7 @@ In case of questions / problems please contact Robin Hasse <robin.hasse@pik-pots
 
 To cite package **brick** in publications use:
 
-Hasse R (2024). _brick: Building sector model with heterogeuous renovation and construction of the stock_. R package version 0.2.0, <URL: https://github.com/pik-piam/brick>.
+Hasse R, Rosemann R (2024). _brick: Building sector model with heterogeuous renovation and construction of the stock_. R package version 0.2.0, <URL: https://github.com/pik-piam/brick>.
 
 A BibTeX entry for LaTeX users is
 
@@ -57,7 +57,7 @@ A BibTeX entry for LaTeX users is
 @Manual{,
   title = {brick: Building sector model with heterogeuous renovation and construction of
 the stock},
-  author = {Robin Hasse},
+  author = {Robin Hasse and Ricarda Rosemann},
   year = {2024},
   note = {R package version 0.2.0},
   url = {https://github.com/pik-piam/brick},

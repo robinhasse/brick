@@ -17,14 +17,14 @@ setSlurmConfig <- function(slurmQOS, tasks32) {
   allowedQOS <- c("default", "priority", "standby", "short", "medium", "long")
 
   # Throw error if non-existing QOS is given
-  if (!slurmQOS %in% allowedQOS) {
-    stop(paste0("Invalid QOS given. Available cluster QOS are:\t",
+  if (!slurmQOS %in% allowedQOS || length(slurmQOS) != 1) {
+    stop(paste0("Invalid or more than one QOS given. Available cluster QOS are:\t",
                 paste(allowedQOS, collapse = ", "), ".\n",
                 "The default QOS is priority for 16 tasks and short for 32 tasks.\n"))
   }
 
   # set default QOS
-  if (tasks32) {
+  if (isTRUE(tasks32)) {
     if (slurmQOS == "default") {
       slurmQOS <- "short"
     } else if (slurmQOS %in% c("standby", "priority")) {

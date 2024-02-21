@@ -17,16 +17,14 @@ if (sys.nframe() == 0L) {
 
   # Extract the path to the output folder and to the installation of brick used
   path <- argsCL[1]
-  config <- file.path(path, "config", "config.yaml")
   brickDir <- argsCL[2]
 
   # If we are in developing mode: load brick via devtools
   isDev <- as.logical(argsCL[3])
-  if (isDev) {
+  if (isTRUE(isDev)) {
     devtools::load_all(brickDir)
     message(paste("This is a development run. Loading brick from local folder", brickDir))
   }
 
-  # References to null is a patch to make this lintr warning free. Need a proper solution.
-  brick::startModel(config = config, path = path)
+  brick::startModel(path)
 }

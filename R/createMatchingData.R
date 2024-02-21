@@ -33,9 +33,9 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
   m <- gamstransfer::Container$new()
 
   # Read passed references
-  refs_df <- read.csv2(file.path(path, "references.csv"), row.names = 1)
-  refs <- refs_df[["references"]]
-  names(refs) <- rownames(refs_df)
+  refsDf <- read.csv2(file.path(path, "references.csv"), row.names = 1)
+  refs <- refsDf[["references"]]
+  names(refs) <- rownames(refsDf)
 
   # READ DATA ------------------------------------------------------------------
 

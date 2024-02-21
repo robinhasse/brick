@@ -36,28 +36,40 @@ initModel <- function(config = NULL,
     dir.create(outputFolder)
   }
 
-  cfg <- readConfig(config)
-  title <- cfg[["title"]]
-
-  if (is.null(path)) {
-    stamp <- format(Sys.time(), "_%Y-%m-%d_%H.%M.%S")
-    path <- file.path(outputFolder, paste0(title, stamp))
+  # Generate SLURM configuration if sending to SLURM
+  if (sendToSlurm) {
+    slurmConfig <- setSlurmConfig(slurmQOS = slurmQOS, tasks32 = tasks32)
   }
 
-  # Check if the given path already exists
-  if (file.exists(path)) {
+  # Check if an already existing path was given
+  if (!is.null(path) && file.exists(path)) {
     message("Given path already exists. Restarting on this path.")
     if (is.null(restart)) {
       message("No restart options were specified.",
               "Default options are applied: Recreating input data and recreate/reaggregate matching.")
       restart <- c("crInp", "crMatch")
     }
-    write.csv2(data.frame(restart = restart), file.path(path, "restartOptions.csv"))
+    write.csv2(data.frame(restart = restart), file.path(path, "config", "restartOptions.csv"))
+
+    if (!is.null(config)) {
+      warning("You passed a config in a restart run.",
+              "This config will be ignored and the existing config in 'config/config.yaml' will be used.")
+    }
+    cfg <- readConfig(file.path(path, "config", "config.yaml"))
   } else {
     if (!is.null(restart)) {
       message("Restart options were given, but no existing path was specified. Starting a new run.")
       restart <- NULL
     }
+
+    cfg <- readConfig(config)
+    title <- cfg[["title"]]
+
+    if (is.null(path)) {
+      stamp <- format(Sys.time(), "_%Y-%m-%d_%H.%M.%S")
+      path <- file.path(outputFolder, paste0(title, stamp))
+    }
+
     createRunFolder(path, cfg)
   }
 
@@ -75,16 +87,14 @@ initModel <- function(config = NULL,
     write.csv2(data.frame(references), file.path(path, "references.csv"))
   }
 
-  if (!sendToSlurm) {
-    config <- file.path(path, "config", "config.yaml")
-    startModel(config, path)
+  if (isFALSE(sendToSlurm)) {
+    startModel(path)
   } else {
     brickDir <- find.package("brick")
 
     isDev <- as.character(is_dev_package("brick"))
-    slurmScriptPath <- file.path(brick.file("clusterstart"), "startScriptSlurm.R")
+    slurmScriptPath <- brick.file("clusterstart", "startScriptSlurm.R")
     logFilePath <- file.path(path, "log.txt")
-    slurmConfig <- setSlurmConfig(slurmQOS = slurmQOS, tasks32 = tasks32)
 
     exitCode <- system(paste0("sbatch --job-name=",
                               title,
@@ -98,7 +108,7 @@ initModel <- function(config = NULL,
     Sys.sleep(1)
 
     if (exitCode > 0) {
-      message("Executing initModel failed.")
+      message("Executing initModel failed with exit code ", exitCode, ".")
     }
   }
 }
