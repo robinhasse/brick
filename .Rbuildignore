@@ -11,3 +11,4 @@
 ^.*CITATION.cff$
 ^codecov\.yml$
 ^inst/input$
+^R/plotSankey.R$

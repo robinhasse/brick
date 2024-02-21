@@ -53,8 +53,8 @@ t0 "reference year for discounting"
 
 epsilon "offset to avoid log(0)" /1E-4/
 
-priceSensBS "price sensitivity of building shell choice" /1E-1/
-priceSensHS "price sensitivity of heating system choice" /2E-1/
+priceSensBS "price sensitivity of building shell choice" /5E-2/
+priceSensHS "price sensitivity of heating system choice" /1E-1/
 ;
 
 variables
