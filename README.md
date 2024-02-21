@@ -1,5 +1,6 @@
-# Building sector model with heterogeuous renovation and construction of
-    the stock
+<img src='man/figures/logo_text_wide.svg' align="right" height="70"/>
+
+# Building sector model with heterogeuous renovation and construction of the stock
 
 R package **brick**, version **0.2.0**
 
