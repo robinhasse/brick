@@ -15,7 +15,7 @@
 #' @importFrom scales gradient_n_pal brewer_pal
 #' @importFrom dplyr row_number n bind_rows any_of group_by across mutate filter
 #'   arrange select left_join rename .data %>% bind_rows summarise
-#' @importFrom ggplot2 ggplot geom_col geom_area scale_x_continuous expansion
+#' @importFrom ggplot2 ggplot geom_col geom_area scale_x_continuous geom_point
 #'   scale_y_continuous theme_classic theme aes geom_line scale_alpha_manual
 #'   element_blank element_line scale_fill_manual labs geom_hline ggsave unit
 #'   facet_grid
@@ -160,7 +160,7 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
   addTheme <- function(p, yLabel, fillDim) {
     pOut <- p +
       scale_y_continuous(yLabel, expand = c(0, 0)) +
-      scale_x_continuous(expand = expansion(add = c(0.5, 1))) +
+      scale_x_continuous(expand = c(0, 0.075)) +
       theme_classic() +
       theme(strip.background = element_blank(),
             panel.grid.major.y = element_line(colour = "grey", linewidth = .25),
@@ -209,10 +209,10 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
     pData <- pData %>%
       left_join(dt, by = "ttot") %>%
       mutate(width = ifelse(.data[["quantity"]] == "Stock",
-                            if (showHistStock) 0.75 else 1.5,
+                            min(.data[["dt"]]) * if (showHistStock) 0.15 else 0.3,
                             0.9 * .data[["dt"]]),
              pos = .data[["ttot"]] - ifelse(.data[["quantity"]] == "Stock",
-                                            if (showHistStock) ifelse(.data[["historic"]], -0.4, 0.4) else 0,
+                                            min(.data[["dt"]]) * if (showHistStock) ifelse(.data[["historic"]], 0.09, -0.09) else 0,
                                             0.5 * .data[["dt"]]),
              quantity = factor(.data[["quantity"]], names(vars)),
              value = .data[["value"]] / 1000) # million to billion
@@ -241,7 +241,6 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
 
 
     ## plot ====
-
     p <- pData %>%
       ggplot() +
       suppressWarnings(geom_col(aes(.data[["pos"]], .data[["value"]],
@@ -253,6 +252,19 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
       geom_text(aes(.data[["pos"]], .data[["value"]]),
                 flowUnit,
                 label = "/yr", vjust = 1, hjust = .2, size = 3)
+
+    # mark historic stock with target sign above
+    if (showHistStock) {
+      histSignHeight <- pData %>%
+        filter(.data[["historic"]]) %>%
+        group_by(across(all_of(c("facet", "pos", "quantity")))) %>%
+        summarise(value = sum(value), .groups = "drop")
+
+      p <- p +
+        geom_point(aes(.data[["pos"]], .data[["value"]]),
+                   histSignHeight,
+                   shape = 10)
+    }
 
     p <- addTheme(p, expression(paste("Floor space in billion ", m^2)), fillDim) +
       theme(panel.spacing = unit(4, "mm"))
