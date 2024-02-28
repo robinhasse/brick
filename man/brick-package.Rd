@@ -4,7 +4,7 @@
 \name{brick-package}
 \alias{brick}
 \alias{brick-package}
-\title{brick: Building sector model with heterogeuous renovation and construction of the stock}
+\title{brick: Building sector model with heterogeneous renovation and construction of the stock}
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 

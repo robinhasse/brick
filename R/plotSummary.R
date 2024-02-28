@@ -169,7 +169,7 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
     pOut <- pOut +
       scale_fill_manual(values = fillColours[[fillDim]],
                         labels = fillLabels[[fillDim]]) +
-      scale_alpha_manual(values = c(`FALSE` = 1, `TRUE` = 0.2), guide = "none") +
+      scale_alpha_manual(values = c(`FALSE` = 1, `TRUE` = 0.3), guide = "none") +
       labs(fill = fillTitle[[fillDim]])
 
     return(pOut)
@@ -212,7 +212,12 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
                             min(.data[["dt"]]) * if (showHistStock) 0.15 else 0.3,
                             0.9 * .data[["dt"]]),
              pos = .data[["ttot"]] - ifelse(.data[["quantity"]] == "Stock",
-                                            min(.data[["dt"]]) * if (showHistStock) ifelse(.data[["historic"]], 0.09, -0.09) else 0,
+                                            min(.data[["dt"]]) *
+                                              if (showHistStock) {
+                                                ifelse(.data[["historic"]], 0.09, -0.09)
+                                              } else {
+                                                0
+                                              },
                                             0.5 * .data[["dt"]]),
              quantity = factor(.data[["quantity"]], names(vars)),
              value = .data[["value"]] / 1000) # million to billion
@@ -258,7 +263,7 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
       histSignHeight <- pData %>%
         filter(.data[["historic"]]) %>%
         group_by(across(all_of(c("facet", "pos", "quantity")))) %>%
-        summarise(value = sum(value), .groups = "drop")
+        summarise(value = sum(.data[["value"]]), .groups = "drop")
 
       p <- p +
         geom_point(aes(.data[["pos"]], .data[["value"]]),
