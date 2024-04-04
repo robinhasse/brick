@@ -34,6 +34,15 @@ startModel <- function(path) {
     }
   }
 
+  if (isFALSE(restart) || any(c("createMatching", "copyGams") %in% restart)) {
+    if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
+      insertMatchingCode(path)
+    } else if (cfg[["switches"]][["RUNTYPE"]] == "calibration") {
+      # ????
+    }
+  }
+
+
   if (cfg[["switches"]][["SOLVEPROBLEM"]] == "auto") {
     cfg[["switches"]][["SOLVEPROBLEM"]]  <- if (is.null(cfg[["startingPoint"]])) {
       "lpnlp"
@@ -50,11 +59,13 @@ startModel <- function(path) {
 
   checkGamsSuccess(path)
 
-  reportMif(path)
 
-  plotSummary(path, NULL, showHistStock = cfg[["switches"]][["RUNTYPE"]] %in% c("calibration", "matching"))
+  plotSummary(path, NULL)
 
   if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
     plotRefDeviation(path)
   }
+
+  try(reportMif(path))
+
 }

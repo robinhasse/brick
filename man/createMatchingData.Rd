@@ -14,7 +14,8 @@ createMatchingData(path, config, overwrite = FALSE)
 \item{overwrite}{logical, should existing data be overwritten?}
 }
 \description{
-Create data for reference matching
+This function also performs auto gams code generation to load the reference
+sets and parameters
 }
 \author{
 Robin Hasse

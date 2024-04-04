@@ -283,7 +283,7 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
       dir.create(plotDir)
     }
     plotFile <- file.path(plotDir, paste0(paste("summary", paste(facet, collapse = "_"), fillDim, sep = "_"), ".png"))
-    ggsave(plotFile, p, height = 17 / 2.54, width = 25 / 2.54, dpi = 300)
+    ggsave(plotFile, p, height = 17 / 2.54, width = 34 / 2.54, dpi = 300)
 
   }
 

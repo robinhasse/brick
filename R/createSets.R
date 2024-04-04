@@ -26,7 +26,7 @@ createSets <- function(m, config) {
   )
   invisible(m$addSet(
     name = "qty",
-    records = c("area", "dwel"),
+    records = c("area", "num"),
     description = "quantity unit to measure stocks and flows in"
   ))
 
@@ -166,7 +166,8 @@ createSets <- function(m, config) {
     description = "location of building (rural, urban)"
   )
 
-  typ <- getBrickMapping("buildingType.csv") %>%
+  typMap <- getBrickMapping("buildingType.csv")
+  typ <- typMap %>%
     getElement("typ") %>%
     unique()
   typ <- m$addSet(
@@ -251,6 +252,28 @@ createSets <- function(m, config) {
     domain = c(bs, hs, bsr, hsr),
     records = renAllowed,
     description = "Is this renovation transition allowed"
+  )
+
+
+  ## Buildings subsectors ====
+
+  sec <- typMap %>%
+    getElement("subsector") %>%
+    unique()
+  sec <- m$addSet(
+    name = "sec",
+    records = sec,
+    description = "buildings subsector"
+  )
+
+  inSec <- typMap %>%
+    select("typ", sec = "subsector") %>%
+    unique()
+  inSec <- m$addSet(
+    name = "inSec",
+    domain = c(typ, sec),
+    records = inSec,
+    description = "mapping between building type and buildings subsector"
   )
 
 

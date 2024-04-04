@@ -57,7 +57,7 @@ intangCostFiles: []
   # NULL: default reporting
   # onlyRes: default reporting without commercial buildings
   # ignoreShell_onlyRes: ignore building shell + no commercial buildings
-reportingTemplate: onlyRes
+reportingTemplate:
 
 ### historic run ###
 # run to consider as history before startyear
@@ -82,7 +82,7 @@ tasks32: FALSE
 # data -------------------------------------------------------------------------
 
 ### input data revision ###
-inputRevision: "0.8.3"
+inputRevision: "0.8.3com2"
 
 ### force download ###
 # force the model to download new input data even though it seems unchanged
@@ -106,7 +106,7 @@ matchingRun: NULL
 gamsCall:  gams
 solverLP:  cplex
 solverNLP: conopt4
-solverQCP: conopt4
+solverQCP: cplex
 
 
 # switches ---------------------------------------------------------------------
@@ -141,6 +141,15 @@ carbonPrice: []
 # named list with the shift in the Weibull scale parameter in yr
   # e.g. {sobo: 3, libo: 2}
 ltHsShift: []
+
+### scaling factor for building life time ###
+# scales scale parameter of the Weibull distribution
+ltFactor: 1
+
+### eternal building share
+# share of buildings that never have to be demolished (e.g. monuments)
+# The demolition probability distribution function approaches 1 minus this value
+ltEternalShare: 0
 
 ### carrier prices ###
 # scenario of future energy carrier prices
@@ -211,4 +220,11 @@ gamsOptions:
   ### page width ###
     # page width of log file (max number of characters in one line)
   pw: 185
+
+  ### solver option file ###
+  # Default option file for the gams solver
+    # 0: none
+    # 1:    <solverName.opt>, (e.g. conopt.opt)
+    # 2:    <solverName.op2>, (e.g. conopt.op2)
+  optfile: 0
 ...

@@ -60,7 +60,7 @@ readSymbol <- function(x, symbol = NULL, selectArea = TRUE,
   }
 
   # make temporal dimensions numeric
-  tDims <- intersect(colnames(data), c("ttot", "tall", "ttot2"))
+  tDims <- intersect(colnames(data), c("ttot", "tall", "ttot2", "t"))
   for (tDim in tDims) {
     data[[tDim]] <- as.numeric(as.character(data[[tDim]]))
   }
