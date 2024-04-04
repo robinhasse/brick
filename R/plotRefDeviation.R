@@ -1,6 +1,8 @@
 #' Plot heat map of reference deviation
 #'
-#' @param path character; directory of output folder
+#' @param path character, directory of output folder
+#' @param dropZeroWeightRefs boolean, if TRUE, references with zero weight are
+#'   not shown
 #'
 #' @author Robin Hasse
 #'
@@ -8,11 +10,14 @@
 #' @importFrom gamstransfer Container
 #' @importFrom ggplot2 ggplot geom_tile facet_wrap aes theme_minimal theme
 #'   element_blank geom_text scale_x_discrete scale_y_discrete scale_fill_manual
-#'   scale_fill_brewer
+#'   scale_fill_brewer element_text ggtitle geom_vline
 #' @export
 
-plotRefDeviation <- function(path) {
+plotRefDeviation <- function(path, dropZeroWeightRefs = TRUE) {
 
+  linebreak <- function(string, sep = "_") {
+    sub(sep, "\n", string)
+  }
 
   if (!dir.exists(path)) {
     stop("Path does not exist: ", path)
@@ -30,31 +35,52 @@ plotRefDeviation <- function(path) {
 
   m <- Container$new(gdx)
 
-  refs <- readSymbol(m, "r") %>%
-    getElement("ref") %>%
+  refs <- readSymbol(m, "ref") %>%
+    getElement("reference") %>%
     as.character()
+  refDeviation <- readSymbol(m, "v_refDeviation")
+  refWeight <- readSymbol(m, "p_refWeight")
+
+  if (isTRUE(dropZeroWeightRefs)) {
+    refWithWeight <- refWeight %>%
+      filter(.data$value != 0) %>%
+      getElement("reference")
+    refs <- intersect(refs, refWithWeight)
+  }
+
+  refDeviationTot <- full_join(refDeviation, refWeight,
+                               by = "reference") %>%
+    filter(.data[["reference"]] %in% refs) %>%
+    mutate(value = .data[["value.x"]] * .data[["value.y"]])
 
   refDeviationVar <- readSymbol(m, "v_refDeviationVar")
   refVals <- readSymbol(m, "p_refVals")
+  refValsBasic <- readSymbol(m, "v_refValsBasic")
+  refVarBasic <- readSymbol(m, "refVarBasic")
 
   refDeviationVarRel <- refDeviationVar %>%
-    left_join(refVals, by = c("ref", "refVar", "reg", "ttot")) %>%
-    filter(.data[["ref"]] %in% refs) %>%
-    mutate(value = ifelse(.data[["value.x"]] == 0 & .data[["value.y"]] == 0,
+    left_join(refVals, by = c("reference", "refVar", "reg", "ttot"),
+              suffix = c("", ".ref")) %>%
+    left_join(refVarBasic, by = c("reference", "refVar")) %>%
+    left_join(refValsBasic, by = c("reference", "refVarGroup", "reg", ttot = "t"),
+              suffix = c("", ".basic")) %>%
+    filter(.data[["reference"]] %in% refs) %>%
+    mutate(value.basic = replace_na(.data[["value.basic"]], 1),
+           value = ifelse(abs(.data[["value"]]) < 1E-4 & .data[["value.ref"]] == 0,
                           0,
-                          .data[["value.x"]] / .data[["value.y"]]),
+                          .data[["value"]] / .data[["value.ref"]] / .data[["value.basic"]]),
            valueDiscrete = case_when(
-             abs(.data[["value"]]) < 0.05                      ~ "< 5 %",
-             abs(.data[["value"]]) > 0.15                      ~ "> 15 %",
-             abs(.data[["value"]]) <= 0.15                     ~ "5-15 %",
-             is.na(.data[["value"]]) & .data[["value.y"]] == 0 ~ "> 0"
+             (is.na(.data[["value"]]) | is.infinite(.data[["value"]])) & .data[["value.ref"]] == 0 ~ "> 0",
+             abs(.data[["value"]]) < 0.1                      ~ "< 10 %",
+             abs(.data[["value"]]) > 0.3                      ~ "> 30 %",
+             abs(.data[["value"]]) <= 0.3                     ~ "10-30 %"
            ))
 
   refDeviation <- readSymbol(m, "v_refDeviation")
   refWeight <- readSymbol(m, "p_refWeight")
   refDeviationTot <- full_join(refDeviation, refWeight,
-                               by = c("ref", "reg", "ttot")) %>%
-    filter(.data[["ref"]] %in% refs) %>%
+                               by = "reference") %>%
+    filter(.data[["reference"]] %in% refs) %>%
     mutate(value = .data[["value.x"]] * .data[["value.y"]])
 
   # plot dir
@@ -62,44 +88,69 @@ plotRefDeviation <- function(path) {
   if (!dir.exists(plotDir)) {
     dir.create(plotDir)
   }
+  pdfPath <- file.path(plotDir, "refDeviation.pdf")
 
-  p <- ggplot(refDeviationVarRel,
-              aes(.data[["ttot"]], interaction(.data[["ref"]],
-                                               .data[["refVar"]],
-                                               sep = "  |  "))) +
-    geom_tile(aes(fill = .data[["valueDiscrete"]]),
-              colour = "white") +
-    geom_text(aes(label = paste(ifelse(abs(.data[["value"]]) < 0.0001,
-                                       0,
-                                       signif(.data[["value"]] * 100, 2)),
-                                "%")),
-              size = 3) +
-    facet_wrap("reg", scales = "free_y") +
-    scale_x_discrete("") +
-    scale_y_discrete("") +
-    scale_fill_manual(values = list(`> 0` = "#db7b2b",
-                                    `< 5 %` = "#99c140",
-                                    `5-15 %` = "#e7b416",
-                                    `> 15 %` = "#cc3232")) +
-    theme_minimal() +
-    theme(strip.background = element_blank(),
-          panel.grid = element_blank())
+  regions <- unique(refDeviation[["reg"]])
+  periods <- sort(unique(refDeviation[["ttot"]]))
 
-  ggsave(file.path(plotDir, "refDeviation.png"), p,
-         height = 14.6 / 1.5, width = 25 / 1.5, dpi = 300, bg = "white")
+  message("writing PDF: ", pdfPath)
+  grDevices::pdf(pdfPath,
+                 width = 8.5, height = 11.5, paper = "a4",
+                 title = "BRICK matching: reference deviation")
 
+  for (r in regions) {
+    p <- refDeviationVarRel %>%
+      filter(.data$reg %in% r) %>%
+      mutate(reference = linebreak(.data$reference)) %>%
+      ggplot(aes(.data[["ttot"]], .data[["refVar"]])) +
+      geom_vline(aes(xintercept = .data$period),
+                 data.frame(period = (head(periods, -1) + tail(periods, -1)) / 2),
+                 colour = "lightgrey", linewidth = 0.1) +
+      geom_tile(aes(fill = .data[["valueDiscrete"]]),
+                colour = "white") +
+      geom_text(aes(label = ifelse(is.na(.data$value),
+                                   "",
+                                   paste(ifelse(abs(.data$value) < 0.0001,
+                                                0,
+                                                signif(.data$value * 100, 2)),
+                                         "%"))),
+                size = 1.5) +
+      facet_grid(.data$reference ~ .,
+                 scales = "free_y", space = "free", switch = "y") +
+      scale_y_discrete(NULL) +
+      scale_fill_manual(values = list(`> 0`     = "#db7b2b",
+                                      `< 10 %`  = "#99c140",
+                                      `10-30 %` = "#e7b416",
+                                      `> 30 %`  = "#cc3232"),
+                        na.value = "lightgrey") +
+      ggtitle("Reference deviation", r) +
+      theme_minimal() +
+      theme(strip.background = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor.x = element_blank(),
+            panel.grid.minor.y = element_line(colour = "lightgrey", linewidth = 0.1),
+            strip.placement = "outside",
+            strip.text.y.left = element_text(size = 5, angle = 0, face = "bold", lineheight = 0.75),
+            axis.title.x = element_blank(),
+            axis.text = element_text(size = 5),
+            legend.position = "bottom",
+            legend.title = element_blank())
+    print(p)
+  }
 
 
   p <- ggplot(refDeviationTot) +
-    geom_col(aes(.data[["ttot"]], .data[["value"]], fill = .data[["ref"]])) +
+    geom_col(aes(.data[["ttot"]], .data[["value"]], fill = .data[["reference"]])) +
     scale_fill_brewer(palette = "Set3") +
     scale_y_continuous("total reference deviation") +
+    facet_wrap("reg", scales = "free_y") +
     theme_minimal() +
     theme(panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank())
+          panel.grid.minor.x = element_blank(),
+          legend.position = "bottom")
+  print(p)
 
-  ggsave(file.path(plotDir, "refDeviationTot.png"), p,
-         height = 14.6 / 1.5, width = 25 / 1.5, dpi = 300, bg = "white")
-
-
+  # end PDF
+  grDevices::dev.off()
+  message("PDF written: ", pdfPath)
 }

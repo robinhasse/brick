@@ -236,25 +236,24 @@ createParameters <- function(m, config, inputDir) {
 
   # Calculate share of buildings that need to be renovated or demolished between
   # given time steps assuming a Weibull distribution of the technology life time.
-  # Optionally pass the prior standing life time; adjust the share to subtract demolitions
-  # during the prior standing life time.
+  # Optionally pass the prior standing life time; adjust the share to subtract
+  # demolitions during the prior standing life time.
   shareRen <- function(ttot2, params, standingLifeTime = 0) {
 
     expandSets(ttot2 = "ttot", "ttot", .m = m) %>%
+      filter(.data$ttot2 <= .data$ttot) %>%
       left_join(readSymbol(p_dt) %>%
                   rename(dt = "value"),
                 by = c(ttot2 = "ttot")) %>%
       cross_join(params) %>%
       pivot_wider(names_from = "variable") %>%
       # pweibull(0) = 0, so for standingLifeTime = 0 we have value = pweibull(lt)
-      mutate(lt = .data[["ttot"]] - .data[["ttot2"]]
-             + .data[["dt"]] / 2 + standingLifeTime,
-             value = (pweibull(.data[["lt"]], .data[["shape"]], .data[["scale"]])
-                      - pweibull(standingLifeTime, .data[["shape"]], .data[["scale"]]))
-             / (1 - pweibull(standingLifeTime, .data[["shape"]], .data[["scale"]])),
-             value = ifelse(.data[["value"]] > cutOffShare,
-                            1, .data[["value"]])) %>%
-      select(-"shape", -"scale", -"dt", -"lt")
+      mutate(lt = .data$ttot - .data$ttot2 + .data$dt / 2 + standingLifeTime,
+             p  = pweibull(.data$lt,         .data$shape, .data$scale),
+             p0 = pweibull(standingLifeTime, .data$shape, .data$scale),
+             value = (.data$p - .data$p0) / (1 - .data$p0),
+             value = ifelse(.data$value > cutOffShare, 1, .data$value)) %>%
+      select(-"shape", -"scale", -"dt", -"lt", -"p", -"p0")
   }
 
   ## building ====
@@ -361,8 +360,8 @@ createParameters <- function(m, config, inputDir) {
     description = "minimum share of renovation from the heating system reaching end of life"
   )
 
-  # assumption: average life time of initial stock of heating systems: 6 years
-  p_shareRenHSinit <- shareRen(ttot, ltHs, standingLifeTime = 6) %>%
+  # assumption: average life time of initial stock of heating systems: 12 years
+  p_shareRenHSinit <- shareRen(ttot, ltHs, standingLifeTime = 12) %>%
     select("hs", "reg", "typ", "ttot2", "ttot", "value") %>%
     toModelResolution(m)
   p_shareRenHSinit <- m$addParameter(

@@ -1,5 +1,8 @@
 #' Create data for reference matching
 #'
+#' This function also performs auto gams code generation to load the reference
+#' sets and parameters
+#'
 #' @author Robin Hasse
 #'
 #' @param path character vector with folders to run the model in
@@ -8,14 +11,93 @@
 #'
 #' @importFrom madrat calcOutput toolGetMapping
 #' @importFrom quitte as.quitte
-#' @importFrom tidyr matches
-#' @importFrom dplyr select
+#' @importFrom tidyr complete
+#' @importFrom dplyr select rename %>% .data mutate group_by ungroup summarise
+#'   filter matches any_of
 #' @importFrom utils read.csv read.csv2
 #' @importFrom stats median
 #' @importFrom gamstransfer Container
 #' @export
 #'
 createMatchingData <- function(path, config, overwrite = FALSE) {
+
+  # FUNCTIONS ------------------------------------------------------------------
+
+  getRefs <- function() {
+    refListName <- "references.csv"
+    refListPath <- file.path(path, "config", refListName)
+    if (file.exists(refListPath)) {
+      refList <- toolGetMapping(refListPath, type = NULL, where = "local",
+                                returnPathOnly = TRUE) %>%
+        read.csv2(comment.char = "#")
+    } else {
+      refList <- toolGetMapping(refListName,
+                                type = "sectoral", where = "mredgebuildings",
+                                returnPathOnly = TRUE) %>%
+        read.csv2(comment.char = "#")
+      write.csv2(refList, refListPath, row.names = FALSE)
+    }
+    return(refList)
+  }
+
+
+
+  getRefData <- function(ref, regions, periods) {
+    calcOutput("MatchingReference", subtype = ref, aggregate = FALSE) %>%
+      as.quitte(na.rm = TRUE) %>%
+      filter(.data[["region"]] %in% regions,
+             .data[["period"]] %in% periods) %>%
+      group_by(across(-all_of(c("region", "period", "value")))) %>%
+      complete(region = regions, period = periods) %>%
+      ungroup() %>%
+      mutate(reference = ref) %>%
+      select("reference",
+             refVar = "variable",
+             reg = "region",
+             ttot = "period",
+             "value") %>%
+      .explicitZero()
+  }
+
+
+
+  getRefMap <- function(ref) {
+    toolGetMapping(name = .refMapName(ref, "csv"),
+                   type = "sectoral",
+                   where = "mredgebuildings",
+                   returnPathOnly = TRUE) %>%
+      read.csv(comment.char = "#", check.names = FALSE) %>%
+      select(-matches("^\\.")) %>%
+      rename(refVar = "variable") %>%
+      unique()
+  }
+
+
+  getBasicMapping <- function(refMaps) {
+    do.call(rbind, lapply(names(refMaps), function(ref) {
+      refMaps[[ref]] %>%
+        select("refVar", "refVarGroup") %>%
+        .unique() %>%
+        mutate(reference = ref, .before = "refVar")
+    }))
+  }
+
+
+  getRefVars <- function(refMaps) {
+    lapply(refMaps, getElement, "refVar") %>%
+      unlist() %>%
+      .unique()
+  }
+
+
+  tidyRefMap <- function(refMap) {
+    refMap %>%
+      select(-any_of("refVarGroup"))
+  }
+
+
+
+  # PREPARE --------------------------------------------------------------------
 
   # check file path
   refFilePath <- file.path(path, "references.gdx")
@@ -33,90 +115,73 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
 
   m <- Container$new()
 
-  # Read passed references
-  refsDf <- read.csv2(file.path(path, "references.csv"), row.names = 1)
-  refs <- refsDf[["references"]]
-  names(refs) <- rownames(refsDf)
+
 
   # READ DATA ------------------------------------------------------------------
 
-  references <- c(
-    "Odyssee_stock",
-    "Odyssee_construction",
-    "Odyssee_constructionFloor",
-    "Odyssee_dwelSize",
-    "Odyssee_heatingShare",
-    "IDEES_heatingShare",
-    "EUBDB_stock",
-    "EUBDB_vintage",
-    "mredgebuildings_location",
-    "mredgebuildings_vintage",
-    "mredgebuildings_buildingType",
-    "mredgebuildings_heating",
-    "EuropeanCommissionRenovation"
-  )
-  refs <- c(
-    "mredgebuildings_location",
-    "mredgebuildings_buildingType",
-    "mredgebuildings_heating",
-    "EUBDB_vintage",
-    "Odyssee_constructionFloor",
-    "Odyssee_heatingShare",
-    "IDEES_heatingShare",
-    "EuropeanCommissionRenovation"
-  )
+  ## references ====
 
-  # reference values
+  refConfig <- getRefs()
+  references <- refConfig[["reference"]]
+  referencesRel <- refConfig[unlist(lapply(refConfig[["isRelative"]], isTRUE)), "reference"]
+  referencesAbs <- setdiff(references, referencesRel)
+
+  referencesUsed <- refConfig %>%
+    filter(.data[["isUsed"]]) %>%
+    getElement("reference")
+
+
+  ## reference mappings ====
+
+  refMapsFull <- lapply(setNames(nm = references), getRefMap)
+  refMaps <- lapply(refMapsFull, tidyRefMap)
+  refVarBasic <- getBasicMapping(refMapsFull[referencesRel])
+  refVarGroup <- .unique(refVarBasic[["refVarGroup"]])
+
+
+  ## reference weights ====
+
+  refWeight <- refConfig %>%
+    select("reference", value = "weight")
+
+
+  ## reference values ====
+
   # TODO: this should come from refs
-  refVals <- do.call(rbind, lapply(references, function(ref) {
-    calcOutput("MatchingReference", subtype = ref, aggregate = FALSE) %>%
-      as.quitte(na.rm = TRUE) %>%
-      filter(.data[["region"]] %in% regions,
-             .data[["period"]] %in% periods) %>%
-      group_by(across(-all_of(c("region", "period", "value")))) %>%
-      complete(region = regions, period = periods) %>%
-      ungroup() %>%
-      mutate(ref = ref) %>%
-      select("ref", refVar = "variable", reg = "region", ttot = "period", "value")
-  }))
+  refVals <- do.call(rbind, lapply(references, getRefData, regions, periods))
   refValsMed <- refVals %>%
-    group_by(across(all_of(c("ref", "reg")))) %>%
+    group_by(across(all_of(c("reference", "reg")))) %>%
     summarise(value = median(abs(.data[["value"]][.data[["value"]] != 0]),
                              na.rm = TRUE),
               .groups = "drop")
 
-  # variable mappings
-  refMaps <- lapply(references, function(ref) {
-    toolGetMapping(name = paste0("refMap_", ref, ".csv"),
-                   type = "sectoral",
-                   where = "mappingfolder",
-                   returnPathOnly = TRUE) %>%
-      read.csv(comment.char = "#") %>%
-      select(-matches("^\\.")) %>%
-      unique()
-  }) %>%
-    `names<-`(references)
+  # data-dependent sets
+  refVarExists <- refVals[!is.na(refVals$value),
+                          c("reference", "refVar", "reg", "ttot")] %>%
+    .unique()
+  refVarGroupExists <- refVarExists %>%
+    inner_join(refVarBasic, by = c("reference", "refVar")) %>%
+    select("reference", "refVarGroup", "reg", "ttot") %>%
+    .unique()
+
+
+
+  # CREATE GAMS OBJECTS --------------------------------------------------------
 
   for (ref in references) {
     invisible(m$addSet(
-      name = paste0("refMap_", ref),
+      name = .refMapName(ref),
       records = refMaps[[ref]],
       domain = colnames(refMaps[[ref]]),
       domainForwarding = TRUE,
       description = paste("Mapping of brick variables to reference variables:",
                           ref)
     ))
-
-    refVar <- m$addSet(
-      name = paste0("refVar_", ref),
-      records = unique(refMaps[[ref]][["variable"]]),
-      description = paste("variables of reference source:", ref)
-    )
   }
 
   invisible(m$addParameter(
     name = "p_refVals",
-    domain = c("ref", "refVar", "reg", "ttot"),
+    domain = c("reference", "refVar", "reg", "ttot"),
     records = refVals,
     domainForwarding = TRUE,
     description = "Reference values to match"
@@ -124,45 +189,83 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
 
   invisible(m$addParameter(
     name = "p_refValsMed",
-    domain = c("ref", "reg"),
+    domain = c("reference", "reg"),
     records = refValsMed,
     domainForwarding = TRUE,
-    description = "Reference values to match"
+    description = "Median of all reference values for one reference in one region"
+  ))
+
+  invisible(m$addParameter(
+    name = "p_refWeight",
+    domain = "reference",
+    records = refWeight,
+    domainForwarding = TRUE,
+    description = "Weight of reference"
   ))
 
   refVar <- m$addSet(
     name = "refVar",
-    records = unique(refVals[["refVar"]]),
+    records = getRefVars(refMaps),
     description = "variables of reference sources"
   )
 
-  ref <- m$addSet(
-    name = "ref",
-    records = unique(refVals[["ref"]]),
+  reference <- m$addSet(
+    name = "reference",
+    records = references,
     description = "reference sources that historic quantities can be calibrated to"
   )
+  invisible(m$addSet(
+    name = "refAbs",
+    records = referencesAbs,
+    description = "absolute reference sources that historic quantities can be calibrated to"
+  ))
+  invisible(m$addSet(
+    name = "refRel",
+    records = referencesRel,
+    description = "relative reference sources that historic quantities can be calibrated to"
+  ))
+  invisible(m$addSet(
+    name = "refVarGroup",
+    records = refVarGroup,
+    description = "group of reference variables"
+  ))
 
   invisible(m$addSet(
-    name = "r",
-    records = refs,
+    name = "ref",
+    records = referencesUsed,
     description = "reference sources that historic quantities are calibrated to"
   ))
 
   invisible(m$addSet(
     name = "refVarRef",
-    domain = c(ref, refVar),
-    records = unique(refVals[, c("ref", "refVar")]),
+    domain = c(reference, refVar),
+    records = .unique(refVals[, c("reference", "refVar")]),
     description = "mapping references to reference variables"
   ))
 
-  invisible(m$addSet(
+  refVarExists <- m$addSet(
     name = "refVarExists",
-    domain = c("ref", "refVar", "reg", "ttot"),
-    records = unique(refVals[!is.na(refVals$value),
-                             c("ref", "refVar", "reg", "ttot")]),
+    domain = c("reference", "refVar", "reg", "ttot"),
+    records = refVarExists,
     description = "There is a value for this combination of reference, variable, region and period"
+  )
+
+  refVarGroupExists <- m$addSet(
+    name = "refVarGroupExists",
+    domain = c("reference", "refVarGroup", "reg", "ttot"),
+    records = refVarGroupExists,
+    description = "There is a value for this combination of reference, variable group, region and period"
+  )
+
+  invisible(m$addSet(
+    name = "refVarBasic",
+    domain = c("reference", "refVar", "refVarGroup"),
+    records = refVarBasic,
+    description = paste("mapping each reference variables to all reference",
+                        "variables summed to basic value of a share reference")
   ))
 
   m$write(refFilePath, compress = TRUE)
+
 
 }

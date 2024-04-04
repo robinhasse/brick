@@ -55,27 +55,39 @@ $endif.shell
 ;
 
 $ifthen.matching "%RUNTYPE%" == "matching"
-
 model matching "find stock and flows that best match reference sources"
   /
   q_matchingObj
   q_refDeviationTot
   q_refDeviationVar
   q_refDeviation
+  q_refVals
+  q_refValsBasic
   q_stockBalNext
   q_stockBalPrev
   q_buildingLifeTime !! TODO: make this a matching target, not a hard constraint
+$ifthenE.shell (not(sameas("%ignoreShell%","TRUE")))
+  q_buildingShellLifeTime
+$endif.shell
+  q_heatingSystemLifeTime
 *  q_dwelSizeStock
 *  q_dwelSizeConstruction
 *  q_dwelSize_Odyssee
-  q_renRate_EuropeanCommissionRenovation
-  q_heatingShare_Odyssee
-  q_heatingShare_IDEES
-  q_vinShare_EUBDB
-  q_finiteHeatingShareCon
-  q_finiteHeatingShareRen
-*  q_flowVariation
-*  q_flowVariationTot
+* q_renRate_EuropeanCommissionRenovation
+* q_heatingShare_Odyssee
+* q_heatingShare_IDEES2
+* q_vinShare_EUBDB
+*  q_finiteHeatingShareCon
+*  q_finiteHeatingShareRen
+  q_replacementDeviation
+  q_flowVariation
+  q_flowVariationTot
+  q_flowVariationCon
+  q_flowVariationRen
+  q_flowVariationDem
+*  q_test
+  q_testCon
+  q_testRen
   /
 ;
 $endif.matching
@@ -131,7 +143,7 @@ subs(all_subs) = yes;
 $ifthen.fullSys "%RUNTYPE%" == "scenario"
 
 * measure stocks and flows in floor area
-q("dwel") = no;
+q("num") = no;
 q("area") = yes;
 
 
@@ -343,9 +355,24 @@ $ifthen.matching "%RUNTYPE%" == "matching"
 q(qty) = yes;
 
 * measure stocks and flows in floor area
-q("dwel") = no;
-q("area") = yes;
+q("num") = no;
+*q("area") = yes;
 
-solve matching minimizing v_matchingObj using qcp;
+r(reg) = no;
+subs(all_subs) = no;
+
+loop(reg,
+  r(reg) = yes;
+  subs(reg,loc,typ,inc) = yes;
+
+  solve matching minimizing v_matchingObj using qcp;
+  execute_unload "test.gdx";
+
+  r(reg) = no;
+  subs(reg,loc,typ,inc) = no;
+);
+
+r(reg) = yes;
+subs(all_subs) = yes;
 
 $endif.matching

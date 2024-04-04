@@ -41,15 +41,18 @@ p_interestRate(typ,ttot) "interest rate (incl. implicit) w.r.t. t0 in 1/yr"
 p_discountFac(typ,ttot)  "discount factor w.r.t. t0"
 
 p_runtime(reg,loc,typ,inc)                  "model runtime"
+p_runtime2(reg)                  "model runtime"
 p_handle(reg,loc,typ,inc)                   "parallel model handle parameter"
+p_handle2(reg)                   "parallel model handle parameter"
 p_repyFullSysLP(solveinfo)                  "model and solver summary: fullSysLP"
 p_repyFullSysNLP(reg,loc,typ,inc,solveinfo) "model and solver summary: fullSysNLP"
 
-p_refWeight(ref,reg,ttot) "weight of reference source in input matching"
-p_flowVariationWeight     "weight of flow variation in matching objective"
+p_flowVariationWeight               "weight of flow variation in matching objective"
+p_slackRenWeight                    "weight of building shell and heating system replacement slack in matching objective"
 
-p_refVals(ref,refVar,reg,ttot) "reference values to match"
-p_refValsMed(ref,reg)          "median non-zero reference value to normalise deviations"
+p_refVals(reference,refVar,reg,ttot) "reference values to match"
+p_refValsMed(reference,reg)          "median non-zero reference value to normalise deviations"
+p_refWeight(reference)               "Weight of reference"
 
 priceSensBS(var, reg, loc, typ, inc) "price sensitivity of building shell choice"
 priceSensHS(var, reg, loc, typ, inc) "price sensitivity of heating system choice"
@@ -72,11 +75,24 @@ v_HeteroPrefCon(reg,loc,typ,inc,ttot) "diversity preference for construction"
 v_HeteroPrefRen(reg,loc,typ,inc,ttot) "diversity preference for renovation"
 v_statusQuoPref(reg,loc,typ,inc,ttot) "status quo preference when replacing heating systems"
 
+v_slackRenBS(bs,vin,reg,loc,typ,inc,ttot) "difference between actual and min required building shell replacement"
+v_slackRenHS(hs,vin,reg,loc,typ,inc,ttot) "difference between actual and min required heating system replacement"
+
 $ifthen.matching "%RUNTYPE%" == "matching"
-v_flowVariationTot         "total temporal variation of flows"
-v_refDeviationTot          "total weighted squared deviation of quantities from reference sources"
-v_refDeviationVar(ref,refVar,reg,ttot) "deviation from each variable in reference sources"
-v_matchingObj              "matching objective: reference deviation and flow variation"
+v_replacementDeviation "total deviation from technology replacement according to life time"
+
+v_flowVariationTot                               "total temporal variation of flows"
+v_refVals(reference,refVar,reg,t)            "model variable values at reference aggregation"
+v_refValsBasic(reference,refVarGroup,reg,t)  "v_refVals summed to basic value of reference shares"
+v_refDeviation(reference,reg,ttot)           "summed squared deviation from reference sources"
+v_refDeviationTot                                "total weighted squared deviation of quantities from reference sources"
+v_refDeviationVar(reference,refVar,reg,ttot) "deviation from each variable in reference sources"
+v_matchingObj                                    "matching objective: reference deviation and flow variation"
+
+v_flowVariation(varFLow,qty,reg,loc,typ,inc,ttot)       "temporal variation of flows [million m2/yr/yr]"
+v_flowVariationCon(qty,bs,hs,reg,loc,typ,inc,t)         "temporal variation of construction flow [million m2/yr/yr]"
+v_flowVariationRen(qty,bs,hs,bsr,hsr,reg,loc,typ,inc,t) "temporal variation of renovation flow [million m2/yr/yr]"
+v_flowVariationDem(qty,bs,hs,reg,loc,typ,inc,t)         "temporal variation of demolition flow [million m2/yr/yr]"
 $endif.matching
 
 v_SysCost(reg,loc,typ,inc,ttot) "system cost cost cash flow in USD/yr"
@@ -104,8 +120,7 @@ v_vinShare_EUBDB(refVar,reg,ttot)   "vintage shares at the aggregation of EUBDB_
 v_renRate_EuropeanCommissionRenovation(refVar,reg,ttot)
 v_heatingShare_Odyssee(refVar,reg,ttot) "share of heating systems in the stock"
 v_heatingShare_IDEES(refVar,reg,ttot) "share of heating systems in the stock"
-v_flowVariation(varFLow,qty,reg,loc,typ,inc,ttot) "temporal variation of flows"
-v_refDeviation(ref,reg,ttot)        "summed squared deviation from reference sources"
+v_heatingShare_IDEES2(refVar,reg,ttot) "share of heating systems in the stock"
 $endif.matching
 ;
 
@@ -139,7 +154,6 @@ q_dwelSizeConstruction(reg,loc,typ,inc,ttot)   "dwelling size of newly construct
 q_dwelSizeRenovation(vin,reg,loc,typ,inc,ttot) "dwelling size of renovated buildings in m2/dwel"
 q_dwelSizeDemolition(vin,reg,loc,typ,inc,ttot) "dwelling size of demolished buildings in m2/dwel"
 
-
 q_minDivConBS(bs,hsr,reg,loc,typ,inc,t)             "minimum building shell diversity in construction"
 q_minDivConHS(bs,hsr,reg,loc,typ,inc,t)             "minimum heating system diversity in construction"
 q_minDivRenBS(bs,hsr,bsr,hsr,vin,reg,loc,typ,inc,t) "minimum building shell diversity in renovation"
@@ -147,8 +161,14 @@ q_minDivRenHS(bs,hsr,bsr,hsr,vin,reg,loc,typ,inc,t) "minimum heating system dive
 
 q_maxRenRate(reg,ttot) "Maximum renovation rate"
 
-q_flowVariationTot                                   "total temporal variation of flows"
-q_flowVariation(varFLow,qty,reg,loc,typ,inc,ttot) "temporal variation of flows"
+q_replacementDeviation "total deviation from technology replacement according to life time"
+
+q_flowVariationTot                                         "total temporal variation of flows"
+q_flowVariation(varFLow,qty,reg,loc,typ,inc,ttot)          "temporal variation of flows"
+q_flowVariationCon(qty,bs,hs,reg,loc,typ,inc,ttot)         "temporal variation of construction flow"
+q_flowVariationRen(qty,bs,hs,bsr,hsr,reg,loc,typ,inc,ttot) "temporal variation of renovation flow"
+q_flowVariationDem(qty,bs,hs,reg,loc,typ,inc,ttot)         "temporal variation of demolition flow"
+
 
 $ifthen.matching "%RUNTYPE%" == "matching"
 q_dwelSize_Odyssee(refVar,reg,ttot) "dwelling size at the aggregation of Odyssee_dwelSize in m2/dwel"
@@ -156,10 +176,13 @@ q_vinShare_EUBDB(refVar,reg,ttot)   "vintage shares at the aggregation of EUBDB_
 q_renRate_EuropeanCommissionRenovation(refVar,reg,ttot)
 q_heatingShare_Odyssee(refVar,reg,ttot) "share of heating systems in the stock"
 q_heatingShare_IDEES(refVar,reg,ttot) "share of heating systems in the stock"
+q_heatingShare_IDEES2(refVar,reg,ttot) "share of heating systems in the stock"
 
-q_refDeviationTot                   "total squared deviation of quantities from reference source"
-q_refDeviation(ref,reg,ttot)        "summed squared deviation from reference sources"
-q_refDeviationVar(ref,refVar,reg,t) "deviation from each variable in reference sources"
+q_refDeviationTot                               "total squared deviation of quantities from reference source"
+q_refDeviation(reference,reg,ttot)          "summed squared deviation from reference sources"
+q_refDeviationVar(reference,refVar,reg,t)   "deviation from each variable in reference sources"
+q_refVals(reference,refVar,reg,t)           "aggregate model variable to reference granularity"
+q_refValsBasic(reference,refVarGroup,reg,t) "sum v_refVals to basic value of reference shares"
 
 q_matchingObj "matching objective: reference deviation and flow variation"
 q_finiteHeatingShareCon(bs,hs,reg,loc,typ,inc,ttot)

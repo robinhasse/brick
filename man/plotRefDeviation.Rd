@@ -4,10 +4,13 @@
 \alias{plotRefDeviation}
 \title{Plot heat map of reference deviation}
 \usage{
-plotRefDeviation(path)
+plotRefDeviation(path, dropZeroWeightRefs = TRUE)
 }
 \arguments{
-\item{path}{character; directory of output folder}
+\item{path}{character, directory of output folder}
+
+\item{dropZeroWeightRefs}{boolean, if TRUE, references with zero weight are
+not shown}
 }
 \description{
 Plot heat map of reference deviation
