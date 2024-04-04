@@ -34,9 +34,9 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
   m <- Container$new()
 
   # Read passed references
-  refsDf <- read.csv2(file.path(path, "references.csv"), row.names = 1)
-  refs <- refsDf[["references"]]
-  names(refs) <- rownames(refsDf)
+  # refsDf <- read.csv2(file.path(path, "references.csv"), row.names = 1)
+  # refs <- refsDf[["references"]]
+  # names(refs) <- rownames(refsDf)
 
   # READ DATA ------------------------------------------------------------------
 
@@ -89,7 +89,7 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
   refMaps <- lapply(references, function(ref) {
     toolGetMapping(name = paste0("refMap_", ref, ".csv"),
                    type = "sectoral",
-                   where = "mappingfolder",
+                   where = "mredgebuildings",
                    returnPathOnly = TRUE) %>%
       read.csv(comment.char = "#") %>%
       select(-matches("^\\.")) %>%
@@ -127,7 +127,7 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
     domain = c("ref", "reg"),
     records = refValsMed,
     domainForwarding = TRUE,
-    description = "Reference values to match"
+    description = "Median of all reference values for one reference in one region"
   ))
 
   refVar <- m$addSet(

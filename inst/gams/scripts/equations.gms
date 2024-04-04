@@ -481,10 +481,10 @@ q_dwelSizeConstruction(subs,ttot)..
 ;
 
 q_dwelSizeRenovation(vin,subs,ttot)$vinExists(ttot,vin)..
-  sum(ren, v_renovation("area",ren,vin,subs,ttot))
+  sum(ren(renAllowed), v_renovation("area",ren,vin,subs,ttot))
   =e=
   v_dwelSizeRenovation(vin,subs,ttot)
-  * sum(ren, v_renovation("dwel",ren,vin,subs,ttot))
+  * sum(ren(renAllowed), v_renovation("dwel",ren,vin,subs,ttot))
 ;
 
 q_dwelSizeDemolition(vin,subs,ttot)$vinExists(ttot,vin)..
@@ -525,7 +525,7 @@ q_flowVariation(varFlow,q,subs,t)$((ord(t) lt card(t)))..
     )
   )$sameas(varFlow,"construction")
   +
-  sum(ren,
+  sum(ren(renAllowed),
     sqr(
       (
           sum(vinExists(t,vin),   v_renovation(q,ren,vin,subs,t))
@@ -563,12 +563,13 @@ q_finiteHeatingShareCon(bs,hs,subs,t)..
   )
 ;
 
-q_finiteHeatingShareRen(state,bsr,hsr,vin,subs,t)$vinExists(t,vin)..
+q_finiteHeatingShareRen(state,bsr,hsr,vin,subs,t)$(    vinExists(t,vin)
+                                                   and renAllowed(state,bsr,hsr))..
   v_renovation("area",state,bsr,hsr,vin,subs,t)
   =g=
   0.05
   *
-  sum(hsr2,
+  sum(hsr2$renAllowed(state,bsr,hsr2),
     v_renovation("area",state,bsr,hsr2,vin,subs,t)
   )
 ;

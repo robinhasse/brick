@@ -8,7 +8,7 @@
 #' @importFrom gamstransfer Container
 #' @importFrom ggplot2 ggplot geom_tile facet_wrap aes theme_minimal theme
 #'   element_blank geom_text scale_x_discrete scale_y_discrete scale_fill_manual
-#'   scale_fill_brewer
+#'   scale_fill_brewer element_text
 #' @export
 
 plotRefDeviation <- function(path) {
@@ -36,7 +36,6 @@ plotRefDeviation <- function(path) {
 
   refDeviationVar <- readSymbol(m, "v_refDeviationVar")
   refVals <- readSymbol(m, "p_refVals")
-
   refDeviationVarRel <- refDeviationVar %>%
     left_join(refVals, by = c("ref", "refVar", "reg", "ttot")) %>%
     filter(.data[["ref"]] %in% refs) %>%
@@ -64,26 +63,31 @@ plotRefDeviation <- function(path) {
   }
 
   p <- ggplot(refDeviationVarRel,
-              aes(.data[["ttot"]], interaction(.data[["ref"]],
-                                               .data[["refVar"]],
-                                               sep = "  |  "))) +
+              # aes(.data[["ttot"]], interaction(.data[["ref"]],
+              #                                  .data[["refVar"]],
+              #                                  sep = "  |  "))) +
+    aes(.data[["ttot"]], .data[["refVar"]])) +
     geom_tile(aes(fill = .data[["valueDiscrete"]]),
               colour = "white") +
-    geom_text(aes(label = paste(ifelse(abs(.data[["value"]]) < 0.0001,
-                                       0,
-                                       signif(.data[["value"]] * 100, 2)),
-                                "%")),
+    geom_text(aes(label = ifelse(is.na(.data[["value"]]),
+                                 "",
+                                 paste(ifelse(abs(.data[["value"]]) < 0.0001,
+                                              0,
+                                              signif(.data[["value"]] * 100, 2)),
+                                       "%"))),
               size = 3) +
-    facet_wrap("reg", scales = "free_y") +
+    facet_grid(ref~reg, scales = "free_y", space = "free", switch = "y") +
     scale_x_discrete("") +
     scale_y_discrete("") +
-    scale_fill_manual(values = list(`> 0` = "#db7b2b",
-                                    `< 5 %` = "#99c140",
+    scale_fill_manual(values = list(`> 0`    = "#db7b2b",
+                                    `< 5 %`  = "#99c140",
                                     `5-15 %` = "#e7b416",
                                     `> 15 %` = "#cc3232")) +
     theme_minimal() +
     theme(strip.background = element_blank(),
-          panel.grid = element_blank())
+          panel.grid = element_blank(),
+          strip.placement = "outside",
+          strip.text.y.left = element_text(angle = 0))
 
   ggsave(file.path(plotDir, "refDeviation.png"), p,
          height = 14.6 / 1.5, width = 25 / 1.5, dpi = 300, bg = "white")
