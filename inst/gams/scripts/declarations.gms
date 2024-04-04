@@ -66,6 +66,7 @@ v_HeteroPrefRen(reg,loc,typ,inc,ttot) "diversity preference for renovation"
 
 $ifthen.matching "%RUNTYPE%" == "matching"
 v_flowVariationTot         "total temporal variation of flows"
+v_refDeviation(ref,reg,ttot)        "summed squared deviation from reference sources"
 v_refDeviationTot          "total weighted squared deviation of quantities from reference sources"
 v_refDeviationVar(ref,refVar,reg,ttot) "deviation from each variable in reference sources"
 v_matchingObj              "matching objective: reference deviation and flow variation"
@@ -96,7 +97,6 @@ v_renRate_EuropeanCommissionRenovation(refVar,reg,ttot)
 v_heatingShare_Odyssee(refVar,reg,ttot) "share of heating systems in the stock"
 v_heatingShare_IDEES(refVar,reg,ttot) "share of heating systems in the stock"
 v_flowVariation(varFLow,qty,reg,loc,typ,inc,ttot) "temporal variation of flows"
-v_refDeviation(ref,reg,ttot)        "summed squared deviation from reference sources"
 $endif.matching
 ;
 

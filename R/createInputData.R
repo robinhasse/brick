@@ -95,6 +95,7 @@ createInputData <- function(path,
   ## temporal ====
 
   startyear <- config[["startyear"]]
+  endyear <- config[["endyear"]]
   ttotNum <- sort(unique(config[["periods"]]))
 
   if (startyear <= min(ttotNum)) {
@@ -130,6 +131,12 @@ createInputData <- function(path,
     "thist",
     records = setdiff(ttot$getUELs(), t$getUELs()),
     description = "historic time steps"
+  ))
+
+  invisible(m$addSet(
+    "endyear",
+    records = endyear,
+    description = "end year, later periods won't be reported"
   ))
 
 

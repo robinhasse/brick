@@ -100,18 +100,22 @@ p_refVals(refVarExists("EuropeanCommissionRenovation",refVar,reg,t)) = 0.05;
 
 p_refWeight(ref,reg,t) = 1;
 *p_refWeight("EUBDB_stock",reg,t) = 0.2;
-p_refWeight("mredgebuildings_heating",reg,t) = 2E-5;
-p_refWeight("mredgebuildings_location",reg,t) = 1E-4;
-p_refWeight("mredgebuildings_buildingType",reg,t) = 1E-4;
-p_refWeight("Odyssee_constructionFloor",reg,t) = 1E-1;
-p_refWeight("Odyssee_heatingShare",reg,t) = 5E1;
-p_refWeight("IDEES_heatingShare",reg,t) = 1E2;
-p_refWeight("EUBDB_vintage",reg,t) = 5E1;
-p_refWeight("EuropeanCommissionRenovation",reg,t) = 1E2;
+*p_refWeight("mredgebuildings_heating",reg,t) = 2E-5;
+p_refWeight("mredgebuildings_vintage",reg,t) = 2;
+*p_refWeight("mredgebuildings_location",reg,t) = 1E-4;
+* p_refWeight("mredgebuildings_buildingType",reg,t) = 1E4;
+*p_refWeight("Odyssee_constructionFloor",reg,t) = 1E-1;
+*p_refWeight("Odyssee_heatingShare",reg,t) = 5E1;
+*p_refWeight("IDEES_heatingShare",reg,t) = 1E2;
+*p_refWeight("EUBDB_vintage",reg,t) = 5E1;
+*p_refWeight("EuropeanCommissionRenovation",reg,t) = 1E2;
+* p_refWeight(ref,reg,t) = 0;
+* p_refWeight("Odyssee_stock",reg,t) = 1E2;
+
 
 p_flowVariationWeight = 1E-5;
 p_flowVariationWeight = 0;
 
-p_refValsMed(ref,reg) = 1;  !! TODO: remove or rewrite normalisation of references
+* p_refValsMed(ref,reg) = 1;  !! TODO: remove or rewrite normalisation of references
 
 $endif.matching

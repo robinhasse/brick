@@ -187,11 +187,12 @@ r(ref) = no;
 r("mredgebuildings_location") = yes;
 r("mredgebuildings_buildingType") = yes;
 r("mredgebuildings_heating") = yes;
-r("mredgebuildings_vintage") = no;
-r("EUBDB_vintage") = yes;
+r("mredgebuildings_vintage") = yes;
+* r("EUBDB_vintage") = no;
+* r("Odyssee_stock") = no;
 r("Odyssee_constructionFloor") = yes;
-r("Odyssee_heatingShare") = yes;
-r("IDEES_heatingShare") = yes;
-r("EuropeanCommissionRenovation") = yes;
+r("Odyssee_heatingShare") = no;
+r("IDEES_heatingShare") = no;
+r("EuropeanCommissionRenovation") = no;
 
 $endif.matching

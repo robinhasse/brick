@@ -49,7 +49,7 @@ $endif.shell
 ;
 
 $ifthen.matching "%RUNTYPE%" == "matching"
-
+option limrow = 10;
 model matching "find stock and flows that best match reference sources"
   /
   q_matchingObj
@@ -62,12 +62,12 @@ model matching "find stock and flows that best match reference sources"
 *  q_dwelSizeStock
 *  q_dwelSizeConstruction
 *  q_dwelSize_Odyssee
-  q_renRate_EuropeanCommissionRenovation
-  q_heatingShare_Odyssee
-  q_heatingShare_IDEES
-  q_vinShare_EUBDB
-  q_finiteHeatingShareCon
-  q_finiteHeatingShareRen
+* q_renRate_EuropeanCommissionRenovation
+* q_heatingShare_Odyssee
+* q_heatingShare_IDEES
+* q_vinShare_EUBDB
+*  q_finiteHeatingShareCon
+*  q_finiteHeatingShareRen
 *  q_flowVariation
 *  q_flowVariationTot
   /
