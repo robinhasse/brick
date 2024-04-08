@@ -31,18 +31,16 @@ readSymbol <- function(x, symbol = NULL, selectArea = TRUE,
   colnames(data) <- sub("_\\d*$", "", colnames(data))
 
   # remove columns
-  # nolint start: indentation_linter.
   switch(class(obj)[1],
     Variable = {
       data <- data %>%
         select(-"marginal", -"lower", -"upper", -"scale") %>%
-        rename(value = "level")},
+        rename(value = "level")
+    },
     Set = {
-      data <- data %>%
-        select(-"element_text")
+      data[["element_text"]] <- NULL
     }
   )
-  # nolint end: indentation_linter.
 
   # select area quantity
   if ("qty" %in% colnames(data) && selectArea) {
