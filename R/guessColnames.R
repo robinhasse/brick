@@ -20,6 +20,8 @@ guessColnames <- function(x, m) {
       colnames(x)[j] <- "var"
     } else if (all(x[[j]] %in% readSymbol(m, "hs"))) {
       colnames(x)[j] <- "hs"
+    } else if (all(x[[j]] %in% readSymbol(m, "var"))) {
+      colnames(x)[j] <- "var"
     } else {
       stop("Cannot identify dimension with the following elements:\n  ",
            paste(head(unique(x[[j]]), 8), collapse = ", "))
