@@ -40,6 +40,8 @@ startModel <- function(path) {
                                      "ignoreShell")]),
           gamsCall = cfg[["gamsCall"]])
 
+  reportMif(path)
+
   plotSummary(path, NULL, showHistStock = cfg[["switches"]][["RUNTYPE"]] %in% c("calibration", "matching") ||
                 cfg[["title"]] == "iamc_base")
 
