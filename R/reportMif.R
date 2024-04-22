@@ -33,8 +33,10 @@ reportMif <- function(path, file = NULL, tmpl = NULL) {
   # read config
   configFile <- file.path(path, "config", "config.yaml")
   config <- readConfig(configFile, readDirect = TRUE)
-  missingConfigParams <- setdiff(c("reportingTemplate", "title", "periods"),
-                                 names(config))
+  missingConfigParams <- setdiff(
+    c(if (is.null(tmpl)) "reportingTemplate" else NULL, "title", "periods"),
+    names(config)
+  )
   if (length(missingConfigParams) > 0) {
     stop("The settings ", paste(missingConfigParams, collapse = ", "),
          " are missing in the config: ", configFile)
