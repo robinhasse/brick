@@ -39,6 +39,9 @@ readSymbol <- function(x, symbol = NULL, selectArea = TRUE,
     },
     Set = {
       data[["element_text"]] <- NULL
+      if (identical(colnames(data), "uni")) {
+        data <- getElement(data, "uni")
+      }
     }
   )
 
