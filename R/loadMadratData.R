@@ -10,33 +10,7 @@
 
 loadMadratData <- function(config) {
 
-
-  # find region mapping --------------------------------------------------------
-
-  regionmapping <- config[["regionmapping"]]
-
-  if (is.null(regionmapping)) {
-    # missing region mapping -> national resolution
-    name <- "regionmappingNational.csv"
-    where <- "mredgebuildings"
-  } else if (is.character(regionmapping)) {
-    name <- regionmapping[1]
-    if (length(regionmapping) == 1) {
-      name <- brick.file(name)
-      where <- "local"
-    } else if (length(regionmapping) == 2) {
-      where <- regionmapping[2]
-    } else {
-      stop("'regionmapping' in your config cannot have more than two elements.",
-           " Either give the directory to a local mapping file or a vector of ",
-           "the file name and the 'where' argument of toolGetMapping.")
-    }
-  } else {
-    stop("'regionmapping' in your config can either be NULL, a filepath or a ",
-         "character vector of length 2, not ", class(regionmapping), ".")
-  }
-
-  regionmapping <- toolGetMapping(name, "regional", where)
+  regionmapping <- .findRegionMapping(config[["regionmapping"]])
 
 
 
@@ -79,7 +53,7 @@ loadMadratData <- function(config) {
     names(repositories) <- getConfig("outputfolder")
 
     # load tgz file and unpack it in input folder
-    download_distribute(madratNew, repositories, brick.file())
+    download_distribute(madratNew, repositories, brick.file(""))
 
   } else {
     message("No input data downloaded and distributed. To enable that, ",
@@ -88,4 +62,34 @@ loadMadratData <- function(config) {
 
   return(list(inputDir = inputDir,
               regionmapping = regionmapping))
+}
+
+
+
+.findRegionMapping <- function(regionmapping) {
+
+  if (is.null(regionmapping)) {
+    # missing region mapping -> national resolution
+    name <- "regionmappingNational.csv"
+    where <- "mredgebuildings"
+  } else if (is.character(regionmapping)) {
+    name <- regionmapping[1]
+    if (length(regionmapping) == 1) {
+      if (!file.exists(name)) {
+        stop("Can't find regionmapping. This file doesn't exist: ", name)
+      }
+      where <- "local"
+    } else if (length(regionmapping) == 2) {
+      where <- regionmapping[2]
+    } else {
+      stop("'regionmapping' in your config cannot have more than two elements.",
+           " Either give the directory to a local mapping file or a vector of ",
+           "the file name and the 'where' argument of toolGetMapping.")
+    }
+  } else {
+    stop("'regionmapping' in your config can either be NULL, a filepath or a ",
+         "character vector of length 2, not ", class(regionmapping), ".")
+  }
+
+  toolGetMapping(name, "regional", where)
 }
