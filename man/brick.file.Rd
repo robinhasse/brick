@@ -4,12 +4,10 @@
 \alias{brick.file}
 \title{Find the full file names of files in BRICK}
 \usage{
-brick.file(..., mustWork = FALSE)
+brick.file(...)
 }
 \arguments{
 \item{...}{character vectors, specifying subdirectory and files within brick}
-
-\item{mustWork}{logical. If TRUE, an error is given if there are no matching}
 }
 \value{
 A character vector of positive length, containing the file paths

@@ -22,6 +22,7 @@ endyear: 2100
 ### region mapping ###
 # file that maps countries to modelled regions
   # []: country-level resolution
+  # [path]: file path to regionmapping
   # [name, where]: regionmapping via toolGetMapping
 regionmapping: []
 

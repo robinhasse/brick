@@ -9,22 +9,31 @@
 #'
 #' @param config run configurations
 #' @param path character vector with folders to run the model in
+#' @param configFolder character, directory to search for configs. If NULL, the
+#'   BRICK-internal config folder is used.
 #' @param outputFolder directory of output folder
 #' @param references named character vector of matching references
 #' @param restart character vector of elements to be restarted.
-#' Allowed elements are:
-#'  "cpGms" to recopy the Gams scripts (necessary if changes were made in Gams code)
-#'  "crInp" to recreate input data,
-#'  "crMatch" to either recreate the matching data or reaggregate the matching
-#'  "none" (or any other string) to do none of the above
+#'   Allowed elements are:
+#'   \itemize{
+#'   \item \code{"cpGms"} to recopy the Gams scripts (necessary if changes were
+#'         made in Gams code)
+#'   \item \code{"crInp"} to recreate input data,
+#'   \item \code{"crMatch"} to either recreate the matching data or reaggregate
+#'         the matching
+#'   \item \code{"none"} (or any other string) to do none of the above
+##'  }
 #' @param sendToSlurm boolean whether or not the run should be started via SLURM
 #' @param slurmQOS character, slurm QOS to be used
 #' @param tasks32 boolean whether or not the SLURM run should be with 32 tasks
+#' @returns path (invisible)
+#'
 #' @importFrom pkgload is_dev_package
 #' @importFrom utils write.csv2
 #' @export
 initModel <- function(config = NULL,
                       path = NULL,
+                      configFolder = NULL,
                       outputFolder = "output",
                       references = NULL,
                       restart = NULL,
@@ -56,7 +65,9 @@ initModel <- function(config = NULL,
               "This config will be ignored and the existing config in 'config/config.yaml' will be used.")
     }
 
-    cfg <- readConfig(file.path(path, "config", "config.yaml"))
+    cfg <- readConfig(config = file.path(path, "config", "config.yaml"),
+                      configFolder = configFolder,
+                      readDirect = TRUE)
     title <- cfg[["title"]]
   } else {
     if (!is.null(restart)) {
@@ -64,7 +75,8 @@ initModel <- function(config = NULL,
       restart <- NULL
     }
 
-    cfg <- readConfig(config)
+    cfg <- readConfig(config = config,
+                      configFolder = configFolder)
     title <- cfg[["title"]]
 
     if (is.null(path)) {
@@ -112,5 +124,8 @@ initModel <- function(config = NULL,
     if (exitCode > 0) {
       message("Executing initModel failed with exit code ", exitCode, ".")
     }
+
   }
+
+  invisible(path)
 }

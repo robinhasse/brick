@@ -7,6 +7,7 @@
 initModel(
   config = NULL,
   path = NULL,
+  configFolder = NULL,
   outputFolder = "output",
   references = NULL,
   restart = NULL,
@@ -20,22 +21,32 @@ initModel(
 
 \item{path}{character vector with folders to run the model in}
 
+\item{configFolder}{character, directory to search for configs. If NULL, the
+BRICK-internal config folder is used.}
+
 \item{outputFolder}{directory of output folder}
 
 \item{references}{named character vector of matching references}
 
 \item{restart}{character vector of elements to be restarted.
-Allowed elements are:
- "cpGms" to recopy the Gams scripts (necessary if changes were made in Gams code)
- "crInp" to recreate input data,
- "crMatch" to either recreate the matching data or reaggregate the matching
- "none" (or any other string) to do none of the above}
+ Allowed elements are:
+ \itemize{
+ \item \code{"cpGms"} to recopy the Gams scripts (necessary if changes were
+       made in Gams code)
+ \item \code{"crInp"} to recreate input data,
+ \item \code{"crMatch"} to either recreate the matching data or reaggregate
+       the matching
+ \item \code{"none"} (or any other string) to do none of the above
+}}
 
 \item{sendToSlurm}{boolean whether or not the run should be started via SLURM}
 
 \item{slurmQOS}{character, slurm QOS to be used}
 
 \item{tasks32}{boolean whether or not the SLURM run should be with 32 tasks}
+}
+\value{
+path (invisible)
 }
 \description{
 Preparations of a model run, send the model to SLURM if desired
