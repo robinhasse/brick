@@ -219,7 +219,7 @@ createInputData <- function(path,
     unique()
   typ <- m$addSet(
     "typ",
-    records = c("SFH", "MFH"),
+    records = typ,
     description = "type of residential building (SFH, MFH)"
   )
 
@@ -468,7 +468,7 @@ createInputData <- function(path,
     "p_specCostOpe",
     c(state, vin, reg, loc, typ, ttot),
     p_specCostOpe,
-    description = "floor-space specific operation cost in EUR/(m2.yr)"
+    description = "floor-space specific operation cost in USD/(m2.yr)"
   )
 
 
