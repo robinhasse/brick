@@ -45,6 +45,15 @@ initModel <- function(config = NULL,
     dir.create(outputFolder)
   }
 
+  # Check if SLURM is available
+  if (sendToSlurm) {
+    if (!isSlurmAvailable()) {
+      warning("sendToSlurm is TRUE, but SLURM is not available.",
+              "Run is started without SLURM.")
+      sendToSlurm <- FALSE
+    }
+  }
+
   # Generate SLURM configuration if sending to SLURM
   if (sendToSlurm) {
     slurmConfig <- setSlurmConfig(slurmQOS = slurmQOS, tasks32 = tasks32)
