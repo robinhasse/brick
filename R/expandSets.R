@@ -14,7 +14,7 @@ expandSets <- function(..., .m = NULL) {
   lst <- list(...)
 
   # read set elements and dim name from gams objects
-  setElements <- lapply(lst, function(l) {as.character(.getSet(l, .m)$getUELs())})[]
+  setElements <- lapply(lst, function(l) as.character(.getSet(l, .m)$getUELs()))[]
   setNames <- as.character(lapply(lst, function(l) .getSet(l, .m)$name))
 
   # convert elements of temporal dims to numeric

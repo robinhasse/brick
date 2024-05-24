@@ -14,21 +14,21 @@ createSets <- function(m, config) {
 
   # sets that are independent of the scenario config
 
-  cost <- m$addSet(
-    "cost",
+  invisible(m$addSet(
+    name = "cost",
     records = c("tangible", "intangible"),
     description = "type of cost"
-  )
+  ))
   var <- m$addSet(
-    "var",
+    name = "var",
     records = c("stock", "construction", "renovation", "demolition"),
     description = "mayor variables of the model"
   )
-  qty <- m$addSet(
-    "qty",
+  invisible(m$addSet(
+    name = "qty",
     records = c("area", "dwel"),
     description = "quantity unit to measure stocks and flows in"
-  )
+  ))
 
 
 
@@ -43,31 +43,31 @@ createSets <- function(m, config) {
   }
 
   invisible(m$addSet(
-    "tall",
+    name = "tall",
     records = min(ttotNum):max(ttotNum),
     description = "all time steps"
   ))
 
   ttot <- m$addSet(
-    "ttot",
+    name = "ttot",
     records = ttotNum,
     description = "all modelling time steps"
   )
-  ttot2 <- m$addAlias("ttot2", ttot)
+  invisible(m$addAlias("ttot2", ttot))
 
   invisible(m$addSet(
-    "tinit",
+    name = "tinit",
     records = min(ttotNum),
     description = "initial modelling time step"
   ))
   t <- m$addSet(
-    "t",
+    name = "t",
     records = ttot$getUELs()[which(ttot$getUELs() >= startyear)],
     description = "modelled time steps"
   )
 
   invisible(m$addSet(
-    "thist",
+    name = "thist",
     records = setdiff(ttot$getUELs(), t$getUELs()),
     description = "historic time steps"
   ))
@@ -78,7 +78,7 @@ createSets <- function(m, config) {
   vintages <- getBrickMapping("vintage.csv")
 
   vin <- m$addSet(
-    "vin",
+    name = "vin",
     records = unique(getElement(vintages, "vin")),
     description = "construction vintage cohort"
   )
@@ -88,8 +88,8 @@ createSets <- function(m, config) {
     filter(.data[["ttot"]] > .data[["from"]] - 1) %>%
     select("ttot", "vin")
   vinExists <- m$addSet(
-    "vinExists",
-    c(ttot, vin),
+    name = "vinExists",
+    domain = c(ttot, vin),
     records = vinExists,
     description = "Can this vintage cohort exist i.e. ttot cannot be before cohort starts"
   )
@@ -105,13 +105,13 @@ createSets <- function(m, config) {
     unique()
   if (config[["ignoreShell"]]) bs <- head(bs, 1)
   bs <-  m$addSet(
-    "bs",
+    name = "bs",
     records = bs,
     description = "building shell"
   )
 
   bsr <- m$addSet(
-    "bsr",
+    name = "bsr",
     records = c(bs$getUELs(), 0),
     description = "renovated building shell"
   )
@@ -119,19 +119,38 @@ createSets <- function(m, config) {
 
   ## heating system ====
 
-  hs <- getBrickMapping("heatingSystem.csv", "sectoral") %>%
+  hsMap <- getBrickMapping("heatingSystem.csv", "sectoral")
+
+  hs <- hsMap %>%
     getElement("hs") %>%
     unique()
   hs <-  m$addSet(
-    "hs",
+    name = "hs",
     records = hs,
     description = "heating system"
   )
 
   hsr <- m$addSet(
-    "hsr",
+    name = "hsr",
     records = c(0, hs$getUELs()),
     description = "renovated heating system"
+  )
+
+  carrier <- hsMap %>%
+    getElement("carrier") %>%
+    unique()
+  carrier <- m$addSet(
+    name = "carrier",
+    records = carrier,
+    description = "energy carrier"
+  )
+
+  hsCarrier <- unique(hsMap[, c("hs", "carrier")])
+  hsCarrier <- m$addSet(
+    name = "hsCarrier",
+    domain = c(hs, carrier),
+    records = hsCarrier,
+    description = "mapping between heating system and energy carrier"
   )
 
 
@@ -139,7 +158,7 @@ createSets <- function(m, config) {
   # Independent stock subset ---------------------------------------------------
 
   reg <- m$addSet(
-    "reg",
+    name = "reg",
     records = config[["regions"]],
     description = "region"
   )
@@ -148,7 +167,7 @@ createSets <- function(m, config) {
     getElement("loc") %>%
     unique()
   loc <- m$addSet(
-    "loc",
+    name = "loc",
     records = loc,
     description = "location of building (rural, urban)"
   )
@@ -157,7 +176,7 @@ createSets <- function(m, config) {
     getElement("typ") %>%
     unique()
   typ <- m$addSet(
-    "typ",
+    name = "typ",
     records = typ,
     description = "type of residential building (SFH, MFH)"
   )
@@ -166,7 +185,7 @@ createSets <- function(m, config) {
     getElement("inc") %>%
     unique()
   inc <- m$addSet(
-    "inc",
+    name = "inc",
     records = inc,
     description = "income quantile"
   )
@@ -204,7 +223,7 @@ createSets <- function(m, config) {
     hsBan <- NULL
   }
   hsBan <- m$addSet(
-    "hsBan",
+    name = "hsBan",
     records = hsBan,
     domain = c(var, reg, ttot, hs),
     description = "forbidden heating systems in the respective variable in given period"
@@ -234,7 +253,7 @@ createSets <- function(m, config) {
   }
 
   renAllowed <- m$addSet(
-    "renAllowed",
+    name = "renAllowed",
     domain = c(bs, hs, bsr, hsr),
     records = renAllowed,
     description = "Is this renovation transition allowed"
