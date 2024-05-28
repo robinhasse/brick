@@ -11,7 +11,7 @@ initModel(
   outputFolder = "output",
   references = NULL,
   restart = NULL,
-  sendToSlurm = TRUE,
+  sendToSlurm = NULL,
   slurmQOS = "default",
   tasks32 = FALSE
 )

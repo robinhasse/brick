@@ -37,12 +37,25 @@ initModel <- function(config = NULL,
                       outputFolder = "output",
                       references = NULL,
                       restart = NULL,
-                      sendToSlurm = TRUE,
+                      sendToSlurm = NULL,
                       slurmQOS = "default",
                       tasks32 = FALSE) {
 
   if (!dir.exists(outputFolder)) {
     dir.create(outputFolder)
+  }
+
+  # Check if SLURM is available. Start via SLURM if available, and directly otherwise.
+  if (is.null(sendToSlurm)) {
+    if (isSlurmAvailable()) {
+      message("SLURM is available. Run will be send to SLURM.")
+      sendToSlurm <- TRUE
+    } else {
+      message("SLURM is not available. Run will be executed directly.")
+      sendToSlurm <- FALSE
+    }
+  } else if (isTRUE(sendToSlurm) && !isSlurmAvailable()) {
+    stop("sendToSlurm is TRUE, but SLURM is not available. Stopping.")
   }
 
   # Generate SLURM configuration if sending to SLURM
