@@ -54,10 +54,8 @@ initModel <- function(config = NULL,
       message("SLURM is not available. Run will be executed directly.")
       sendToSlurm <- FALSE
     }
-  } else {
-    if (isTRUE(sendToSlurm) && !isSlurmAvailable()) {
-      stop("sendToSlurm is TRUE, but SLURM is not available. Stopping.")
-    }
+  } else if (isTRUE(sendToSlurm) && !isSlurmAvailable()) {
+    stop("sendToSlurm is TRUE, but SLURM is not available. Stopping.")
   }
 
   # Generate SLURM configuration if sending to SLURM
