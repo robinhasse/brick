@@ -10,7 +10,15 @@
 
 loadMadratData <- function(config) {
 
+  # regionmapping --------------------------------------------------------------
+
   regionmapping <- .findRegionMapping(config[["regionmapping"]])
+  missingRegions <- setdiff(config[["regions"]], regionmapping[["RegionCode"]])
+  if (length(missingRegions) > 0) {
+    stop("The regions in your config don't match the region mapping. ",
+         "The following regions are not part of the mapping:\n  ",
+         paste(missingRegions, collapse = c(", ")))
+  }
 
 
 
@@ -26,7 +34,6 @@ loadMadratData <- function(config) {
   } else {
     madratOld <- "noData"
   }
-
 
   # where to get new files from
   madratNew <- paste0("rev",
@@ -60,8 +67,11 @@ loadMadratData <- function(config) {
             "delete input/source_files.log or set forceDownload to TRUE.")
   }
 
-  return(list(inputDir = inputDir,
-              regionmapping = regionmapping))
+
+
+  # return ---------------------------------------------------------------------
+
+  return(invisible(inputDir))
 }
 
 

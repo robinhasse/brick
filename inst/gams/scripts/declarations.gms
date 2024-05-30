@@ -10,6 +10,13 @@ p_specCostRen(cost,bs,hs,bsr,hsr,vin,reg,loc,typ,inc,ttot) "floor-space specific
 p_specCostOpe(bs,hs,vin,reg,loc,typ,ttot)                  "floor-space specific operation cost in USD/(m2.yr)"
 p_specCostDem                                              "floor-space specific demolition cost in USD/m2"
 
+p_carbonPrice(ttot)                "Carbon price in USD/t_CO2eq"
+p_carrierPrice(carrier,reg,ttot)   "final energy carrier price in USD/kWh"
+p_carrierEmi(carrier,reg,ttot)     "energy carrier emission intensity in t_CO2/kWh"
+p_ueDemand(bs,vin,reg,typ)         "floor-space specific useful energy demand for space heating in kWh/yr/m2"
+p_feDemand(hs,bs,vin,reg,typ,ttot) "floor-space specific final energy demand for space heating in kWh/yr/m2"
+p_eff(hs,reg,typ,ttot)             "technical efficiency of space heating technologies"
+
 p_lccCon(cost,var,bs,hs,reg,loc,typ,inc,ttot) "Estimate of life cycle cost of constructed housing in USD/m2"
 p_probDem(reg,typ,ttot2,ttot)                 "probability of a building having reached its end of life"
 p_LifeTimeBS(reg)                             "life time of building shell system in yr"
@@ -29,7 +36,8 @@ p_shareRenHS(hs,reg,typ,ttot,ttot)     "minimum share of renovation from the hea
 p_shareRenBSinit(reg,ttot,ttot)        "minimum share of renovation from the building shell of initial stock reaching end of life"
 p_shareRenHSinit(hs,reg,typ,ttot,ttot) "minimum share of renovation from the heating system of initial stock reaching end of life"
 
-p_discountFac(typ,ttot)         "discount factor w.r.t. t0"
+p_interestRate(typ,ttot) "interest rate (incl. implicit) w.r.t. t0 in 1/yr"
+p_discountFac(typ,ttot)  "discount factor w.r.t. t0"
 
 p_runtime(reg,loc,typ,inc)                  "model runtime"
 p_handle(reg,loc,typ,inc)                   "parallel model handle parameter"

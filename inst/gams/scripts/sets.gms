@@ -10,6 +10,9 @@ hs(hsr) "heating system"
 *** vintages
 vin "construction vintage cohort"
 
+*** energy carriers
+carrier "energy carrier"
+
 *** stock subset dimesions
 reg "regions"
 loc "location of building (rural, urban)"
@@ -91,6 +94,7 @@ $load bsr hsr bs hs
 $load reg loc typ inc
 $load tall ttot t thist tinit
 $load vin
+$load carrier
 $gdxin
 
 *** load reference sets
@@ -132,6 +136,7 @@ renAllowed(bs,hs,bsr,hsr)          "Is this renovation transition allowed"
 sameState(bs,hs,bsr,hsr)           "Is the state after the renovation the same as before"
 renEffective(bs,hs,bsr,hsr)        "Renovations without untouched buildings"
 refVarExists (ref,refVar,reg,ttot) "There is a value for this combination of reference, variable, region and period"
+hsCarrier(hs,carrier)              "mapping between heating system and energy carrier"
 
 *** control sets (should be empty)
 ErrStock(bs,hs,vin,reg,loc,typ,inc,ttot)              "Error in stock of buildings"
@@ -156,6 +161,7 @@ alias(renAllowed,renAllowed2);
 *** load fundamental sets
 $gdxin input.gdx
 $load renAllowed
+$load hsCarrier
 $load hsBan
 $gdxin
 

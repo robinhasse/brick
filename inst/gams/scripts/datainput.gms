@@ -3,8 +3,9 @@
 $gdxin input.gdx
 $load p_dt p_dtVin t0
 $load vinExists
-$load p_specCostCon p_specCostRen p_specCostOpe p_specCostDem
-$load p_discountFac
+$load p_specCostCon p_specCostRen p_specCostDem
+$load p_carbonPrice p_carrierPrice p_carrierEmi p_ueDemand p_eff
+$load p_interestRate
 $load p_population
 $ifthen.noCalib not "%RUNTYPE%" == "calibration"
 $load p_stockHist
@@ -48,6 +49,26 @@ $endif.history
 
 
 *** derived parameters ---------------------------------------------------------
+
+* floor-space specific final energy demand
+p_feDemand(hs,bs,vin,reg,typ,ttot) =
+  p_ueDemand(bs,vin,reg,typ)
+  / p_eff(hs,reg,typ,ttot)
+;
+
+* floor-space specific operation cost
+p_specCostOpe(bs,hs,vin,reg,loc,typ,ttot) =
+  p_feDemand(hs,bs,vin,reg,typ,ttot)
+  * sum(hsCarrier(hs,carrier),
+      p_carrierPrice(carrier,reg,ttot)
+      + p_carbonPrice(ttot) * p_carrierEmi(carrier,reg,ttot)
+    )
+;
+
+* discount factor
+p_discountFac(typ,ttot) =
+  1 / (1 + p_interestRate(typ,ttot))**(ttot.val - p_dt(ttot) / 2 - t0)
+;
 
 * LCC of housing related to a construction decision under various assumptions:
 * - discounted to time of construction
