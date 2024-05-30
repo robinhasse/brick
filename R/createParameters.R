@@ -74,7 +74,7 @@ createParameters <- function(m, config, inputDir) {
               by = c("bs", "hs", "reg", "typ", "ttot"))
   p_specCostConIntang <- p_specCostCon %>%
     filter(.data[["cost"]] == "intangible") %>%
-    addAssump(brick.file("assump/costIntangCon.csv"))
+    addAssump(brick.file("assump", "costIntangCon.csv"))
   p_specCostCon <- rbind(p_specCostConTang, p_specCostConIntang)
   p_specCostCon <- m$addParameter(
     name = "p_specCostCon",
@@ -99,7 +99,7 @@ createParameters <- function(m, config, inputDir) {
               by = c("ttot", "reg", "bs", "hs", "bsr", "hsr", "typ", "vin"))
   p_specCostRenIntang <- p_specCostRen %>%
     filter(.data[["cost"]] == "intangible") %>%
-    addAssump(brick.file("assump/costIntangRen.csv"))
+    addAssump(brick.file("assump", "costIntangRen.csv"))
   p_specCostRen <- rbind(p_specCostRenTang, p_specCostRenIntang)
   p_specCostRen <- m$addParameter(
     name = "p_specCostRen",

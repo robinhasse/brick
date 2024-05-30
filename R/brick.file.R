@@ -4,20 +4,15 @@
 #' the package via \code{devtools::load_all("path/to/brick")}
 #'
 #' @param ... character vectors, specifying subdirectory and files within brick
+#' @param mustWork if TRUE, an error is given if there are no matching files
 #' @returns A character vector of positive length, containing the file paths
-#'   that matched \code{...}, or the empty string, \code{""}, if none matched
-#'   (unless \code{mustWork = TRUE}).
-#'   files.
+#'   that matched \code{...} in BRICK.
 #'
 #' @author Robin Hasse
 #'
 #' @importFrom piamutils getSystemFile
 #' @export
 
-brick.file <- function(...) {
-  path <- getSystemFile(file.path(...), package = "brick")
-  if (!file.exists(path)) {
-    stop("Cannot find this BRICK file: ", path)
-  }
-  return(path)
+brick.file <- function(..., mustWork = TRUE) {
+  getSystemFile(..., package = "brick", mustWork = mustWork)
 }
