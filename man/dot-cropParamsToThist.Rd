@@ -13,5 +13,5 @@
 }
 \description{
 remove all records of temporal parameters that are outside of \code{thist}
-and make zero values explicit filling with EPS.
+and make zero values explicit by filling with EPS. Otherwise
 }

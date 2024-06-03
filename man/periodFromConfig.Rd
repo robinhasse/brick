@@ -4,12 +4,12 @@
 \alias{periodFromConfig}
 \title{get Period from config}
 \usage{
-periodFromConfig(config, which)
+periodFromConfig(config, periodType)
 }
 \arguments{
 \item{config}{named list with run configuration}
 
-\item{which}{type of period(s)}
+\item{periodType}{type of period(s)}
 }
 \value{
 numeric vector with periods

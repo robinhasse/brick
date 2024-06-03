@@ -51,7 +51,7 @@ createParameters <- function(m, config, inputDir) {
 
   invisible(m$addParameter(
     name = "t0",
-    records = periodFromConfig(config, "reference"),
+    records = periodFromConfig(config, "t0"),
     description = "reference year for discounting"
   ))
 

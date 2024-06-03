@@ -34,11 +34,11 @@ createSets <- function(m, config) {
 
   # Temporal -------------------------------------------------------------------
 
-  ttotNum <- periodFromConfig(config, "total")
+  ttotNum <- periodFromConfig(config, "ttot")
 
   invisible(m$addSet(
     name = "tall",
-    records = periodFromConfig(config, "all"),
+    records = periodFromConfig(config, "tall"),
     description = "all time steps"
   ))
 
@@ -51,18 +51,18 @@ createSets <- function(m, config) {
 
   invisible(m$addSet(
     name = "tinit",
-    records = periodFromConfig(config, "initial"),
+    records = periodFromConfig(config, "tinit"),
     description = "initial modelling time step"
   ))
   invisible(m$addSet(
     name = "t",
-    records = periodFromConfig(config, "model"),
+    records = periodFromConfig(config, "t"),
     description = "modelled time steps"
   ))
 
   invisible(m$addSet(
     name = "thist",
-    records = periodFromConfig(config, "historic"),
+    records = periodFromConfig(config, "thist"),
     description = "historic time steps"
   ))
 

@@ -5,12 +5,11 @@
 #' @author Robin Hasse
 #'
 #' @param config named list with run configuration
-#' @param which type of period(s)
+#' @param periodType type of period(s)
 #' @returns numeric vector with periods
 
-periodFromConfig <- function(config, which) {
+periodFromConfig <- function(config, periodType) {
 
-  # read
   startyear <- config[["startyear"]]
   ttot <- sort(unique(config[["periods"]]))
 
@@ -19,22 +18,16 @@ periodFromConfig <- function(config, which) {
          "There has to be at least one historic period.")
   }
 
-  # derive
   t <- ttot[which(ttot >= startyear)]
-  tall <- min(ttot):max(ttot)
-  thist <- setdiff(ttot, t)
-  tinit <- min(ttot)
-  t0 <- min(t)
 
-  # return
-  switch(which,
-    total = ttot,
-    all = tall,
+  switch(periodType,
+    ttot = ttot,
+    tall = min(ttot):max(ttot),
     startyear = startyear,
-    model = t,
-    historic = thist,
-    initial = tinit,
-    reference = t0,
-    stop("unknown type of period: ", which)
+    t = t,
+    thist = setdiff(ttot, t),
+    tinit = min(ttot),
+    t0 = min(t),
+    stop("unknown type of period: ", periodType)
   )
 }

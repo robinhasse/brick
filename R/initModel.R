@@ -107,7 +107,7 @@ initModel <- function(config = NULL,
 
   copyInitialGdx(path, cfg)
 
-  copyHistoryGdx(path, cfg)
+  copyHistoryGdx(path, outputFolder, cfg)
 
   # In matching run: Save references to csv
   if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
