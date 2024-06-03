@@ -34,17 +34,11 @@ createSets <- function(m, config) {
 
   # Temporal -------------------------------------------------------------------
 
-  startyear <- config[["startyear"]]
-  ttotNum <- sort(unique(config[["periods"]]))
-
-  if (startyear <= min(ttotNum)) {
-    stop("startyear cannot be equal or before the first period. ",
-         "There has to be at least one historic period.")
-  }
+  ttotNum <- periodFromConfig(config, "ttot")
 
   invisible(m$addSet(
     name = "tall",
-    records = min(ttotNum):max(ttotNum),
+    records = periodFromConfig(config, "tall"),
     description = "all time steps"
   ))
 
@@ -57,18 +51,18 @@ createSets <- function(m, config) {
 
   invisible(m$addSet(
     name = "tinit",
-    records = min(ttotNum),
+    records = periodFromConfig(config, "tinit"),
     description = "initial modelling time step"
   ))
-  t <- m$addSet(
+  invisible(m$addSet(
     name = "t",
-    records = ttot$getUELs()[which(ttot$getUELs() >= startyear)],
+    records = periodFromConfig(config, "t"),
     description = "modelled time steps"
-  )
+  ))
 
   invisible(m$addSet(
     name = "thist",
-    records = setdiff(ttot$getUELs(), t$getUELs()),
+    records = periodFromConfig(config, "thist"),
     description = "historic time steps"
   ))
 

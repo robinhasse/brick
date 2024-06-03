@@ -39,11 +39,23 @@ $if exist "start.gdx" execute_loadpoint "start";
 *** history --------------------------------------------------------------------
 
 $ifthen.history exist "history.gdx"
-execute_load "history", p_stockHist =        v_stock.l
-                        p_constructionHist = v_construction.l
-                        p_renovationHist =   v_renovation.l
-                        p_demolitionHist =   v_demolition.l
-;
+execute_loadpoint "history",
+  p_stockHist        = v_stock.l
+  p_constructionHist = v_construction.l
+  p_renovationHist   = v_renovation.l
+  p_demolitionHist   = v_demolition.l
+  p_carbonPrice
+  p_carrierEmi
+  p_carrierPrice
+  p_eff
+  p_floorPerCap
+  p_interestRate
+  p_population
+  p_probDem
+  p_shareDem
+  p_specCostCon
+  p_specCostOpe
+  p_specCostRen;
 $endif.history
 
 
