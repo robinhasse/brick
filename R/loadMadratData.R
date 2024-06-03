@@ -25,7 +25,7 @@ loadMadratData <- function(config) {
   # Identify madrat tgz files --------------------------------------------------
 
   # find package directory
-  inputDir <- brick.file("input")
+  inputDir <- brick.file("input", mustWork = FALSE)
 
   # where are the old files from?
   sourceFiles <- file.path(inputDir, "source_files.log")
