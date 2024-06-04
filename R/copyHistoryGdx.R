@@ -18,6 +18,9 @@ copyHistoryGdx <- function(path,
 
   # find file
   originGdx <- config[["historic"]]
+  if (is.null(originGdx)) {
+    return(invisible(NULL))
+  }
   if (length(originGdx) > 1) {
     stop("Don't give more than one historical. You gave:\n",
          paste(originGdx, collapse = "\n"))
