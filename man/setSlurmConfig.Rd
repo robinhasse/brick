@@ -4,14 +4,14 @@
 \alias{setSlurmConfig}
 \title{Set the SLURM configuration}
 \usage{
-setSlurmConfig(slurmQOS, tasks32, nmbrRegi)
+setSlurmConfig(slurmQOS, tasksPerNode = 16, tasks32 = FALSE)
 }
 \arguments{
 \item{slurmQOS}{string, name of the desired QOS (Quality of Service)}
 
-\item{tasks32}{boolean, specify whether a node with 32 tasks should be requested}
+\item{tasksPerNode}{numeric, number of tasks per node to be requested}
 
-\item{numbrRegi}{numeric, number of regions}
+\item{tasks32}{boolean, specify whether a node with 32 tasks should be requested}
 }
 \value{
 string with SLURM configuration

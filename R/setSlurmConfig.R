@@ -7,13 +7,13 @@
 #' @author Ricarda Rosemann
 #'
 #' @param slurmQOS string, name of the desired QOS (Quality of Service)
+#' @param tasksPerNode numeric, number of tasks per node to be requested
 #' @param tasks32 boolean, specify whether a node with 32 tasks should be requested
-#' @param numbrRegi numeric, number of regions
 #' @returns string with SLURM configuration
 #'
 #' @export
 
-setSlurmConfig <- function(slurmQOS, tasks32, nmbrRegi) {
+setSlurmConfig <- function(slurmQOS, tasksPerNode = 16, tasks32 = FALSE) {
 
   allowedQOS <- c("default", "priority", "standby", "short", "medium", "long")
 
@@ -40,7 +40,6 @@ setSlurmConfig <- function(slurmQOS, tasks32, nmbrRegi) {
     if (slurmQOS == "default") {
       slurmQOS <- "priority"
     }
-    tasksPerNode <- min(nmbrRegi * 4, 16) # Number of jobs that can be parallelized: Regions times types times locations
     slurmConfig <- paste0("--qos=", slurmQOS, " --nodes=1 --tasks-per-node=", tasksPerNode)
     message("SLURM QOS is set to ", slurmQOS, " with ", tasksPerNode, " CPUs.")
   }
