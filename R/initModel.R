@@ -58,11 +58,6 @@ initModel <- function(config = NULL,
     stop("sendToSlurm is TRUE, but SLURM is not available. Stopping.")
   }
 
-  # Generate SLURM configuration if sending to SLURM
-  if (sendToSlurm) {
-    slurmConfig <- setSlurmConfig(slurmQOS = slurmQOS, tasks32 = tasks32)
-  }
-
   # Check if an already existing path was given
   if (!is.null(path) && file.exists(path)) {
     message("Given path already exists. Restarting on this path.")
@@ -98,6 +93,12 @@ initModel <- function(config = NULL,
     }
 
     createRunFolder(path, cfg)
+  }
+
+  # Generate SLURM configuration if sending to SLURM
+  if (sendToSlurm) {
+    nmbrRegi <- length(cfg[["regions"]])
+    slurmConfig <- setSlurmConfig(slurmQOS = slurmQOS, tasks32 = tasks32, nmbrRegi = nmbrRegi)
   }
 
   # Copy gams files if this is not a restart run or if this is specified in restart parameters
