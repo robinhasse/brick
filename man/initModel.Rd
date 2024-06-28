@@ -13,7 +13,7 @@ initModel(
   restart = NULL,
   sendToSlurm = NULL,
   slurmQOS = "default",
-  tasksPerNode = 16,
+  tasksPerNode = NULL,
   tasks32 = FALSE
 )
 }
