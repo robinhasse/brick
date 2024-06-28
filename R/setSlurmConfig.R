@@ -37,9 +37,8 @@ setSlurmConfig <- function(slurmQOS, tasksPerNode = 16, tasks32 = FALSE) {
                           " --constraint=broadwell --time=01:00:00")
     message("SLURM QOS is set to ", slurmQOS, ", using a Broadwell node with 32 CPUs.")
   } else {
-    if (slurmQOS == "default") {
-      slurmQOS <- "priority"
-    }
+    if (slurmQOS == "default") slurmQOS <- "priority"
+    if (is.null(tasksPerNode)) tasksPerNode <- 16
     slurmConfig <- paste0("--qos=", slurmQOS, " --nodes=1 --tasks-per-node=", tasksPerNode)
     message("SLURM QOS is set to ", slurmQOS, " with ", tasksPerNode, " CPUs.")
   }

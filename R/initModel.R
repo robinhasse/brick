@@ -40,7 +40,7 @@ initModel <- function(config = NULL,
                       restart = NULL,
                       sendToSlurm = NULL,
                       slurmQOS = "default",
-                      tasksPerNode = 16,
+                      tasksPerNode = NULL,
                       tasks32 = FALSE) {
 
   if (!dir.exists(outputFolder)) {
@@ -99,6 +99,9 @@ initModel <- function(config = NULL,
 
   # Generate SLURM configuration if sending to SLURM
   if (sendToSlurm) {
+    if (slurmQOS == "default" && !is.null(cfg[["slurmQOS"]])) slurmQOS <- cfg[["slurmQOS"]]
+    if (is.null(tasksPerNode) && !is.null(cfg[["tasksPerNode"]])) tasksPerNode <- cfg[["tasksPerNode"]]
+    if (isFALSE(tasks32) && isTRUE(cfg[["tasks32"]])) tasks32 <- cfg[["tasks32"]]
     slurmConfig <- setSlurmConfig(slurmQOS = slurmQOS, tasksPerNode = tasksPerNode, tasks32 = tasks32)
   }
 
