@@ -39,7 +39,7 @@ initModel <- function(config = NULL,
                       references = NULL,
                       restart = NULL,
                       sendToSlurm = NULL,
-                      slurmQOS = "default",
+                      slurmQOS = NULL,
                       tasksPerNode = NULL,
                       tasks32 = FALSE) {
 
@@ -99,9 +99,12 @@ initModel <- function(config = NULL,
 
   # Generate SLURM configuration if sending to SLURM
   if (sendToSlurm) {
-    if (slurmQOS == "default" && !is.null(cfg[["slurmQOS"]])) slurmQOS <- cfg[["slurmQOS"]]
+    if (is.null(slurmQOS) && !is.null(cfg[["slurmQOS"]])) slurmQOS <- cfg[["slurmQOS"]]
     if (is.null(tasksPerNode) && !is.null(cfg[["tasksPerNode"]])) tasksPerNode <- cfg[["tasksPerNode"]]
-    if (isFALSE(tasks32) && isTRUE(cfg[["tasks32"]])) tasks32 <- cfg[["tasks32"]]
+    if (isFALSE(tasks32) && isTRUE(cfg[["tasks32"]])) {
+      tasks32 <- cfg[["tasks32"]]
+      warning("Using 32 tasks as defined in the config file.")
+    }
     slurmConfig <- setSlurmConfig(slurmQOS = slurmQOS, tasksPerNode = tasksPerNode, tasks32 = tasks32)
   }
 
