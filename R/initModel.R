@@ -25,6 +25,7 @@
 ##'  }
 #' @param sendToSlurm boolean whether or not the run should be started via SLURM
 #' @param slurmQOS character, slurm QOS to be used
+#' @param tasksPerNode numeric, number of tasks per node to be requested
 #' @param tasks32 boolean whether or not the SLURM run should be with 32 tasks
 #' @returns path (invisible)
 #'
@@ -38,7 +39,8 @@ initModel <- function(config = NULL,
                       references = NULL,
                       restart = NULL,
                       sendToSlurm = NULL,
-                      slurmQOS = "default",
+                      slurmQOS = NULL,
+                      tasksPerNode = NULL,
                       tasks32 = FALSE) {
 
   if (!dir.exists(outputFolder)) {
@@ -48,7 +50,7 @@ initModel <- function(config = NULL,
   # Check if SLURM is available. Start via SLURM if available, and directly otherwise.
   if (is.null(sendToSlurm)) {
     if (isSlurmAvailable()) {
-      message("SLURM is available. Run will be send to SLURM.")
+      message("SLURM is available. Run will be sent to SLURM.")
       sendToSlurm <- TRUE
     } else {
       message("SLURM is not available. Run will be executed directly.")
@@ -56,11 +58,6 @@ initModel <- function(config = NULL,
     }
   } else if (isTRUE(sendToSlurm) && !isSlurmAvailable()) {
     stop("sendToSlurm is TRUE, but SLURM is not available. Stopping.")
-  }
-
-  # Generate SLURM configuration if sending to SLURM
-  if (sendToSlurm) {
-    slurmConfig <- setSlurmConfig(slurmQOS = slurmQOS, tasks32 = tasks32)
   }
 
   # Check if an already existing path was given
@@ -98,6 +95,17 @@ initModel <- function(config = NULL,
     }
 
     createRunFolder(path, cfg)
+  }
+
+  # Generate SLURM configuration if sending to SLURM
+  if (sendToSlurm) {
+    if (is.null(slurmQOS) && !is.null(cfg[["slurmQOS"]])) slurmQOS <- cfg[["slurmQOS"]]
+    if (is.null(tasksPerNode) && !is.null(cfg[["tasksPerNode"]])) tasksPerNode <- cfg[["tasksPerNode"]]
+    if (isFALSE(tasks32) && isTRUE(cfg[["tasks32"]])) {
+      tasks32 <- cfg[["tasks32"]]
+      warning("Using 32 tasks as defined in the config file.")
+    }
+    slurmConfig <- setSlurmConfig(slurmQOS = slurmQOS, tasksPerNode = tasksPerNode, tasks32 = tasks32)
   }
 
   # Copy gams files if this is not a restart run or if this is specified in restart parameters

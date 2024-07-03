@@ -59,6 +59,17 @@ reportingTemplate: onlyRes
 historic: NULL
 
 
+# slurm settings ---------------------------------------------------------------
+
+### slurm quality of service (= QOS)
+slurmQOS: NULL
+
+### tasks per node
+tasksPerNode: NULL
+
+### Whether to use a node with up to 32 tasks
+tasks32: FALSE
+
 # data -------------------------------------------------------------------------
 
 ### input data revision ###

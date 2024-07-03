@@ -12,7 +12,8 @@ initModel(
   references = NULL,
   restart = NULL,
   sendToSlurm = NULL,
-  slurmQOS = "default",
+  slurmQOS = NULL,
+  tasksPerNode = NULL,
   tasks32 = FALSE
 )
 }
@@ -42,6 +43,8 @@ BRICK-internal config folder is used.}
 \item{sendToSlurm}{boolean whether or not the run should be started via SLURM}
 
 \item{slurmQOS}{character, slurm QOS to be used}
+
+\item{tasksPerNode}{numeric, number of tasks per node to be requested}
 
 \item{tasks32}{boolean whether or not the SLURM run should be with 32 tasks}
 }
