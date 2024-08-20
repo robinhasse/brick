@@ -13,13 +13,15 @@
 #'   BRICK-internal config folder is used.
 #' @param outputFolder directory of output folder
 #' @param references named character vector of matching references
-#' @param restart character vector of elements to be restarted.
-#'   Allowed elements are:
+#' @param restart logical or character vector of elements to be restarted.
+#'   If FALSE (default), then no restart is initiated.
+#'   If TRUE, then the run in the given path or the latest run is restarted with default settings.
+#'   Allowed elements of the character vector are:
 #'   \itemize{
-#'   \item \code{"cpGms"} to recopy the Gams scripts (necessary if changes were
+#'   \item \code{"copyGams"} to recopy the Gams scripts (necessary if changes were
 #'         made in Gams code)
-#'   \item \code{"crInp"} to recreate input data,
-#'   \item \code{"crMatch"} to either recreate the matching data or reaggregate
+#'   \item \code{"createInput"} to recreate input data,
+#'   \item \code{"createMatching"} to either recreate the matching data or reaggregate
 #'         the matching
 #'   \item \code{"none"} (or any other string) to do none of the above
 ##'  }
@@ -37,7 +39,7 @@ initModel <- function(config = NULL,
                       configFolder = NULL,
                       outputFolder = "output",
                       references = NULL,
-                      restart = NULL,
+                      restart = FALSE,
                       sendToSlurm = NULL,
                       slurmQOS = NULL,
                       tasksPerNode = NULL,
@@ -60,13 +62,20 @@ initModel <- function(config = NULL,
     stop("sendToSlurm is TRUE, but SLURM is not available. Stopping.")
   }
 
-  # Check if an already existing path was given
-  if (!is.null(path) && file.exists(path)) {
-    message("Given path already exists. Restarting on this path.")
-    if (is.null(restart)) {
+  # Check if this is a restart run and determine the path to be restarted
+  if (isTRUE(restart) || is.character(restart)) {
+    if (!is.null(path) && file.exists(path)) {
+      message("Restarting on given path ", path, ".")
+    } else if (is.null(path)) {
+      path <- findLastRun(outputFolder)
+      message("No path given or given path does not exist. Restarting on the latest run ", path, ".")
+    } else {
+      stop("You passed a non-existing path in a restart run. Stopping.")
+    }
+    if (isTRUE(restart)) {
       message("No restart options were specified. ",
-              "Default options are applied: Recreating input data and recreate/reaggregate matching.")
-      restart <- c("crInp", "crMatch")
+              "Default options are applied: Copy Gams files, recreate input data and recreate/reaggregate matching.")
+      restart <- c("copyGams", "createInput", "createMatching")
     }
     write.csv2(data.frame(restart = restart), file.path(path, "config", "restartOptions.csv"))
 
@@ -80,9 +89,9 @@ initModel <- function(config = NULL,
                       readDirect = TRUE)
     title <- cfg[["title"]]
   } else {
-    if (!is.null(restart)) {
-      message("Restart options were given, but no existing path was specified. Starting a new run.")
-      restart <- NULL
+    # Start a new run
+    if (!is.null(path) && file.exists(path)) {
+      stop("You passed an existing path, but did not set this as a restart run. Stopping.")
     }
 
     cfg <- readConfig(config = config,
@@ -109,8 +118,8 @@ initModel <- function(config = NULL,
   }
 
   # Copy gams files if this is not a restart run or if this is specified in restart parameters
-  if (is.null(restart) || "cpGms" %in% restart) {
-    copyGamsFiles(path, overwrite = !is.null(restart))
+  if (isFALSE(restart) || "copyGams" %in% restart) {
+    copyGamsFiles(path, overwrite = !isFALSE(restart))
   }
 
   copyInitialGdx(path, cfg)
