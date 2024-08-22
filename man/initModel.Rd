@@ -10,7 +10,7 @@ initModel(
   configFolder = NULL,
   outputFolder = "output",
   references = NULL,
-  restart = NULL,
+  restart = FALSE,
   sendToSlurm = NULL,
   slurmQOS = NULL,
   tasksPerNode = NULL,
@@ -29,13 +29,15 @@ BRICK-internal config folder is used.}
 
 \item{references}{named character vector of matching references}
 
-\item{restart}{character vector of elements to be restarted.
- Allowed elements are:
+\item{restart}{logical or character vector of elements to be restarted.
+ If FALSE (default), then no restart is initiated.
+ If TRUE, then the run in the given path or the latest run is restarted with default settings.
+ Allowed elements of the character vector are:
  \itemize{
- \item \code{"cpGms"} to recopy the Gams scripts (necessary if changes were
+ \item \code{"copyGams"} to recopy the Gams scripts (necessary if changes were
        made in Gams code)
- \item \code{"crInp"} to recreate input data,
- \item \code{"crMatch"} to either recreate the matching data or reaggregate
+ \item \code{"createInput"} to recreate input data,
+ \item \code{"createMatching"} to either recreate the matching data or reaggregate
        the matching
  \item \code{"none"} (or any other string) to do none of the above
 }}
