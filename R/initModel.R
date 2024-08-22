@@ -65,10 +65,10 @@ initModel <- function(config = NULL,
   # Check if this is a restart run and determine the path to be restarted
   if (isTRUE(restart) || is.character(restart)) {
     if (!is.null(path) && file.exists(path)) {
-      message("Restarting on given path ", path, ".")
+      message("Restarting on given path: ", path)
     } else if (is.null(path)) {
       path <- findLastRun(outputFolder)
-      message("No path given or given path does not exist. Restarting on the latest run ", path, ".")
+      message("No path given or given path does not exist. Restarting on the latest run: ", path)
     } else {
       stop("You passed a non-existing path in a restart run. Stopping.")
     }
@@ -90,6 +90,7 @@ initModel <- function(config = NULL,
     title <- cfg[["title"]]
   } else {
     # Start a new run
+    restart <- FALSE
     if (!is.null(path) && file.exists(path)) {
       stop("You passed an existing path, but did not set this as a restart run. Stopping.")
     }
