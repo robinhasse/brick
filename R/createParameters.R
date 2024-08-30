@@ -219,8 +219,10 @@ createParameters <- function(m, config, inputDir) {
       select(-"shift")
   }
 
-  # calculate share of buildings that need to be renovated or demolished between
-  # given time steps assuming a Weibull distribution of the technology life time
+  # Calculate share of buildings that need to be renovated or demolished between
+  # given time steps assuming a Weibull distribution of the technology life time.
+  # Optionally pass the prior standing life time; adjust the share to subtract demolitions
+  # during the prior standing life time.
   shareRen <- function(ttot2, params, standingLifeTime = 0) {
 
     expandSets(ttot2 = "ttot", "ttot", .m = m) %>%
@@ -229,9 +231,12 @@ createParameters <- function(m, config, inputDir) {
                 by = c(ttot2 = "ttot")) %>%
       cross_join(params) %>%
       pivot_wider(names_from = "variable") %>%
+      # pweibull(0) = 0, so for standingLifeTime = 0 we have value = pweibull(lt)
       mutate(lt = .data[["ttot"]] - .data[["ttot2"]]
              + .data[["dt"]] / 2 + standingLifeTime,
-             value = pweibull(.data[["lt"]], .data[["shape"]], .data[["scale"]]),
+             value = (pweibull(.data[["lt"]], .data[["shape"]], .data[["scale"]])
+                      - pweibull(standingLifeTime, .data[["shape"]], .data[["scale"]]))
+             / (1 - pweibull(standingLifeTime, .data[["shape"]], .data[["scale"]])),
              value = ifelse(.data[["value"]] > cutOffShare,
                             1, .data[["value"]])) %>%
       select(-"shape", -"scale", -"dt", -"lt")
