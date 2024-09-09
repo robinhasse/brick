@@ -23,6 +23,7 @@
 #'   \item \code{"createInput"} to recreate input data,
 #'   \item \code{"createMatching"} to either recreate the matching data or reaggregate
 #'         the matching
+#'   \item \code{"useAsStart"} to use the run from which we restart as the starting point
 #'   \item \code{"none"} (or any other string) to do none of the above
 ##'  }
 #' @param sendToSlurm boolean whether or not the run should be started via SLURM
@@ -74,8 +75,9 @@ initModel <- function(config = NULL,
     }
     if (isTRUE(restart)) {
       message("No restart options were specified. ",
-              "Default options are applied: Copy Gams files, recreate input data and recreate/reaggregate matching.")
-      restart <- c("copyGams", "createInput", "createMatching")
+              "Default options are applied: Copy Gams files, recreate input data,",
+              "recreate/reaggregate matching if applicable, and use output gdx as starting point if existent.")
+      restart <- c("copyGams", "createInput", "createMatching", "useAsStart")
     }
     write.csv2(data.frame(restart = restart), file.path(path, "config", "restartOptions.csv"))
 
@@ -123,6 +125,11 @@ initModel <- function(config = NULL,
     copyGamsFiles(path, overwrite = !isFALSE(restart))
   }
 
+  # Copy the initial gdx. In restart runs, this can be the output gdx of the restarted folder
+  if ("useAsStart" %in% restart && file.exists(file.path(path, "output.gdx"))) {
+    cfg[["startingPoint"]] <- file.path(path, "output.gdx")
+    message("Using the output-gdx of the restarted run as starting point.")
+  }
   copyInitialGdx(path, cfg)
 
   copyHistoryGdx(path, outputFolder, cfg)
