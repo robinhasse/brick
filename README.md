@@ -1,10 +1,8 @@
-<img src='man/figures/logo_text_wide.svg' align="right" height="70"/>
-
-# Building sector model with heterogeneous renovation and construction of the stock
+# <a href=''><img src='man/figures/logo_text_wide.svg' align='right' alt='logo' style='max-width: 300; max-height: 139; width: auto; height: auto' /></a>Building sector model with heterogeneous renovation and construction of the stock
 
 R package **brick**, version **0.5.6**
 
-[![CRAN status](https://www.r-pkg.org/badges/version/brick)](https://cran.r-project.org/package=brick)  [![R build status](https://github.com/pik-piam/brick/workflows/check/badge.svg)](https://github.com/pik-piam/brick/actions) [![codecov](https://codecov.io/gh/pik-piam/brick/branch/master/graph/badge.svg)](https://app.codecov.io/gh/pik-piam/brick) 
+[![CRAN status](https://www.r-pkg.org/badges/version/brick)](https://cran.r-project.org/package=brick)  [![R build status](https://github.com/pik-piam/brick/workflows/check/badge.svg)](https://github.com/pik-piam/brick/actions) [![codecov](https://codecov.io/gh/pik-piam/brick/branch/master/graph/badge.svg)](https://app.codecov.io/gh/pik-piam/brick) [![r-universe](https://pik-piam.r-universe.dev/badges/brick)](https://pik-piam.r-universe.dev/builds)
 
 ## Purpose and Functionality
 
@@ -56,8 +54,7 @@ A BibTeX entry for LaTeX users is
 
  ```latex
 @Manual{,
-  title = {brick: Building sector model with heterogeneous renovation and construction of
-the stock},
+  title = {brick: Building sector model with heterogeneous renovation and construction of the stock},
   author = {Robin Hasse and Ricarda Rosemann},
   year = {2024},
   note = {R package version 0.5.6},
