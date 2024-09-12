@@ -31,7 +31,7 @@ reportMif <- function(path, file = NULL, tmpl = NULL) {
   }
 
   # read config
-  configFile <- file.path(path, "config", "config.yaml")
+  configFile <- file.path(path, "config", "config_COMPILED.yaml")
   config <- readConfig(configFile, readDirect = TRUE)
   neededConfigParams <- c("title", "periods")
   if (is.null(tmpl)) {

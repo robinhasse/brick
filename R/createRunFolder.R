@@ -45,6 +45,9 @@ createRunFolder <- function(path,
   if (file.exists(configFile)) {
     file.copy(configFile, configFolder, overwrite = overwrite)
   }
+  write_yaml(config, file.path(configFolder, "config_COMPILED.yaml"))
+
+
   ## reporting template ====
 
   brickSets <- readBrickSets(config[["reportingTemplate"]])

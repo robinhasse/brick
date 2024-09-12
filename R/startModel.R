@@ -14,7 +14,7 @@
 #'
 startModel <- function(path) {
 
-  cfg <- readConfig(file.path(path, "config", "config.yaml"), readDirect = TRUE)
+  cfg <- readConfig(file.path(path, "config", "config_COMPILED.yaml"), readDirect = TRUE)
 
   if (file.exists(file.path(path, "config", "restartOptions.csv"))) {
     restart <- read.csv2(file.path(path, "config", "restartOptions.csv"))[["restart"]]
