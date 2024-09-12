@@ -81,10 +81,10 @@ initModel <- function(config = NULL,
 
     if (!is.null(config)) {
       warning("You passed a config in a restart run. ",
-              "This config will be ignored and the existing config in 'config/config.yaml' will be used.")
+              "This config will be ignored and the existing config in 'config/config_COMPILED.yaml' will be used.")
     }
 
-    cfg <- readConfig(config = file.path(path, "config", "config.yaml"),
+    cfg <- readConfig(config = file.path(path, "config", "config_COMPILED.yaml"),
                       configFolder = configFolder,
                       readDirect = TRUE)
     title <- cfg[["title"]]
