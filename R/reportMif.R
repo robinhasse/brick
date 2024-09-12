@@ -54,7 +54,7 @@ reportMif <- function(path, file = NULL, tmpl = NULL) {
 
   # reporting template
   if (is.null(tmpl)) {
-    tmplFile <- file.path(path, "config", "brickSet_COMPILED.yaml")
+    tmplFile <- file.path(path, "config", "brickSets_COMPILED.yaml")
     tmpl <- if (file.exists(tmplFile)) {
       tmplFile
     } else {
