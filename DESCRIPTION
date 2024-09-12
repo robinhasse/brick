@@ -37,7 +37,7 @@ Imports:
     pkgload,
     purrr,
     quitte,
-    reportbrick (>= 0.5.0),
+    reportbrick (>= 0.6.0),
     scales,
     tidyr,
     withr,
