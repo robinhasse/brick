@@ -42,6 +42,14 @@ regions: NULL
   # FALSE
 ignoreShell: FALSE
 
+### calibration ###
+# intangible cost assumption files
+# paths to csv files with assumptions on the intangible cost for construction
+#  and renovation.
+  # []: default files stored internally in inst/assump/
+  # {con: 'path/to/file1.csv', ren: 'path/to/file2.csv'}
+intanCostFiles: []
+
 ### reporting template ###
 # alternative reporting mapping
 # There has to be a mapping in the package reportbrick named with the same
