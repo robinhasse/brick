@@ -167,6 +167,7 @@ switches:
     # lp:    linear problem (incomplete)
     # nlp:   non-linear problem
     # lpnlp: first lp then start nlp from there
+    # auto:  nlp if startingPoint is set, else lpnlp
   SOLVEPROBLEM: lpnlp
 
   ### Parallel solving ###
