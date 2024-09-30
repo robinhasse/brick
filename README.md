@@ -1,4 +1,4 @@
-# <a href=''><img src='man/figures/logo_text_wide.svg' align='right' alt='logo' style='max-width: 300; max-height: 139; width: auto; height: auto' /></a>Building sector model with heterogeneous renovation and construction of the stock
+# <a href=''><img src='man/figures/logo_text_wide.svg' align='right' alt='logo' height=70 /></a> Building sector model with heterogeneous renovation and construction of the stock
 
 R package **brick**, version **0.5.6**
 
