@@ -434,6 +434,22 @@ createParameters <- function(m, config, inputDir) {
   )
 
 
+  ## renovation depth ====
+  p_renDepth <- readInput("f_renovationDepth.cs4r", c("bs", "bsr"), inputDir)
+
+  p_renDepth <- expandSets("bs", "bsr", .m = m) %>%
+    left_join(p_renDepth, by = c("bs", "bsr")) %>%
+    .explicitZero()
+
+  p_renDepth <- m$addParameter(
+    name = "p_renDepth",
+    domain = c("bs", "bsr"),
+    records = p_renDepth,
+    description = "renovation depth"
+  )
+
+
+
   # Stock ----------------------------------------------------------------------
 
   # stock of residential floor space
