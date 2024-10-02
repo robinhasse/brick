@@ -48,7 +48,7 @@ ignoreShell: FALSE
 #  and renovation.
   # []: default files stored internally in inst/assump/
   # {con: 'path/to/file1.csv', ren: 'path/to/file2.csv'}
-intanCostFiles: []
+intangCostFiles: []
 
 ### reporting template ###
 # alternative reporting mapping

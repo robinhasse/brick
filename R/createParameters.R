@@ -60,12 +60,12 @@ createParameters <- function(m, config, inputDir) {
   # Specific cost --------------------------------------------------------------
 
   # intangible cost assumption files
-  intanCostFiles <- c(con = brick.file("assump", "costIntangCon.csv"),
-                      ren = brick.file("assump", "costIntangRen.csv"))
-  intanCostFilesCfg <- config[["intanCostFiles"]]
-  if (is.list(intanCostFilesCfg)) {
-    var <- intersect(names(intanCostFiles), names(intanCostFilesCfg))
-    intanCostFiles[var] <- intanCostFilesCfg[var]
+  intangCostFiles <- c(con = brick.file("assump", "costIntangCon.csv"),
+                       ren = brick.file("assump", "costIntangRen.csv"))
+  intangCostFilesCfg <- config[["intangCostFiles"]]
+  if (is.list(intangCostFilesCfg)) {
+    var <- intersect(names(intangCostFiles), names(intangCostFilesCfg))
+    intangCostFiles[var] <- intangCostFilesCfg[var]
   }
 
 
@@ -83,7 +83,7 @@ createParameters <- function(m, config, inputDir) {
               by = c("bs", "hs", "reg", "typ", "ttot"))
   p_specCostConIntang <- p_specCostCon %>%
     filter(.data[["cost"]] == "intangible") %>%
-    addAssump(intanCostFiles[["con"]])
+    addAssump(intangCostFiles[["con"]])
   p_specCostCon <- rbind(p_specCostConTang, p_specCostConIntang)
   p_specCostCon <- m$addParameter(
     name = "p_specCostCon",
@@ -108,7 +108,7 @@ createParameters <- function(m, config, inputDir) {
               by = c("ttot", "reg", "bs", "hs", "bsr", "hsr", "typ", "vin"))
   p_specCostRenIntang <- p_specCostRen %>%
     filter(.data[["cost"]] == "intangible") %>%
-    addAssump(intanCostFiles[["ren"]])
+    addAssump(intangCostFiles[["ren"]])
   p_specCostRen <- rbind(p_specCostRenTang, p_specCostRenIntang)
   p_specCostRen <- m$addParameter(
     name = "p_specCostRen",
