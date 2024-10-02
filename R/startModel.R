@@ -34,6 +34,14 @@ startModel <- function(path) {
     }
   }
 
+  if (cfg[["switches"]][["SOLVEPROBLEM"]] == "auto") {
+    cfg[["switches"]][["SOLVEPROBLEM"]]  <- if (is.null(cfg[["startingPoint"]])) {
+      "lpnlp"
+    } else {
+      "nlp"
+    }
+  }
+
   runGams(path,
           cfg[["gamsOptions"]],
           c(cfg[["switches"]], cfg[c("solverLP", "solverNLP", "solverQCP",
