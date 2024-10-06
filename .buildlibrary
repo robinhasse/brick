@@ -1,7 +1,9 @@
-ValidationKey: '1078488'
-AutocreateReadme: no
+ValidationKey: '1139886'
+AutocreateReadme: yes
 AcceptedWarnings:
 - 'Warning: package ''.*'' was built under R version'
 - 'Warning: namespace ''.*'' is not available and has been replaced'
 allowLinterWarnings: no
+AddLogoReadme: man/figures/logo_text_wide.svg
+LogoHeightReadme: 70
 enforceVersionUpdate: no

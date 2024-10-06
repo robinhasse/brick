@@ -4,7 +4,7 @@ $gdxin input.gdx
 $load p_dt p_dtVin t0
 $load vinExists
 $load p_specCostCon p_specCostRen p_specCostDem
-$load p_carbonPrice p_carrierPrice p_carrierEmi p_ueDemand p_eff
+$load p_carbonPrice p_carrierPrice p_carrierEmi p_ueDemand p_eff p_renDepth
 $load p_interestRate
 $load p_population
 $ifthen.noCalib not "%RUNTYPE%" == "calibration"
@@ -110,7 +110,7 @@ p_lccCon(cost,var,bs,hs,reg,loc,typ,inc,ttot) =
           )
           * (1 - p_probDem(reg,typ,ttot2,ttot))
       ) * p_dt(ttot2)
-      + p_specCostDem$(    sameas(var,"demolition") 
+      + p_specCostDem$(    sameas(var,"demolition")
                        and sameas(cost,"tangible"))
         * (p_probDem(reg,typ,ttot2,ttot) - p_probDem(reg,typ,ttot2-1,ttot))
     )

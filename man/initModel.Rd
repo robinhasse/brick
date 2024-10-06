@@ -14,6 +14,7 @@ initModel(
   sendToSlurm = NULL,
   slurmQOS = NULL,
   tasksPerNode = NULL,
+  timeLimit = NULL,
   tasks32 = FALSE
 )
 }
@@ -47,6 +48,8 @@ BRICK-internal config folder is used.}
 \item{slurmQOS}{character, slurm QOS to be used}
 
 \item{tasksPerNode}{numeric, number of tasks per node to be requested}
+
+\item{timeLimit}{character, time limit of the slurm job given in the format hh:mm:ss}
 
 \item{tasks32}{boolean whether or not the SLURM run should be with 32 tasks}
 }

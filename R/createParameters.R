@@ -59,6 +59,15 @@ createParameters <- function(m, config, inputDir) {
 
   # Specific cost --------------------------------------------------------------
 
+  # intangible cost assumption files
+  intangCostFiles <- c(con = brick.file("assump", "costIntangCon.csv"),
+                       ren = brick.file("assump", "costIntangRen.csv"))
+  intangCostFilesCfg <- config[["intangCostFiles"]]
+  if (is.list(intangCostFilesCfg)) {
+    var <- intersect(names(intangCostFiles), names(intangCostFilesCfg))
+    intangCostFiles[var] <- intangCostFilesCfg[var]
+  }
+
 
   ## construction ====
 
@@ -74,7 +83,7 @@ createParameters <- function(m, config, inputDir) {
               by = c("bs", "hs", "reg", "typ", "ttot"))
   p_specCostConIntang <- p_specCostCon %>%
     filter(.data[["cost"]] == "intangible") %>%
-    addAssump(brick.file("assump", "costIntangCon.csv"))
+    addAssump(intangCostFiles[["con"]])
   p_specCostCon <- rbind(p_specCostConTang, p_specCostConIntang)
   p_specCostCon <- m$addParameter(
     name = "p_specCostCon",
@@ -99,7 +108,7 @@ createParameters <- function(m, config, inputDir) {
               by = c("ttot", "reg", "bs", "hs", "bsr", "hsr", "typ", "vin"))
   p_specCostRenIntang <- p_specCostRen %>%
     filter(.data[["cost"]] == "intangible") %>%
-    addAssump(brick.file("assump", "costIntangRen.csv"))
+    addAssump(intangCostFiles[["ren"]])
   p_specCostRen <- rbind(p_specCostRenTang, p_specCostRenIntang)
   p_specCostRen <- m$addParameter(
     name = "p_specCostRen",
@@ -423,6 +432,22 @@ createParameters <- function(m, config, inputDir) {
     records = p_floorPerCap,
     description = "floor space per capita in m2"
   )
+
+
+  ## renovation depth ====
+  p_renDepth <- readInput("f_renovationDepth.cs4r", c("bs", "bsr"), inputDir)
+
+  p_renDepth <- expandSets("bs", "bsr", .m = m) %>%
+    left_join(p_renDepth, by = c("bs", "bsr")) %>%
+    .explicitZero()
+
+  p_renDepth <- m$addParameter(
+    name = "p_renDepth",
+    domain = c("bs", "bsr"),
+    records = p_renDepth,
+    description = "renovation depth"
+  )
+
 
 
   # Stock ----------------------------------------------------------------------
