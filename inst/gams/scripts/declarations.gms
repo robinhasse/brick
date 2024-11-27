@@ -53,6 +53,8 @@ p_refValsMed(ref,reg)          "median non-zero reference value to normalise dev
 
 priceSensBS(var, reg, loc, typ, inc) "price sensitivity of building shell choice"
 priceSensHS(var, reg, loc, typ, inc) "price sensitivity of heating system choice"
+
+p_statusQuoPref "preference for replacehing a heating system with the same technology in USD/m2"
 ;
 
 scalars
@@ -68,6 +70,7 @@ v_Obj(reg,loc,typ,inc) "objective value: discounted system cost + heterogeneity 
 v_SysHeteroPref(reg,loc,typ,inc,ttot) "system-wide heterogeneity preference"
 v_HeteroPrefCon(reg,loc,typ,inc,ttot) "diversity preference for construction"
 v_HeteroPrefRen(reg,loc,typ,inc,ttot) "diversity preference for renovation"
+v_statusQuoPref(reg,loc,typ,inc,ttot) "status quo preference when replacing heating systems"
 
 $ifthen.matching "%RUNTYPE%" == "matching"
 v_flowVariationTot         "total temporal variation of flows"
@@ -120,6 +123,7 @@ q_DemCost(reg,loc,typ,inc,ttot) "demolition cost"
 q_SysHeteroPref(reg,loc,typ,inc,ttot) "system-wide heterogeneity preference"
 q_HeteroPrefCon(reg,loc,typ,inc,ttot) "diversity preference for construction"
 q_HeteroPrefRen(reg,loc,typ,inc,ttot) "diversity preference for renovation"
+q_statusQuoPref(reg,loc,typ,inc,ttot) "status quo preference"
 q_zeroHeteroPrefCon(reg,loc,typ,inc,ttot) "zero diversity preference for construction (lp)"
 q_zeroHeteroPrefRen(reg,loc,typ,inc,ttot) "zero diversity preference for renovation (lp)"
 

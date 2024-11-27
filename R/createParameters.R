@@ -384,6 +384,40 @@ createParameters <- function(m, config, inputDir) {
   )
 
 
+  ## price sensitivity ====
+
+  priceSensBS <- unlist(config[["priceSens"]][["bs"]])
+  priceSensBS <- expandSets("var", "reg", "loc", "typ", "inc", .m = m) %>%
+    filter(.data[["var"]] %in% names(priceSensBS)) %>%
+    mutate(value = priceSensBS[.data[["var"]]])
+  priceSensBS <- m$addParameter(
+    name = "priceSensBS",
+    domain = c("var", "reg", "loc", "typ", "inc"),
+    records = priceSensBS,
+    description = "price sensitivity of building shell choice"
+  )
+
+  priceSensHS <- unlist(config[["priceSens"]][["hs"]])
+  priceSensHS <- expandSets("var", "reg", "loc", "typ", "inc", .m = m) %>%
+    filter(.data[["var"]] %in% names(priceSensHS)) %>%
+    mutate(value = priceSensHS[.data[["var"]]])
+  priceSensHS <- m$addParameter(
+    name = "priceSensHS",
+    domain = c("var", "reg", "loc", "typ", "inc"),
+    records = priceSensHS,
+    description = "price sensitivity of heating system choice"
+  )
+
+
+  ## discrete choice calibration =====
+
+  invisible(m$addParameter(
+    name = "p_statusQuoPref",
+    records = config[["statusQuoPreference"]],
+    description = "preference for replacehing a heating system with the same technology in USD/m2"
+  ))
+
+
   ## population ====
 
   # SSP scenario
@@ -484,32 +518,6 @@ createParameters <- function(m, config, inputDir) {
     domain = c("qty", "bs", "hs", "vin", "reg", "loc", "typ", "inc", "ttot"),
     records = p_stockHist,
     description = "historic stock of buildings in million m2"
-  )
-
-
-
-  # Price sensitivity ---------------------------------------------------
-
-  priceSensBS <- unlist(config[["priceSens"]][["bs"]])
-  priceSensBS <- expandSets("var", "reg", "loc", "typ", "inc", .m = m) %>%
-    filter(.data[["var"]] %in% names(priceSensBS)) %>%
-    mutate(value = priceSensBS[.data[["var"]]])
-  priceSensBS <- m$addParameter(
-    name = "priceSensBS",
-    domain = c("var", "reg", "loc", "typ", "inc"),
-    records = priceSensBS,
-    description = "price sensitivity of building shell choice"
-  )
-
-  priceSensHS <- unlist(config[["priceSens"]][["hs"]])
-  priceSensHS <- expandSets("var", "reg", "loc", "typ", "inc", .m = m) %>%
-    filter(.data[["var"]] %in% names(priceSensHS)) %>%
-    mutate(value = priceSensHS[.data[["var"]]])
-  priceSensHS <- m$addParameter(
-    name = "priceSensHS",
-    domain = c("var", "reg", "loc", "typ", "inc"),
-    records = priceSensHS,
-    description = "price sensitivity of heating system choice"
   )
 
 

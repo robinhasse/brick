@@ -24,7 +24,8 @@ q_Obj(subs(reg,loc,typ,inc))..
     p_discountFac(typ,t)
     * p_dt(t)
     * (  v_SysCost(subs,t)
-       + v_SysHeteroPref(subs,t))
+       + v_SysHeteroPref(subs,t)
+       + v_statusQuoPref(subs,t))
   )
 ;
 
@@ -229,6 +230,20 @@ q_zeroHeteroPrefRen(subs,t)..
   0
 ;
 
+
+
+*** status quo preference ------------------------------------------------------
+
+q_statusQuoPref(subs,t)..
+  v_statusQuoPref(subs,t)
+  =e=
+  p_statusQuoPref
+  * sum((bs,hs,bsr,hsr,vin)$(    not(sameas(hs,hsr))
+                             and not(sameas(hsr,"0"))
+                             and vinExists(t,vin)),
+    v_renovation("area",bs,hs,bsr,hsr,vin,subs,t)
+  )
+;
 
 
 *** building stock balance -----------------------------------------------------
