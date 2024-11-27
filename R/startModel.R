@@ -10,6 +10,7 @@
 #' @param path character vector with folders to run the model in
 #'
 #' @importFrom utils read.csv2
+#' @importFrom reportbrick plotSankey
 #' @export
 #'
 startModel <- function(path) {
@@ -53,6 +54,9 @@ startModel <- function(path) {
   reportMif(path)
 
   plotSummary(path, NULL, showHistStock = cfg[["switches"]][["RUNTYPE"]] %in% c("calibration", "matching"))
+
+  plotSankey(path, "bs")
+  plotSankey(path, "hs")
 
   if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
     plotRefDeviation(path)

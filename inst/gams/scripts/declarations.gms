@@ -56,8 +56,8 @@ p_calibSpeed(varFLow)                                                 "Control o
 p_calibDeviationCon(iteration,bs,hs,reg,loc,typ,inc,ttot)             "Ratio of actual value and calibration target for construction (should converge to 1)"
 p_calibDeviationRen(iteration,bs,hs,bsr,hsr,vin,reg,loc,typ,inc,ttot) "Ratio of actual value and calibration target for renovation (should converge to 1)"
 
-priceSensBS(var) "price sensitivity of building shell choice" / construction 10000, renovation 10000 /
-priceSensHS(var) "price sensitivity of heating system choice" / construction 0.1, renovation 0.08 /
+priceSensBS(var) "price sensitivity of building shell choice" / construction 0.04, renovation 0.003 /
+priceSensHS(var) "price sensitivity of heating system choice" / construction 0.05, renovation 0.14 /
 ;
 
 scalars
