@@ -57,7 +57,7 @@ p_calibDeviationCon(iteration,bs,hs,reg,loc,typ,inc,ttot)             "Ratio of 
 p_calibDeviationRen(iteration,bs,hs,bsr,hsr,vin,reg,loc,typ,inc,ttot) "Ratio of actual value and calibration target for renovation (should converge to 1)"
 
 priceSensBS(var) "price sensitivity of building shell choice" / construction 0.04, renovation 0.003 /
-priceSensHS(var) "price sensitivity of heating system choice" / construction 0.05, renovation 0.14 /
+p_StatusQuoPref "preference for replacehing a heating system with the same technology in USD/m2"/ 20 /
 ;
 
 scalars
@@ -73,6 +73,7 @@ v_Obj(reg,loc,typ,inc) "objective value: discounted system cost + heterogeneity 
 v_SysHeteroPref(reg,loc,typ,inc,ttot) "system-wide heterogeneity preference"
 v_HeteroPrefCon(reg,loc,typ,inc,ttot) "diversity preference for construction"
 v_HeteroPrefRen(reg,loc,typ,inc,ttot) "diversity preference for renovation"
+v_StatusQuoPref(reg,loc,typ,inc,ttot) "status quo preference when replacing heating systems"
 
 $ifthen.matching "%RUNTYPE%" == "matching"
 v_flowVariationTot         "total temporal variation of flows"
@@ -125,6 +126,7 @@ q_DemCost(reg,loc,typ,inc,ttot) "demolition cost"
 q_SysHeteroPref(reg,loc,typ,inc,ttot) "system-wide heterogeneity preference"
 q_HeteroPrefCon(reg,loc,typ,inc,ttot) "diversity preference for construction"
 q_HeteroPrefRen(reg,loc,typ,inc,ttot) "diversity preference for renovation"
+q_StatusQuoPref(reg,loc,typ,inc,ttot) "status quo preference"
 q_zeroHeteroPrefCon(reg,loc,typ,inc,ttot) "zero diversity preference for construction (lp)"
 q_zeroHeteroPrefRen(reg,loc,typ,inc,ttot) "zero diversity preference for renovation (lp)"
 
