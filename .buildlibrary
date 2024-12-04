@@ -1,4 +1,4 @@
-ValidationKey: '1180295'
+ValidationKey: '10231110'
 AutocreateReadme: yes
 AcceptedWarnings:
 - 'Warning: package ''.*'' was built under R version'
@@ -7,3 +7,4 @@ allowLinterWarnings: no
 AddLogoReadme: man/figures/logo_text_wide.svg
 LogoHeightReadme: 70
 enforceVersionUpdate: no
+skipCoverage: no

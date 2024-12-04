@@ -8,6 +8,11 @@
 #' @returns gams Container with parameters added
 #'
 #' @author Robin Hasse
+#'
+#' @importFrom dplyr %>% .data left_join rename mutate filter select cross_join
+#'   group_by ungroup across all_of arrange inner_join
+#' @importFrom tidyr pivot_wider
+#' @importFrom stats pweibull
 
 createParameters <- function(m, config, inputDir) {
 
@@ -454,18 +459,24 @@ createParameters <- function(m, config, inputDir) {
 
   # stock of residential floor space
   p_stockHist <- readInput("f_buildingStock.cs4r",
-                           c("ttot", "reg", "variable", "typ", "loc", "vin", "hs"),
+                           c("ttot", "reg", "variable", "typ", "loc", "vin", "hs", "bs"),
                            inputDir) %>%
     filter(.data[["variable"]] == "floor") %>%
     select(-"variable") %>%
-    mutate(bs  = "low",
-           qty = "area")
+    mutate(qty = "area")
   p_stockHist <- expandSets("qty", "bs", "hs", "vin", "reg", "loc", "typ",
                             "inc", "ttot", .m = m) %>%
     inner_join(vinExists, by = c("vin", "ttot")) %>%
     left_join(p_stockHist,
               by = c("qty", "bs", "hs", "vin", "reg", "loc", "typ", "ttot")) %>%
     mutate(value = replace_na(.data[["value"]], 0))
+
+  if (isTRUE(config[["ignoreShell"]])) {
+    p_stockHist <- p_stockHist %>%
+      group_by(across(-all_of(c("bs", "value")))) %>%
+      mutate(value = ifelse(.data[["bs"]] == "low", sum(.data[["value"]]), 0)) %>%
+      ungroup()
+  }
 
   p_stockHist <- m$addParameter(
     name = "p_stockHist",
