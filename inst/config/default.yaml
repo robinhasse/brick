@@ -78,10 +78,11 @@ tasksPerNode: NULL
 ### Whether to use a node with up to 32 tasks
 tasks32: FALSE
 
+
 # data -------------------------------------------------------------------------
 
 ### input data revision ###
-inputRevision: "0.7"
+inputRevision: "0.8.3"
 
 ### force download ###
 # force the model to download new input data even though it seems unchanged
