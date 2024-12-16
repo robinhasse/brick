@@ -383,6 +383,30 @@ createParameters <- function(m, config, inputDir) {
   )
 
 
+  ## discrete choice calibration =====
+  ps <- config[["priceSensitivity"]]
+  invisible(m$addParameter(
+    name = "priceSensBS",
+    domain = "var",
+    records = data.frame(var = c("construction", "renovation"),
+                         value = c(ps$bs_con, ps$bs_ren)),
+    description = "price sensitivity of building shell choice"
+  ))
+  invisible(m$addParameter(
+    name = "priceSensHS",
+    domain = "var",
+    records = data.frame(var = c("construction", "renovation"),
+                         value = c(ps$hs_con, ps$hs_ren)),
+    description = "price sensitivity of heating system choice"
+  ))
+
+  invisible(m$addParameter(
+    name = "p_statusQuoPref",
+    records = config[["statusQuoPreference"]],
+    description = "preference for replacehing a heating system with the same technology in USD/m2"
+  ))
+
+
   ## population ====
 
   # SSP scenario

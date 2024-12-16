@@ -25,7 +25,7 @@ q_Obj(subs(reg,loc,typ,inc))..
     * p_dt(t)
     * (  v_SysCost(subs,t)
        + v_SysHeteroPref(subs,t)
-       + v_StatusQuoPref(subs,t))
+       + v_statusQuoPref(subs,t))
   )
 ;
 
@@ -234,10 +234,10 @@ q_zeroHeteroPrefRen(subs,t)..
 
 *** status quo preference ------------------------------------------------------
 
-q_StatusQuoPref(subs,t)..
-  v_StatusQuoPref(subs,t)
+q_statusQuoPref(subs,t)..
+  v_statusQuoPref(subs,t)
   =e=
-  p_StatusQuoPref
+  p_statusQuoPref
   * sum((bs,hs,bsr,hsr,vin)$(    not(sameas(hs,hsr))
                              and not(sameas(hsr,"0"))
                              and vinExists(t,vin)),
