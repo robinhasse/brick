@@ -2,14 +2,12 @@
 
 $gdxin input.gdx
 $load p_dt p_dtVin t0
-$load vinExists
+$load priceSensHS priceSensBS
 $load p_specCostCon p_specCostRen p_specCostDem
 $load p_carbonPrice p_carrierPrice p_carrierEmi p_ueDemand p_eff p_renDepth
 $load p_interestRate
 $load p_population
-$ifthen.noCalib not "%RUNTYPE%" == "calibration"
 $load p_stockHist
-$endif.noCalib
 $load p_shareDem p_shareRenBS p_shareRenHS p_shareRenBSinit p_shareRenHSinit
 $load p_floorPerCap
 $load p_probDem p_LifeTimeBS p_LifeTimeHS
@@ -21,11 +19,24 @@ $load p_refVals p_refValsMed
 $gdxin
 $endif.matching
 
-$ifthen.calibration "%RUNTYPE%" == "calibration"
-$gdxin calibrationTarget.gdx
-$load p_stockHist p_constructionHist p_renovationHist p_demolitionHist
+$ifthen.calibration "%RUNTYPE%" == "calibrationOptimization"
+$gdxin input.gdx
+$load p_stockCalibTarget p_renovationCalibTarget p_constructionCalibTarget
 $gdxin
 $endif.calibration
+
+$ifThen.lowop not "%CALIBRATIONLOWOP%" == "FALSE"
+$gdxin input.gdx
+$load p_specCostOpe
+display "Reading operational costs from input.gdx";
+$gdxin
+$endIf.lowop
+
+* $ifthen.calibration "%RUNTYPE%" == "calibration"
+* $gdxin calibrationTarget.gdx
+* $load p_stockHist p_constructionHist p_renovationHist p_demolitionHist
+* $gdxin
+* $endif.calibration
 
 
 *** starting point -------------------------------------------------------------
@@ -68,6 +79,7 @@ p_feDemand(hs,bs,vin,reg,typ,ttot) =
   / p_eff(hs,reg,typ,ttot)
 ;
 
+$ifThen.lowop "%CALIBRATIONLOWOP%" == "FALSE"
 * floor-space specific operation cost
 p_specCostOpe(bs,hs,vin,reg,loc,typ,ttot) =
   p_feDemand(hs,bs,vin,reg,typ,ttot)
@@ -76,6 +88,8 @@ p_specCostOpe(bs,hs,vin,reg,loc,typ,ttot) =
       + p_carbonPrice(ttot) * p_carrierEmi(carrier,reg,ttot)
     )
 ;
+display "Compute operational costs in GAMS code";
+$endIf.lowop
 
 * discount factor
 p_discountFac(typ,ttot) =
@@ -121,9 +135,7 @@ p_lccCon(cost,var,bs,hs,reg,loc,typ,inc,ttot) =
 
 *** temp -----------------------------------------------------------------------
 
-* calibration speed
-p_calibSpeed("construction") = 1;
-p_calibSpeed("renovation") = 1;
+
 
 $ifthen.matching "%RUNTYPE%" == "matching"
 

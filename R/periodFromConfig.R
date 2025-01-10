@@ -20,6 +20,13 @@ periodFromConfig <- function(config, periodType) {
 
   t <- ttot[which(ttot >= startyear)]
 
+  if (periodType == "tcalib") {
+    calibperiods <- config[["calibperiods"]]
+    #TODO: Add check that calibration periods are consistent with t
+  } else {
+    calibperiods <- min(t)
+  }
+
   switch(periodType,
     ttot = ttot,
     tall = min(ttot):max(ttot),
@@ -28,6 +35,7 @@ periodFromConfig <- function(config, periodType) {
     thist = setdiff(ttot, t),
     tinit = min(ttot),
     t0 = min(t),
+    tcalib = calibperiods,
     stop("unknown type of period: ", periodType)
   )
 }

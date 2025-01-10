@@ -31,7 +31,6 @@ createSets <- function(m, config) {
   ))
 
 
-
   # Temporal -------------------------------------------------------------------
 
   ttotNum <- periodFromConfig(config, "ttot")
@@ -65,6 +64,14 @@ createSets <- function(m, config) {
     records = periodFromConfig(config, "thist"),
     description = "historic time steps"
   ))
+
+  if (grepl("calibration", config[["switches"]][["RUNTYPE"]], fixed = TRUE)) {
+    invisible(m$addSet(
+      "tcalib",
+      records = periodFromConfig(config, "tcalib"),
+      description = "time steps considered by the calibration when minimising deviation from target trajectories"
+    ))
+  }
 
 
   # Vintages -------------------------------------------------------------------

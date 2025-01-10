@@ -44,7 +44,6 @@ p_runtime(reg,loc,typ,inc)                  "model runtime"
 p_handle(reg,loc,typ,inc)                   "parallel model handle parameter"
 p_repyFullSysLP(solveinfo)                  "model and solver summary: fullSysLP"
 p_repyFullSysNLP(reg,loc,typ,inc,solveinfo) "model and solver summary: fullSysNLP"
-p_repyFullSysNLPIter(iteration,reg,loc,typ,inc,solveinfo) "model and solver summary in every iteration: fullSysNLP"
 
 p_refWeight(ref,reg,ttot) "weight of reference source in input matching"
 p_flowVariationWeight     "weight of flow variation in matching objective"
@@ -52,12 +51,8 @@ p_flowVariationWeight     "weight of flow variation in matching objective"
 p_refVals(ref,refVar,reg,ttot) "reference values to match"
 p_refValsMed(ref,reg)          "median non-zero reference value to normalise deviations"
 
-p_calibSpeed(varFLow)                                                 "Control of the step size in the calibration iteration"
-p_calibDeviationCon(iteration,bs,hs,reg,loc,typ,inc,ttot)             "Ratio of actual value and calibration target for construction (should converge to 1)"
-p_calibDeviationRen(iteration,bs,hs,bsr,hsr,vin,reg,loc,typ,inc,ttot) "Ratio of actual value and calibration target for renovation (should converge to 1)"
-
-priceSensBS(var) "price sensitivity of building shell choice" / construction 10000, renovation 10000 /
-priceSensHS(var) "price sensitivity of heating system choice" / construction 0.1, renovation 0.08 /
+priceSensBS(var, reg, loc, typ, inc) "price sensitivity of building shell choice"
+priceSensHS(var, reg, loc, typ, inc) "price sensitivity of heating system choice"
 ;
 
 scalars
@@ -167,3 +162,27 @@ q_finiteHeatingShareCon(bs,hs,reg,loc,typ,inc,ttot)
 q_finiteHeatingShareRen(bs,hs,bsr,hsr,vin,reg,loc,typ,inc,ttot)
 $endif.matching
 ;
+
+$ifthen.calibration "%RUNTYPE%" == "calibrationOptimization"
+parameters
+p_stockCalibTarget(qty,bs,hs,vin,reg,loc,typ,inc,ttot)              "historic stock of buildings in million m2 as calibration target"
+p_constructionCalibTarget(qty,bs,hs,reg,loc,typ,inc,ttot)           "historic flow of new buildings as calibration target in million m2/yr"
+p_renovationCalibTarget(qty,bs,hs,bsr,hsr,vin,reg,loc,typ,inc,ttot) "historic flow of renovated and untouched buildings as calibration target in million m2/yr"
+
+p_diff /0.1/
+p_xinitCon(bs, hs, reg, loc, typ, inc, ttot)
+p_xinitRen(bs, hs, bsr, hsr, vin, reg, loc, typ, inc, ttot)
+p_specCostCalibCon(bs, hs, reg, loc, typ, inc, ttot)
+p_specCostCalibRen(bs, hs, bsr, hsr, vin, reg, loc, typ, inc, ttot)
+p_xDiffCon(bs, hs, reg, loc, typ, inc, ttot)
+p_xDiffRen(renType, bsr, hsr, vin, reg, loc, typ, inc, ttot)
+
+p_f(reg, loc, typ, inc, ttot)
+p_fDiffCon(bs, hs, reg, loc, typ, inc, ttot)
+p_fDiffRen(renType, bsr, hsr, vin, reg, loc, typ, inc, ttot)
+
+p_renovation(qty,bs,hs,bsr,hsr,vin,reg,loc,typ,inc,ttot)
+p_construction(qty,bs,hs,reg,loc,typ,inc,ttot)
+p_stock(qty, bs, hs, vin, reg, loc, typ, inc, ttot)
+;
+$endif.calibration

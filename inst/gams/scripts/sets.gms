@@ -46,9 +46,6 @@ solveinfo	"model and solver stats"
   objval    "objective function value"
   /
 
-*** calibration iteration
-iteration "calibration iteration" / 1*5 /
-
 *** matching reference sources
 qty    "quantity unit to measure stocks and flows in"
   /
@@ -74,16 +71,20 @@ refMap_IDEES_heatingShare(refVar,hs)
 refMap_EUBDB_stock(refVar,hs,typ,qty)
 refMap_EUBDB_vintage(refVar,vin,typ)
 refMap_EuropeanCommissionRenovation(refVar,typ)
+
+*** for calibration: renovation types (identical replacement, new system, 0)
+renType "Renovation types"
+  / identRepl, newSys, 0 /
 ;
 
 *** aliases
-alias(bsr,bsr2)
-alias(hsr,hsr2)
-alias(bs,bs2)
-alias(hs,hs2)
-alias(vin,vin2)
-alias(ttot,ttot2)
-alias(t,t2)
+alias(bsr,bsr2,bsr3);
+alias(hsr,hsr2,hsr3);
+alias(bs,bs2,bs3);
+alias(hs,hs2,hs3);
+alias(vin,vin2,vin3);
+alias(ttot,ttot2);
+alias(t,t2);
 
 
 *** initialise one-dimensional sets --------------------------------------------
@@ -151,8 +152,8 @@ hsBan(var,reg,ttot,hs) "heating systems are forbidden in the respective variable
 ;
 
 *** aliases
-alias(state,state2);
-alias(stateFull,stateFull2);
+alias(state,state2,state3,state4);
+alias(stateFull,stateFull2,stateFull3,stateFull4);
 alias(renAllowed,renAllowed2);
 
 
@@ -161,6 +162,7 @@ alias(renAllowed,renAllowed2);
 *** load fundamental sets
 $gdxin input.gdx
 $load renAllowed
+$load vinExists
 $load hsCarrier
 $load hsBan
 $gdxin
@@ -201,3 +203,49 @@ r("IDEES_heatingShare") = yes;
 r("EuropeanCommissionRenovation") = yes;
 
 $endif.matching
+
+$ifthen.calibration "%RUNTYPE%" == "calibrationOptimization"
+
+sets
+vinCalib(vin)  "Dynamic vintages in calibration"
+
+tcalib(ttot) "time steps considered by the calibration when minimising deviation from target trajectories"
+;
+
+alias(tcalib, tcalib2);
+alias(renType, renType2);
+
+$gdxin input.gdx
+$load tcalib
+$gdxin
+
+sets
+gradientVarsCon(bs, hs, ttot)                       "Combinations to loop over to compute the gradient in the calibration"
+gradientVarsRen(renType, bsr, hsr, vin, ttot)                       "Combinations to loop over to compute the gradient in the calibration"
+
+*** Temporary: To check whether the stock calibration uses the right flow
+zeroFlow(bs, hs, bsr, hsr)
+;
+
+*** Only the vintages relevant for the calibration are taken into account
+loop(tcalib,
+  vinCalib(vin)$vinExists(tcalib, vin) = yes;
+);
+
+
+***Determine sets of flows which are included in the stock calibration
+$ifthenE.shell (sameas("%ignoreShell%","TRUE"))
+zeroFlow(bs,hs,bsr,hsr)$(renAllowed(bs,hs, bsr, hsr) and sameas(hsr,"0")) = YES;
+$else.shell
+zeroFlow(bs,hs,bsr,hsr)$(renAllowed(bs,hs, bsr, hsr) and (sameas(bsr, "0") or sameas(hsr,"0"))) = YES;
+$endIf.shell
+
+*** Determine the combinations to loop over in the calibration
+loop((renAllowed(bs, hs, bsr, hsr), vin, tcalib),
+  gradientVarsRen("identRepl", bsr, hsr, vin, tcalib)$sameas(hs, hsr) = YES;
+  gradientVarsRen("newSys", bsr, hsr, vin, tcalib)$(not sameas(hs, hsr) and not sameas(hsr, "0")) = YES;
+  gradientVarsRen("0", bsr, hsr, vin, tcalib)$(sameas(hsr, "0")) = YES;
+);
+gradientVarsCon(bs, hs, tcalib) = YES;
+
+$endif.calibration

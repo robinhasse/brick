@@ -43,11 +43,21 @@ startModel <- function(path, runReporting = TRUE) {
     }
   }
 
-  runGams(path,
-          cfg[["gamsOptions"]],
-          c(cfg[["switches"]], cfg[c("solverLP", "solverNLP", "solverQCP",
-                                     "ignoreShell")]),
-          gamsCall = cfg[["gamsCall"]])
+  if (grepl("calibration", cfg[["switches"]][["RUNTYPE"]], fixed = TRUE)) {
+    runCalibration(path,
+                   parameters = cfg[["calibrationParameters"]],
+                   tcalib = cfg[["calibperiods"]],
+                   gamsOptions = cfg[["gamsOptions"]],
+                   switches = c(cfg[["switches"]],
+                                cfg[c("solverLP", "solverNLP", "solverQCP", "ignoreShell")]),
+                   gamsCall = cfg[["gamsCall"]])
+  } else {
+    runGams(path,
+            cfg[["gamsOptions"]],
+            c(cfg[["switches"]], cfg[c("solverLP", "solverNLP", "solverQCP",
+                                       "ignoreShell")]),
+            gamsCall = cfg[["gamsCall"]])
+  }
 
   checkGamsSuccess(path)
 

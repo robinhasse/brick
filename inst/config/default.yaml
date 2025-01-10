@@ -19,6 +19,10 @@ startyear: 2005
 # no impact on results
 endyear: 2100
 
+### calibration periods ###
+# time steps on which to conduct the calibration
+calibperiods: NULL
+
 ### region mapping ###
 # file that maps countries to modelled regions
   # []: country-level resolution
@@ -159,6 +163,16 @@ carrierPrices: central
   # high:    emission intensities remain at current levels
 carrierEmi: high
 
+### Price sensitivity ###
+# Price senstivity of bs and hs
+priceSens:
+  bs:
+    construction: 0.1
+    renovation: 0.08
+  hs:
+    construction: 0.1
+    renovation: 0.08
+
 
 ## model switches ====
 # passed to gams
@@ -198,6 +212,24 @@ switches:
     # e.g.: DEU.urban.MFH.all
   FILTERSUBS: FALSE
 
+  ### Calibration type ###
+  # Calibration on which quantity?
+    # stocks
+    # stockszero (currently not supported on R-side)
+    # flows
+  CALIBRATIONTYPE: NULL
+
+  ### Target function ###
+  # Target function of the calibration
+    # minsquare
+    # maxlikely
+  TARGETFUNCTION: NULL
+
+  ### Artificial (and extreme) decrease of OPEX ###
+  # Pass the HS that should have decreased OPEX
+  # TODO: Temporary! (As corresponding if clauses in GAMS code)
+  CALIBRATIONLOWOP: FALSE
+
 
 # gams parameters --------------------------------------------------------------
 # passed to gams
@@ -211,4 +243,13 @@ gamsOptions:
   ### page width ###
     # page width of log file (max number of characters in one line)
   pw: 185
+
+# parameters for calibration -----------------------------------
+
+calibrationParameters:
+  stepSizeInit: 80
+  iterations: 50
+  iterationsArmijo: 50
+  sensitivityArmijo: 0.01
+  stepReduction: 0.5
 ...
