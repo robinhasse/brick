@@ -26,5 +26,8 @@ if (sys.nframe() == 0L) {
     message(paste("This is a development run. Loading brick from local folder", brickDir))
   }
 
-  brick::startModel(path)
+  # Should the reporting be run?
+  runReporting <- as.logical(argsCL[4])
+
+  brick::startModel(path, runReporting = runReporting)
 }

@@ -11,6 +11,7 @@ initModel(
   outputFolder = "output",
   references = NULL,
   restart = FALSE,
+  runReporting = TRUE,
   sendToSlurm = NULL,
   slurmQOS = NULL,
   tasksPerNode = NULL,
@@ -43,6 +44,8 @@ BRICK-internal config folder is used.}
  \item \code{"useAsStart"} to use the run from which we restart as the starting point
  \item \code{"none"} (or any other string) to do none of the above
 }}
+
+\item{runReporting}{logical, whether to run the reporting, i.e. write the mif}
 
 \item{sendToSlurm}{boolean whether or not the run should be started via SLURM}
 

@@ -4,10 +4,12 @@
 \alias{startModel}
 \title{Start the model}
 \usage{
-startModel(path)
+startModel(path, runReporting = TRUE)
 }
 \arguments{
 \item{path}{character vector with folders to run the model in}
+
+\item{runReporting}{logical, whether to run the reporting, i.e. write the mif}
 }
 \description{
 Run the model with given configuration.

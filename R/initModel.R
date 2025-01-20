@@ -25,7 +25,8 @@
 #'         the matching
 #'   \item \code{"useAsStart"} to use the run from which we restart as the starting point
 #'   \item \code{"none"} (or any other string) to do none of the above
-##'  }
+#'  }
+#' @param runReporting logical, whether to run the reporting, i.e. write the mif
 #' @param sendToSlurm boolean whether or not the run should be started via SLURM
 #' @param slurmQOS character, slurm QOS to be used
 #' @param tasksPerNode numeric, number of tasks per node to be requested
@@ -42,6 +43,7 @@ initModel <- function(config = NULL,
                       outputFolder = "output",
                       references = NULL,
                       restart = FALSE,
+                      runReporting = TRUE,
                       sendToSlurm = NULL,
                       slurmQOS = NULL,
                       tasksPerNode = NULL,
@@ -51,6 +53,10 @@ initModel <- function(config = NULL,
   if (!dir.exists(outputFolder)) {
     dir.create(outputFolder)
   }
+
+
+
+  # Determine whether to send to SLURM -----------------------------------------
 
   if (isTRUE(sendToSlurm)) {
     if (isSlurmAvailable()) {
@@ -71,8 +77,15 @@ initModel <- function(config = NULL,
     }
   }
 
-  # Check if this is a restart run and determine the path to be restarted
+
+
+  # Check if this is a restart run and determine the path to be restarted ------
+
   if (isTRUE(restart) || is.character(restart)) {
+
+
+    ## Restart run: Prepare the config and restart settings ====
+
     if (!is.null(path) && file.exists(path)) {
       message("Restarting on given path: ", path)
     } else if (is.null(path)) {
@@ -99,7 +112,10 @@ initModel <- function(config = NULL,
                       readDirect = TRUE)
     title <- cfg[["title"]]
   } else {
-    # Start a new run
+
+
+    ## New run: Read the config and prepare the run folder ====
+
     restart <- FALSE
     if (!is.null(path) && file.exists(path)) {
       stop("You passed an existing path, but did not set this as a restart run. Stopping.")
@@ -116,6 +132,10 @@ initModel <- function(config = NULL,
 
     createRunFolder(path, cfg)
   }
+
+
+
+  # Prepare the run ------------------------------------------------------------
 
   # Generate SLURM configuration if sending to SLURM
   if (isTRUE(sendToSlurm)) {
@@ -148,8 +168,12 @@ initModel <- function(config = NULL,
     write.csv2(data.frame(references), file.path(path, "references.csv"))
   }
 
+
+
+  # Start the run --------------------------------------------------------------
+
   if (isFALSE(sendToSlurm)) {
-    startModel(path)
+    startModel(path, runReporting = runReporting)
   } else {
     brickDir <- find.package("brick")
 
@@ -163,7 +187,7 @@ initModel <- function(config = NULL,
                               " --mail-type=END,FAIL",
                               " --comment=BRICK",
                               " --wrap=\"",
-                              paste("Rscript", slurmScriptPath, path, brickDir, isDev),
+                              paste("Rscript", slurmScriptPath, path, brickDir, isDev, runReporting),
                               "\" ",
                               slurmConfig))
     Sys.sleep(1)

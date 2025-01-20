@@ -8,11 +8,12 @@
 #' @author Robin Hasse
 #'
 #' @param path character vector with folders to run the model in
+#' @param runReporting logical, whether to run the reporting, i.e. write the mif
 #'
 #' @importFrom utils read.csv2
 #' @export
 #'
-startModel <- function(path) {
+startModel <- function(path, runReporting = TRUE) {
 
   cfg <- readConfig(file.path(path, "config", "config_COMPILED.yaml"), readDirect = TRUE)
 
@@ -50,7 +51,9 @@ startModel <- function(path) {
 
   checkGamsSuccess(path)
 
-  reportMif(path)
+  if (isTRUE(runReporting)) {
+    reportMif(path)
+  }
 
   plotSummary(path, NULL, showHistStock = cfg[["switches"]][["RUNTYPE"]] %in% c("calibration", "matching"))
 
