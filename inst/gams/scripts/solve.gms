@@ -94,29 +94,44 @@ option lp  = %solverLP%;
 option nlp = %solverNLP%;
 option qcp = %solverQCP%;
 
+* define macro for solving in parallel mode
+
+$macro solveParallel subs(all_subs) = no; \
+fullSysNLP.SolveLink = 3; \
+loop(all_subs, \
+  subs(all_subs) = yes; \
+  solve fullSysNLP minimizing v_totObj using nlp; \
+  subs(all_subs) = no; \
+  p_handle(all_subs) = fullSysNLP.handle; \
+); \
+repeat \
+  loop(all_subs$handleCollect(p_handle(all_subs)), \
+		p_runtime(all_subs) = fullSysNLP.resusd; \
+    p_repyFullSysNLP(all_subs,'solvestat') = fullSysNLP.solvestat; \
+    p_repyFullSysNLP(all_subs,'modelstat') = fullSysNLP.modelstat; \
+    p_repyFullSysNLP(all_subs,'resusd')    = fullSysNLP.resusd; \
+    p_repyFullSysNLP(all_subs,'objval')    = fullSysNLP.objval; \
+    if(handleStatus(p_handle(all_subs)), \
+      fullSysNLP.handle = p_handle(all_subs); \
+      display$handleDelete(p_handle(all_subs)) 'trouble deleting handles' ; \
+      p_handle(all_subs) = 0; \
+    ); \
+  ); \
+  display$sleep(5) 'sleep some time'; \
+until card(p_handle) = 0; \
+subs(all_subs) = yes;
+
+
 
 
 *** scenario / calibration run -------------------------------------------------
 
-$ifthenE.fullSys (sameas("%RUNTYPE%","scenario"))or(sameas("%RUNTYPE%","calibration"))
+$ifthen.fullSys "%RUNTYPE%" == "scenario"
 
 * measure stocks and flows in floor area
 q("dwel") = no;
 q("area") = yes;
 
-
-$ifthen.calibration "%RUNTYPE%" == "calibration"
-
-* start iteration loop
-loop(iteration,
-
-$endif.calibration
-
-
-* linear model
-$ifthen.calibration "%RUNTYPE%" == "calibration"
-if(iteration.val eq 1,
-$endif.calibration
 
 $ifthenE.lp (sameas("%SOLVEPROBLEM%","lp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
 solve fullSysLP minimizing v_totObj using lp;
@@ -126,46 +141,13 @@ p_repyFullSysLP('resusd')    = fullSysLP.resusd;
 p_repyFullSysLP('objval')    = fullSysLP.objval;
 $endif.lp
 
-$ifthen.calibration "%RUNTYPE%" == "calibration"
-);
-$endif.calibration
-
 
 * non-linear model
-$ifthenE.nlp (sameas("%SOLVEPROBLEM%","nlp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))or(sameas("%RUNTYPE%","calibration"))
+$ifthenE.nlp (sameas("%SOLVEPROBLEM%","nlp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
 
 $ifthen.parallel "%PARALLEL%" == "TRUE"
 
-subs(all_subs) = no;
-fullSysNLP.SolveLink = 3;
-
-loop(all_subs,
-  subs(all_subs) = yes;
-  solve fullSysNLP minimizing v_totObj using nlp;
-
-  subs(all_subs) = no;
-  p_handle(all_subs) = fullSysNLP.handle;
-);
-
-repeat
-  loop(all_subs$handleCollect(p_handle(all_subs)),
-		p_runtime(all_subs) = fullSysNLP.resusd;
-
-  p_repyFullSysNLP(all_subs,'solvestat') = fullSysNLP.solvestat;
-  p_repyFullSysNLP(all_subs,'modelstat') = fullSysNLP.modelstat;
-  p_repyFullSysNLP(all_subs,'resusd')    = fullSysNLP.resusd;
-  p_repyFullSysNLP(all_subs,'objval')    = fullSysNLP.objval;
-
-    if(handleStatus(p_handle(all_subs)),
-      fullSysNLP.handle = p_handle(all_subs);
-      display$handleDelete(p_handle(all_subs)) 'trouble deleting handles' ;
-      p_handle(all_subs) = 0;
-    );
-  );
-  display$sleep(5) 'sleep some time';
-until card(p_handle) = 0;
-
-subs(all_subs) = yes;
+solveParallel
 
 $else.parallel
 
@@ -183,74 +165,173 @@ $endif.parallel
 $endif.nlp
 
 
-$ifthen.calibration "%RUNTYPE%" == "calibration"
+*** scenario / calibration run -------------------------------------------------
 
-p_repyFullSysNLPIter(iteration,all_subs,'solvestat') = fullSysNLP.solvestat;
-p_repyFullSysNLPIter(iteration,all_subs,'modelstat') = fullSysNLP.modelstat;
-p_repyFullSysNLPIter(iteration,all_subs,'resusd')    = fullSysNLP.resusd;
-p_repyFullSysNLPIter(iteration,all_subs,'objval')    = fullSysNLP.objval;
+$elseif.fullSys "%RUNTYPE%" == "calibrationOptimization"
 
-*** check calibration deviation
-p_calibDeviationCon(iteration,state,subs,t)$(abs(p_constructionHist(state,subs,t)) > eps) =
-  v_construction.l("area",state,subs,t)
-  / p_constructionHist(state,subs,t)
-;
-p_calibDeviationRen(iteration,ren,vin,subs,t)$(abs(p_renovationHist(ren,vin,subs,t)) > eps) =
-  v_renovation.l("area",ren,vin,subs,t)
-  / p_renovationHist(ren,vin,subs,t)
-;
+$ifThen.targetFunc "%TARGETFUNCTION%" == "minsquare"
+$ifThen.calibTarget "%CALIBRATIONTYPE%" == "flows"
+$macro func sum(state3$(p_constructionCalibTarget("area", state3, subs, tcalib)), \
+  power(p_constructionCalibTarget("area", state3, subs, tcalib) - v_construction.l("area", state3, subs, tcalib), 2)) \
+  + sum((vin3, state3, stateFull3)$(renAllowed(state3, stateFull3) and p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib) ne NA), \
+  power(p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib) - v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib), 2));
 
-*** update intangible cost
+$elseIf.calibTarget "%CALIBRATIONTYPE%" == "stocks"
+$macro func sum((vin3, state3), \
+  power(p_stockCalibTarget("area", state3, vin3, subs, tcalib) - v_stock.l("area", state3, vin3, subs, tcalib), 2));
 
-* finite deviation
-p_specCostCon("intangible",state,subs,t)$(    p_constructionHist(state,subs,t) > eps
-                                          and p_calibDeviationCon(iteration,state,subs,t) > eps) =
-  p_specCostCon("intangible",state,subs,t)
-  +
-  p_calibSpeed("construction")
-  * log(p_calibDeviationCon(iteration,state,subs,t))
-;
+$elseIf.calibTarget "%CALIBRATIONTYPE%" == "stockszero"
+$macro func sum((vin3, state3), \
+  power(p_stockCalibTarget("area", state3, vin3, subs, tcalib) - v_stock.l("area", state3, vin3, subs, tcalib), 2)) \
+  + sum((vin3, state3, stateFull3)$zeroFlow(state3, stateFull3), \
+  power(p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib) - v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib), 2));
+$endIf.calibTarget
 
-p_specCostRen("intangible",ren,vin,subs,t)$(    p_renovationHist(ren,vin,subs,t) > eps
-                                            and p_calibDeviationRen(iteration,ren,vin,subs,t) > eps) =
-  p_specCostRen("intangible",ren,vin,subs,t)
-  +
-  p_calibSpeed("renovation")
-  * log(p_calibDeviationRen(iteration,ren,vin,subs,t))
-;
+$elseIf.targetFunc "%TARGETFUNCTION%" == "maxlikely"
+$ifThen.calibTarget "%CALIBRATIONTYPE%" == "flows"
+$macro func - sum(state3, \
+  p_constructionCalibTarget("area", state3, subs, tcalib) \
+  * log(v_construction.l("area", state3, subs, tcalib) \
+    / (sum(state4, \
+      v_construction.l("area", state4, subs, tcalib) \
+      ) \
+      + epsilonSmall) \
+    + epsilonSmall) \
+  ) \
+  - sum((vin3, state3, stateFull3)$renAllowed(state3, stateFull3), \
+  p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib) \
+  * log(v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib) \
+    / (sum((state4, stateFull4), \
+      v_renovation.l("area", state4, stateFull4, vin3, subs, tcalib) \
+      ) \
+      + epsilonSmall) \
+    + epsilonSmall) \
+  );
 
-* zero targets or zero acual value-
-p_specCostCon("intangible",state,subs,t)$(    (p_constructionHist(state,subs,t) <= eps)
-                                          xor (v_construction.l("area",state,subs,t) <= eps))
-  =
-  p_specCostCon("intangible",state,subs,t)
-  + sign(p_calibDeviationCon(iteration,state,subs,t) - 1)
-  * (
-      0.5 * abs(p_specCostCon("intangible",state,subs,t))
-      + 0.1 * p_specCostCon("tangible",state,subs,t)$(abs(p_specCostCon("intangible",state,subs,t)) <= eps)
-    )
-;
-
-p_specCostRen("intangible",ren,vin,subs,t)$(    (p_renovationHist(ren,vin,subs,t) <= eps)
-                                            xor (v_renovation.l("area",ren,vin,subs,t) <= eps)) =
-  p_specCostRen("intangible",ren,vin,subs,t)
-  + sign(p_calibDeviationRen(iteration,ren,vin,subs,t) - 1)
-  * (
-      0.5 * abs(p_specCostRen("intangible",ren,vin,subs,t))
-      + 0.1 * p_specCostRen("tangible",ren,vin,subs,t)$(abs(p_specCostRen("intangible",ren,vin,subs,t)) <= eps)
-    )
-;
-
-
-*** end iteration loop
+$elseIf.calibTarget "%CALIBRATIONTYPE%" == "stocks"
+$macro func - sum((vin3, state3), \
+  p_stockCalibTarget("area", state3, vin3, subs, tcalib) \
+  * log(v_stock.l("area", state3, vin3, subs, tcalib) \
+    / (sum((state4), \
+      v_stock.l("area", state4, vin3, subs, tcalib) \
+    ) \
+    + epsilonSmall) \
+  + epsilonSmall)) \
+  - sum((vin3, state3, stateFull3)$zeroFlow(state3, stateFull3), \
+  p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib) \
+  * log(v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib) \
+    / (sum((state4, stateFull4), \
+      v_renovation.l("area", state4, stateFull4, vin3, subs, tcalib) \
+      ) \
+      + epsilonSmall) \
+    + epsilonSmall) \
 );
 
-$endif.calibration
+$elseIf.calibTarget "%CALIBRATIONTYPE%" == "stockszero"
+$macro func - sum((vin3, state3), \
+  p_stockCalibTarget("area", state3, vin3, subs, tcalib) \
+  * log(v_stock.l("area", state3, vin3, subs, tcalib) \
+    / (sum((state4), \
+      v_stock.l("area", state4, vin3, subs, tcalib) \
+    ) \
+    + epsilonSmall) \
+  + epsilonSmall));
+$endIf.calibTarget
 
+$endIf.targetFunc
+
+$macro extrapolateIntangCon - sum(tcalib, \
+  p_specCostCalibCon(state, subs, tcalib)) / card(tcalib);
+
+$macro extrapolateIntangRen - sum(tcalib, \
+  p_specCostCalibRen(state, stateFull, vin, subs, tcalib)) / card(tcalib);
+
+*********************************************************************************
+*** Preparation of the calibration
+*********************************************************************************
+
+* measure stocks and flows in floor area
+q("dwel") = no;
+q("area") = yes;
+
+solveParallel
+
+*** Compute the functional value
+p_f(subs, tcalib) = func
+
+*** Store renovation and construction values
+p_construction("area", state, subs, t) = v_construction.l("area", state, subs, t);
+p_renovation("area", state, stateFull, vinCalib, subs, t) = v_renovation.l("area", state, stateFull, vinCalib, subs, t);
+p_stock("area", state, vin, subs, t) = v_stock.l("area", state, vin, subs, t);
+
+*** Save the model statistics
+p_repyFullSysNLP(subs,'solvestat') = fullSysNLP.solvestat;
+p_repyFullSysNLP(subs,'modelstat') = fullSysNLP.modelstat;
+p_repyFullSysNLP(subs,'resusd')    = fullSysNLP.resusd;
+p_repyFullSysNLP(subs,'objval')    = fullSysNLP.objval;
+
+p_xinitCon(state, subs, tcalib) = p_specCostCon("intangible", state, subs, tcalib);
+p_xinitRen(state, stateFull, vinCalib, subs, tcalib)$renAllowed(state, stateFull) = p_specCostRen("intangible", state, stateFull, vinCalib, subs, tcalib);
+
+*** Compute the gradient
+loop((bs3, hs3, tcalib2),
+  p_xDiffCon(bs, hs, subs, tcalib)$(gradientVarsCon(bs, hs, tcalib)
+                                    and (not sameas(bs, bs3) or not sameas(hs, hs3) or not sameas(tcalib, tcalib2)))
+                                    = 0;
+  p_xDiffCon(bs, hs, subs, tcalib)$(gradientVarsCon(bs, hs, tcalib)
+                                    and (sameas(bs, bs3) and sameas(hs, hs3) and sameas(tcalib, tcalib2)))
+                                    = p_diff;
+  p_specCostCalibCon(state, subs, tcalib) = p_xDiffCon(state, subs, tcalib);
+
+  p_specCostCalibCon(state, subs, t)$(not tcalib(t)) = extrapolateIntangCon
+
+  p_specCostCon("intangible", state, subs, t) = p_xinitCon(state, subs, t) + p_specCostCalibCon(state, subs, t);
+
+  v_stock.l("area", state, vinCalib, subs, ttot) = 0;
+  v_construction.l("area", state, subs, ttot) = 0;
+  v_renovation.l("area", state, stateFull, vinCalib, subs, ttot) = 0;
+
+  solveParallel
+
+  p_fDiffCon(bs3, hs3, subs, tcalib) = func
+);
+
+loop(gradientVarsRen(renType2, bsr3, hsr3, vin2, tcalib2),
+  p_xDiffRen(renType, bsr, hsr, vinCalib, subs, tcalib)$(gradientVarsRen(renType, bsr, hsr, vinCalib, tcalib)
+                                                            and (not sameas(renType, renType2)
+                                                                 or not sameas(bsr, bsr3) or not sameas(hsr, hsr3)
+                                                                 or not sameas(vinCalib, vin2) or not sameas(tcalib, tcalib2)))
+                                                          = 0;
+  p_xDiffRen(renType, bsr, hsr, vinCalib, subs, tcalib)$(gradientVarsRen(renType, bsr, hsr, vinCalib, tcalib)
+                                                            and (sameas(renType, renType2)
+                                                                 and sameas(bsr, bsr3) and sameas(hsr, hsr3)
+                                                                 and sameas(vinCalib, vin2) and sameas(tcalib, tcalib2)))
+                                                          = p_diff;
+  loop(renAllowed(bs, hs, bsr, hsr),
+    p_specCostCalibRen(bs, hs, bsr, hsr, vinCalib, subs, tcalib)$sameas(hs, hsr)
+                                                                           = p_xDiffRen("identRepl", bsr, hsr, vinCalib, subs, tcalib);
+    p_specCostCalibRen(bs, hs, bsr, hsr, vinCalib, subs, tcalib)$(not sameas(hs, hsr) and not sameas(hsr, "0"))
+                                                                           = p_xDiffRen("newSys", bsr, hsr, vinCalib, subs, tcalib);
+    p_specCostCalibRen(bs, hs, bsr, hsr, vinCalib, subs, tcalib)$sameas(hsr, "0") = p_xDiffRen("0", bsr, hsr, vinCalib, subs, tcalib);
+  );
+
+  p_specCostCalibRen(state, stateFull, vin, subs, t)$(not tcalib(t))
+                                                             = extrapolateIntangRen
+
+  p_specCostRen("intangible", state, stateFull, vinCalib, subs, t)$renAllowed(state, stateFull)
+                                                  = p_xinitRen(state, stateFull, vinCalib, subs, t)
+                                                  + p_specCostCalibRen(state, stateFull, vinCalib, subs, t);
+
+  v_stock.l("area", state, vinCalib, subs, ttot) = 0;
+  v_construction.l("area", state, subs, ttot) = 0;
+  v_renovation.l("area", state, stateFull, vinCalib, subs, ttot) = 0;
+
+  solveParallel
+
+  p_fDiffRen(renType2, bsr3, hsr3, vin2, subs, tcalib) = func
+);
 
 $endif.fullSys
-
-
 
 *** matching run ---------------------------------------------------------------
 

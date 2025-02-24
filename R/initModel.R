@@ -123,7 +123,12 @@ initModel <- function(config = NULL,
 
     cfg <- readConfig(config = config,
                       configFolder = configFolder)
-    title <- cfg[["title"]]
+    title <- paste(cfg[["title"]], sep = "-")
+
+    if (cfg[["switches"]][["RUNTYPE"]] %in% c("calibrationOptimization", "calibrationLogit")) {
+      title <- paste0(title, cfg[["parameters"]][["iteration"]], "Iter",
+                      cfg[["parameters"]][["stepSize"]], "A")
+    }
 
     if (is.null(path)) {
       stamp <- format(Sys.time(), "_%Y-%m-%d_%H.%M.%S")
