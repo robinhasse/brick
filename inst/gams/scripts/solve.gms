@@ -20,6 +20,7 @@ $endif.shell
   q_SysHeteroPref
   q_zeroHeteroPrefCon
   q_zeroHeteroPrefRen
+  q_statusQuoPref
 *  q_minDivConHS
 *  q_minDivConBS
 *  q_minDivRenBS
@@ -46,6 +47,7 @@ $ifthenE.shell (not(sameas("%ignoreShell%","TRUE")))
 $endif.shell
   q_heatingSystemLifeTime
   q_SysHeteroPref
+  q_statusQuoPref
   q_HeteroPrefCon
   q_HeteroPrefRen
 *  q_maxRenRate

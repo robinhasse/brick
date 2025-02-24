@@ -2,8 +2,8 @@
 
 $gdxin input.gdx
 $load p_dt p_dtVin t0
-$load priceSensHS priceSensBS
 $load p_specCostCon p_specCostRen p_specCostDem
+$load priceSensBS priceSensHS p_statusQuoPref
 $load p_carbonPrice p_carrierPrice p_carrierEmi p_ueDemand p_eff p_renDepth
 $load p_interestRate
 $load p_population
