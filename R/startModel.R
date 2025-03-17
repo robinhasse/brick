@@ -27,12 +27,9 @@ startModel <- function(path, runReporting = TRUE) {
     createInputData(path, cfg, overwrite = !isFALSE(restart))
   }
 
-  if (isFALSE(restart) || "createMatching" %in% restart) {
-    if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
-      createMatchingData(path, cfg, overwrite = !isFALSE(restart))
-    } else if (cfg[["switches"]][["RUNTYPE"]] == "calibration") {
-      aggregateMatching(path, cfg, overwrite = !isFALSE(restart))
-    }
+  if (cfg[["switches"]][["RUNTYPE"]] == "matching" &&
+        (isFALSE(restart) || "createMatching" %in% restart)) {
+    createMatchingData(path, cfg, overwrite = !isFALSE(restart))
   }
 
   if (cfg[["switches"]][["SOLVEPROBLEM"]] == "auto") {
@@ -43,7 +40,7 @@ startModel <- function(path, runReporting = TRUE) {
     }
   }
 
-  if (grepl("calibration", cfg[["switches"]][["RUNTYPE"]], fixed = TRUE)) {
+  if (cfg[["switches"]][["RUNTYPE"]] == "calibration") {
     runCalibration(path,
                    parameters = cfg[["calibrationParameters"]],
                    tcalib = cfg[["calibperiods"]],

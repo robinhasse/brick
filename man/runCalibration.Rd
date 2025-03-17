@@ -51,9 +51,9 @@ are gathered in the data frame \code{optimVarCon} for construction and \code{opt
 for renovation.
 \item The objective function value \code{f} and its variant(s) are gathered in the data
 frame \code{outerObjective}
-\item The adjustment term \code{d} and related variables if applicable are gathere in the
+\item The adjustment term \code{d} and related variables if applicable are gathered in the
 data frame \code{deviationCon} for construction and \code{deviationRen} for renovation.
-\item The step size \code{stepSize} and related parameters requried for the step size adaptation
+\item The step size \code{stepSize} and related parameters required for the step size adaptation
 algorithm are gathered in the data frame \code{stepSizeParams}.
 }
 }

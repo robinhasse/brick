@@ -19,7 +19,7 @@ $load p_refVals p_refValsMed
 $gdxin
 $endif.matching
 
-$ifthen.calibration "%RUNTYPE%" == "calibrationOptimization"
+$ifthenE.calibration (sameas("%CALIBRATIONMETHOD%","optimization"))or(sameas("%CALIBRATIONMETHOD%","logit"))
 $gdxin input.gdx
 $load p_stockCalibTarget p_renovationCalibTarget p_constructionCalibTarget
 $gdxin
@@ -32,11 +32,6 @@ display "Reading operational costs from input.gdx";
 $gdxin
 $endIf.lowop
 
-* $ifthen.calibration "%RUNTYPE%" == "calibration"
-* $gdxin calibrationTarget.gdx
-* $load p_stockHist p_constructionHist p_renovationHist p_demolitionHist
-* $gdxin
-* $endif.calibration
 
 
 *** starting point -------------------------------------------------------------

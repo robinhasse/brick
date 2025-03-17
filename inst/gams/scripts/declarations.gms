@@ -167,12 +167,16 @@ q_finiteHeatingShareRen(bs,hs,bsr,hsr,vin,reg,loc,typ,inc,ttot)
 $endif.matching
 ;
 
-$ifthen.calibration "%RUNTYPE%" == "calibrationOptimization"
+$ifthenE.calibration (sameas("%CALIBRATIONMETHOD%","optimization"))or(sameas("%CALIBRATIONMETHOD%","logit"))
 parameters
 p_stockCalibTarget(qty,bs,hs,vin,reg,loc,typ,inc,ttot)              "historic stock of buildings in million m2 as calibration target"
 p_constructionCalibTarget(qty,bs,hs,reg,loc,typ,inc,ttot)           "historic flow of new buildings as calibration target in million m2/yr"
 p_renovationCalibTarget(qty,bs,hs,bsr,hsr,vin,reg,loc,typ,inc,ttot) "historic flow of renovated and untouched buildings as calibration target in million m2/yr"
+;
+$endif.calibration
 
+$ifthenE.calibrationOptimization (sameas("%RUNTYPE%","calibration"))and(sameas("%CALIBRATIONMETHOD%","optimization"))
+parameters
 p_diff /0.1/
 p_xinitCon(bs, hs, reg, loc, typ, inc, ttot)
 p_xinitRen(bs, hs, bsr, hsr, vin, reg, loc, typ, inc, ttot)
@@ -189,4 +193,4 @@ p_renovation(qty,bs,hs,bsr,hsr,vin,reg,loc,typ,inc,ttot)
 p_construction(qty,bs,hs,reg,loc,typ,inc,ttot)
 p_stock(qty, bs, hs, vin, reg, loc, typ, inc, ttot)
 ;
-$endif.calibration
+$endif.calibrationOptimization

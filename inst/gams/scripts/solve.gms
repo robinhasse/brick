@@ -169,7 +169,7 @@ $endif.nlp
 
 *** scenario / calibration run -------------------------------------------------
 
-$elseif.fullSys "%RUNTYPE%" == "calibrationOptimization"
+$elseIfE.fullSys (sameas("%RUNTYPE%","calibration"))and(sameas("%CALIBRATIONMETHOD%","optimization"))
 
 $ifThen.targetFunc "%TARGETFUNCTION%" == "minsquare"
 $ifThen.calibTarget "%CALIBRATIONTYPE%" == "flows"
