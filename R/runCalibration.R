@@ -629,7 +629,7 @@ runCalibrationOptim <- function(path,
 #' @param flow character, either 'construction' or 'renovation'
 #' @param renAllowed data frame with allowed renovation transitions
 #'
-#' @importFrom dplyr %>% .data case_match case_when filter left_join mutate semi_join select
+#' @importFrom dplyr %>% .data case_match case_when filter left_join mutate select
 #' @importFrom tidyr pivot_wider replace_na
 #'
 .computeDeviation <- function(m, target, dims, tcalib, flow = c("construction", "renovation"),

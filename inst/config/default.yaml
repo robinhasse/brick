@@ -151,6 +151,15 @@ carbonPrice: []
   # e.g. {sobo: 3, libo: 2}
 ltHsShift: []
 
+### scaling factor for building life time ###
+# scales scale parameter of the Weibull distribution
+ltFactor: 1
+
+### eternal building share
+# share of buildings that never have to be demolished (e.g. monuments)
+# The demolition probability distribution function approaches 1 minus this value
+ltEternalShare: 0
+
 ### carrier prices ###
 # scenario of future energy carrier prices
   # low:     low estimates
