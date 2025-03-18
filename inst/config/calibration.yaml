@@ -2,11 +2,13 @@
 title: "calibration"
 basedOn: "default.yaml"
 # scope and resolution
-periods: [2000, 2010]
-startyear: 2010
-calibperiods: 2010
+periods: [2000, 2005, 2010, 2015, 2020]
+startyear: 2005
+calibperiods: 2005
 regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
 regions: EUR
+ltFactor: 1.5
+ltEternalShare: 0.15
 ignoreShell: TRUE
 reportingTemplate: ignoreShell_onlyRes
 # switches
