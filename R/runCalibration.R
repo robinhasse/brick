@@ -20,9 +20,9 @@
 #' for renovation.
 #' \item The objective function value \code{f} and its variant(s) are gathered in the data
 #' frame \code{outerObjective}
-#' \item The adjustment term \code{d} and related variables if applicable are gathere in the
+#' \item The adjustment term \code{d} and related variables if applicable are gathered in the
 #' data frame \code{deviationCon} for construction and \code{deviationRen} for renovation.
-#' \item The step size \code{stepSize} and related parameters requried for the step size adaptation
+#' \item The step size \code{stepSize} and related parameters required for the step size adaptation
 #' algorithm are gathered in the data frame \code{stepSizeParams}.
 #' }
 #'
@@ -48,15 +48,16 @@ runCalibration <- function(path,
                            gamsCall = "gams") {
 
   .runCalibration <- switch(
-    switches[["RUNTYPE"]],
-    calibrationLogit = runCalibrationLogit,
-    calibrationOptimization = runCalibrationOptim,
-    stop("You did not provide a valid calibration runtype. Stopping.")
+    switches[["CALIBRATIONMETHOD"]],
+    logit = runCalibrationLogit,
+    optimization = runCalibrationOptim,
+    stop("You did not provide a valid calibration method Stopping.")
   )
   .runCalibration(
     path,
     parameters,
     tcalib,
+    calibTarget = .readCalibTarget(),
     gamsOptions = gamsOptions,
     switches = switches,
     fileName = fileName,
@@ -75,6 +76,7 @@ runCalibration <- function(path,
 #' @param path character vector with folders to run gams in
 #' @param parameters named list of calibration parameters
 #' @param tcalib numeric, time periods to calibrate on
+#' @param calibTarget list of data frames of calibration targets
 #' @param gamsOptions named list of GAMS options
 #' @param switches named list of model switches
 #' @param fileName character vector with gams file names
@@ -87,6 +89,7 @@ runCalibration <- function(path,
 runCalibrationLogit <- function(path,
                                 parameters,
                                 tcalib,
+                                calibTarget,
                                 gamsOptions = NULL,
                                 switches = NULL,
                                 fileName = "main.gms",
@@ -99,14 +102,7 @@ runCalibrationLogit <- function(path,
   if (!file.exists(file.path(path, "input_init.gdx"))) {
     file.copy(from = file.path(path, "input.gdx"), to = file.path(path, "input_init.gdx"))
   }
-
-  dimsCon <- c("qty", "bs", "hs", "reg", "loc", "typ", "inc", "ttot", "target")
-  p_constructionCalibTarget <- readInput("f_constructionCalibTarget.cs4r", dimsCon)
-  dimsCon <- dimsCon[2:(length(dimsCon) - 1)]
-
-  dimsRen <- c("qty", "bs", "hs", "bsr", "hsr", "vin", "reg", "loc", "typ", "inc", "ttot", "target")
-  p_renovationCalibTarget <- readInput("f_renovationCalibTarget.cs4r", dimsRen)
-  dimsRen <- dimsRen[2:(length(dimsRen) - 1)]
+  dims <- .getDims(calibTarget)
 
   # Read in required input data
   gdxInput <- file.path(path, "input.gdx")
@@ -137,17 +133,17 @@ runCalibrationLogit <- function(path,
 
   gdxOutput <- file.path(path, "output.gdx")
 
-  .addTargetsToInput(mInput, path, p_constructionCalibTarget, p_renovationCalibTarget)
+  .addTargetsToInput(mInput, path, calibTarget)
 
-  p_constructionCalibTarget <- select(p_constructionCalibTarget, -"qty")
-  p_renovationCalibTarget <- select(p_renovationCalibTarget, -"qty")
+  p_constructionCalibTarget <- select(calibTarget[["construction"]], -"qty")
+  p_renovationCalibTarget <- select(calibTarget[["renovation"]], -"qty")
 
   # Initial Brick run
   runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
 
   # Compute (virtual) objective function
   gdx <- file.path(path, paste0("calibration_0.gdx"))
-  file.rename(from = gdxOutput, to = gdx)
+  file.copy(from = gdxOutput, to = gdx)
 
   m <- Container$new(gdx)
   outerObjective <- .combineOuterObjective(m, outerObjective, p_constructionCalibTarget, p_renovationCalibTarget,
@@ -162,9 +158,9 @@ runCalibrationLogit <- function(path,
 
     # READ IN BRICK RESULTS AND COMPUTE DEVIATION -------------------------------------------------
 
-    deviationCon <- .computeDeviation(m, p_constructionCalibTarget, dimsCon, tcalib, flow = "construction")
+    deviationCon <- .computeDeviation(m, p_constructionCalibTarget, dims$construction, tcalib, flow = "construction")
 
-    deviationRen <- .computeDeviation(m, p_renovationCalibTarget, dimsRen, tcalib,
+    deviationRen <- .computeDeviation(m, p_renovationCalibTarget, dims$renovation, tcalib,
                                       flow = "renovation", renAllowed = renAllowed)
 
     # Compute parameters delta and phi-derivative of the step size adaptation
@@ -184,9 +180,9 @@ runCalibrationLogit <- function(path,
     ## Determine the step size adaptation algorithm ====
 
     # Run Brick for a test point close to the starting point
-    optimVarCon <- .updateX(optimVarCon, deviationCon, stepSizeParams, dimsCon,
+    optimVarCon <- .updateX(optimVarCon, deviationCon, stepSizeParams, dims$construction,
                             nameTo = "xMin", factorMin = 0.0001)
-    optimVarRen <- .updateX(optimVarRen, deviationRen, stepSizeParams, dimsRen,
+    optimVarRen <- .updateX(optimVarRen, deviationRen, stepSizeParams, dims$renovation,
                             nameTo = "xMin", factorMin = 0.0001)
 
     .addSpecCostToInput(mInput, path, optimVarCon, optimVarRen, xinitCon, xinitRen, tcalib, varName = "xMin")
@@ -194,7 +190,7 @@ runCalibrationLogit <- function(path,
     runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
 
     gdxMin <- file.path(path, "calibrationMin.gdx")
-    file.rename(from = gdxOutput, to = gdxMin)
+    file.copy(from = gdxOutput, to = gdxMin)
     mMin <- Container$new(gdxMin)
 
     # Evaluate the (virtual) objective of the outer optimization
@@ -220,8 +216,12 @@ runCalibrationLogit <- function(path,
     for (j in seq_len(parameters[["iterationsArmijo"]])) {
 
       ## Adjust the optimization variable according to current step size ====
-      optimVarCon <- .updateXSelect(totalStep, optimVarCon, deviationCon, stepSizeParams, dimsCon, nameTo = "xA")
-      optimVarRen <- .updateXSelect(totalStep, optimVarRen, deviationRen, stepSizeParams, dimsRen, nameTo = "xA")
+      optimVarCon <- .updateXSelect(totalStep, optimVarCon, deviationCon,
+                                    stepSizeParams, dims$construction,
+                                    nameTo = "xA")
+      optimVarRen <- .updateXSelect(totalStep, optimVarRen, deviationRen,
+                                    stepSizeParams, dims$renovation,
+                                    nameTo = "xA")
 
       .addSpecCostToInput(mInput, path, optimVarCon, optimVarRen, xinitCon, xinitRen, tcalib, varName = "xA")
 
@@ -230,7 +230,7 @@ runCalibrationLogit <- function(path,
       runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
 
       gdxA <- file.path(path, "calibrationA.gdx")
-      file.rename(from = gdxOutput, to = gdxA)
+      file.copy(from = gdxOutput, to = gdxA)
       mA <- Container$new(gdxA)
 
       outerObjective <- .combineOuterObjective(mA, outerObjective, p_constructionCalibTarget, p_renovationCalibTarget,
@@ -276,7 +276,7 @@ runCalibrationLogit <- function(path,
 
     # Rename the last output file of the Armijo iteration
     gdx <- file.path(path, paste0("calibration_", i, ".gdx"))
-    file.rename(from = gdxA, to = gdx)
+    file.copy(from = gdxA, to = gdx)
     m <- Container$new(gdx)
 
     # Store diagnostic variables
@@ -292,8 +292,8 @@ runCalibrationLogit <- function(path,
 
   # WRITE INTANGIBLE COSTS TO FILE -------------------------------------------------------------
 
-  .writeCostIntang(file.path(path, "costIntangCon.csv"), optimVarCon, xinitCon, dimsCon, tcalib)
-  .writeCostIntang(file.path(path, "costIntangRen.csv"), optimVarRen, xinitRen, dimsRen, tcalib)
+  .writeCostIntang(file.path(path, "costIntangCon.csv"), optimVarCon, xinitCon, dims$construction, tcalib)
+  .writeCostIntang(file.path(path, "costIntangRen.csv"), optimVarRen, xinitRen, dims$renovation, tcalib)
 
   diagnosticsAll <- c(diagnostics, diagnosticsDetail)
   lapply(names(diagnosticsAll), function(nm) {
@@ -310,6 +310,7 @@ runCalibrationLogit <- function(path,
 #' @param path character vector with folders to run gams in
 #' @param parameters named list of calibration parameters
 #' @param tcalib numeric, time periods to calibrate on
+#' @param calibTarget list of data frames of calibration targets
 #' @param gamsOptions named list of GAMS options
 #' @param switches named list of model switches
 #' @param fileName character vector with gams file names
@@ -323,6 +324,7 @@ runCalibrationLogit <- function(path,
 runCalibrationOptim <- function(path,
                                 parameters,
                                 tcalib,
+                                calibTarget,
                                 gamsOptions = NULL,
                                 switches = NULL,
                                 fileName = "main.gms",
@@ -333,18 +335,7 @@ runCalibrationOptim <- function(path,
 
   # Store initial input data
   file.copy(from = file.path(path, "input.gdx"), to = file.path(path, "input_init.gdx"))
-
-  dimsStock <- c("qty", "bs", "hs", "vin", "reg", "loc", "typ", "inc", "ttot", "target")
-  p_stockCalibTarget <- readInput("f_stockCalibTarget.cs4r", dimsStock)
-  dimsStock <- dimsStock[2:(length(dimsStock) - 1)]
-
-  dimsCon <- c("qty", "bs", "hs", "reg", "loc", "typ", "inc", "ttot", "target")
-  p_constructionCalibTarget <- readInput("f_constructionCalibTarget.cs4r", dimsCon)
-  dimsCon <- dimsCon[2:(length(dimsCon) - 1)]
-
-  dimsRen <- c("qty", "bs", "hs", "bsr", "hsr", "vin", "reg", "loc", "typ", "inc", "ttot", "target")
-  p_renovationCalibTarget <- readInput("f_renovationCalibTarget.cs4r", dimsRen)
-  dimsRen <- dimsRen[2:(length(dimsRen) - 1)]
+  dims <- .getDims(calibTarget)
 
   # Read in required input data
   gdxInput <- file.path(path, "input.gdx")
@@ -375,19 +366,18 @@ runCalibrationOptim <- function(path,
 
   gdxOutput <- file.path(path, "output.gdx")
 
-  .addTargetsToInput(mInput, path, p_constructionCalibTarget, p_renovationCalibTarget,
-                     p_stockCalibTarget = p_stockCalibTarget)
+  .addTargetsToInput(mInput, path, calibTarget)
 
-  p_stockCalibTarget <- select(p_stockCalibTarget, -"qty")
-  p_constructionCalibTarget <- select(p_constructionCalibTarget, -"qty")
-  p_renovationCalibTarget <- select(p_renovationCalibTarget, -"qty")
+  p_stockCalibTarget <- select(calibTarget[["stock"]], -"qty")
+  p_constructionCalibTarget <- select(calibTarget[["construction"]], -"qty")
+  p_renovationCalibTarget <- select(calibTarget[["renovation"]], -"qty")
 
   # Initial Brick run
   runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
 
   # Compute (virtual) objective function
   gdx <- file.path(path, paste0("calibration_0.gdx"))
-  file.rename(from = gdxOutput, to = gdx)
+  file.copy(from = gdxOutput, to = gdx)
 
   m <- Container$new(gdx)
   outerObjective <- .readOuterObjectiveOptim(m, outerObjective)
@@ -401,9 +391,9 @@ runCalibrationOptim <- function(path,
 
     # READ IN BRICK RESULTS AND COMPUTE DEVIATION -------------------------------------------------
 
-    deviationCon <- .computeDescentDirection(m, dimsCon, tcalib)
+    deviationCon <- .computeDescentDirection(m, dims$construction, tcalib)
 
-    deviationRen <- .computeDescentDirection(m, dimsRen, tcalib, flow = "renovation")
+    deviationRen <- .computeDescentDirection(m, dims$renovation, tcalib, flow = "renovation")
 
     # Compute parameters delta and phi-derivative of the step size adaptation
     stepSizeParams <- .combineStepSizeParams(.computeStepSizeParams(deviationCon),
@@ -424,8 +414,12 @@ runCalibrationOptim <- function(path,
     for (j in seq_len(parameters[["iterationsArmijo"]])) {
 
       ## Adjust the optimization variable according to current step size ====
-      optimVarCon <- .updateXSelect(armijoStep, optimVarCon, deviationCon, stepSizeParams, dimsCon, nameTo = "xA")
-      optimVarRen <- .updateXSelect(armijoStep, optimVarRen, deviationRen, stepSizeParams, dimsRen, nameTo = "xA")
+      optimVarCon <- .updateXSelect(armijoStep, optimVarCon, deviationCon,
+                                    stepSizeParams, dims$construction,
+                                    nameTo = "xA")
+      optimVarRen <- .updateXSelect(armijoStep, optimVarRen, deviationRen,
+                                    stepSizeParams, dims$renovation,
+                                    nameTo = "xA")
 
       .addSpecCostToInput(mInput, path, optimVarCon, optimVarRen, xinitCon, xinitRen, tcalib, varName = "xA")
 
@@ -434,7 +428,7 @@ runCalibrationOptim <- function(path,
       runGams(path, gamsOptions = gamsOptions, switches = switchesScenRun, gamsCall = gamsCall)
 
       gdxA <- file.path(path, "calibrationA.gdx")
-      file.rename(from = gdxOutput, to = gdxA)
+      file.copy(from = gdxOutput, to = gdxA)
       mA <- Container$new(gdxA)
 
       if (switches[["CALIBRATIONTYPE"]] == "stocks") {
@@ -485,9 +479,9 @@ runCalibrationOptim <- function(path,
 
     runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
 
-    # Rename the last output file of the Armijo iteration
+    # Rename the output file of the Brick run with updated specific costs
     gdx <- file.path(path, paste0("calibration_", i, ".gdx"))
-    file.rename(from = gdxOutput, to = gdx)
+    file.copy(from = gdxOutput, to = gdx)
     m <- Container$new(gdx)
 
     outerObjective <- mutate(outerObjective, fPrev = .data[["f"]], f = NULL, fA = NULL)
@@ -514,14 +508,42 @@ runCalibrationOptim <- function(path,
 
   # WRITE INTANGIBLE COSTS TO FILE -------------------------------------------------------------
 
-  .writeCostIntang(file.path(path, "costIntangCon.csv"), optimVarCon, xinitCon, dimsCon, tcalib)
-  .writeCostIntang(file.path(path, "costIntangRen.csv"), optimVarRen, xinitRen, dimsRen, tcalib)
+  .writeCostIntang(file.path(path, "costIntangCon.csv"), optimVarCon, xinitCon, dims$construction, tcalib)
+  .writeCostIntang(file.path(path, "costIntangRen.csv"), optimVarRen, xinitRen, dims$renovation, tcalib)
 
   diagnosticsAll <- c(diagnostics, diagnosticsDetail, outerObjectiveIterComp = outerObjectiveIterComp)
   lapply(names(diagnosticsAll), function(nm) {
     write.csv(diagnosticsAll[[nm]], file = file.path(path, paste0(nm, ".csv")), row.names = FALSE)
   })
 
+}
+
+#' Read calibration targets from input folder
+#'
+.readCalibTarget <- function() {
+  dims <- list(
+    stock        = c("qty", "bs", "hs", "vin", "reg", "loc", "typ", "inc", "ttot"),
+    construction = c("qty", "bs", "hs", "reg", "loc", "typ", "inc", "ttot"),
+    renovation   = c("qty", "bs", "hs", "bsr", "hsr", "vin", "reg", "loc", "typ", "inc", "ttot")
+  )
+  lapply(setNames(nm = names(dims)), function(var) {
+    file <- paste0("f_", var, "CalibTarget.cs4r")
+    readInput(file, c(dims[[var]], "target"))
+  })
+}
+
+#' Get dimension names from calibration targets
+#'
+#' Gives the column names of a list of data frames except the first and the last
+#' one, i.e. \code{qty} and \code{value}.
+#'
+#' @param calibTarget list, calibration targets
+#'
+.getDims <- function(calibTarget) {
+  lapply(calibTarget, function(target) {
+    dims <- colnames(target)
+    dims[2:(length(dims) - 1)]
+  })
 }
 
 #' Initialize the data frame for the optimization variable of construction
@@ -548,7 +570,7 @@ runCalibrationOptim <- function(path,
 .initOptimVarRen <- function(mInput, tcalib, renAllowed) {
   expandSets("bs", "hs", "bsr", "hsr", "vin", "reg", "loc", "typ", "inc", "ttot", .m = mInput) %>%
     filter(.data[["ttot"]] %in% tcalib) %>%
-    right_join(renAllowed, by = c("bs", "hs", "bsr", "hsr")) %>%
+    .filter(renAllowed) %>%
     mutate(x = 0)
 }
 
@@ -568,37 +590,34 @@ runCalibrationOptim <- function(path,
 #'
 #' @param mInput gamstransfer container of the input gdx
 #' @param path character, path to output folder of this run
-#' @param p_constructionCalibTarget data frame of calibration target for construction flows
-#' @param p_renovationCalibTarget data frame of calibration target for renovation flows
-#' @param p_stockCalibTarget data frame of calibration target for the stock, optional
+#' @param calibTarget list of data frames of calibration targets
 #'
-.addTargetsToInput <- function(mInput, path, p_constructionCalibTarget, p_renovationCalibTarget,
-                               p_stockCalibTarget = NULL) {
-  if (!is.null(p_stockCalibTarget)) {
-    invisible(mInput$addParameter(
-      name = "p_stockCalibTarget",
-      domain = c("qty", "bs", "hs", "vin", "reg", "loc", "typ", "inc", "ttot"),
-      records = rename(p_stockCalibTarget, value = "target"),
-      description = "historic stock of buildings as calibration target in million m2"
-    ))
-  }
+.addTargetsToInput <- function(mInput, path, calibTarget) {
+
+  invisible(mInput$addParameter(
+    name = "p_stockCalibTarget",
+    domain = c("qty", "bs", "hs", "vin", "reg", "loc", "typ", "inc", "ttot"),
+    records = rename(calibTarget[["stock"]], value = "target"),
+    description = "historic stock of buildings as calibration target in million m2"
+  ))
 
   invisible(mInput$addParameter(
     name = "p_constructionCalibTarget",
     domain = c("qty", "bs", "hs", "reg", "loc", "typ", "inc", "ttot"),
-    records = rename(p_constructionCalibTarget, value = "target"),
+    records = rename(calibTarget[["construction"]], value = "target"),
     description = "historic flow of new buildings as calibration target in million m2/yr"
   ))
 
   invisible(mInput$addParameter(
     name = "p_renovationCalibTarget",
     domain = c("qty", "bs", "hs", "bsr", "hsr", "vin", "reg", "loc", "typ", "inc", "ttot"),
-    records = rename(p_renovationCalibTarget, value = "target"),
+    records = rename(calibTarget[["renovation"]], value = "target"),
     description = "historic flow of renovated and untouched buildings as calibration target in million m2/yr"
   ))
 
   mInput$write(file.path(path, "input.gdx"), compress = TRUE)
 
+  return(invisible(mInput))
 }
 
 #' Compute the deviation between historic data and Brick results.
@@ -611,10 +630,11 @@ runCalibrationOptim <- function(path,
 #' @param flow character, either 'construction' or 'renovation'
 #' @param renAllowed data frame with allowed renovation transitions
 #'
-#' @importFrom dplyr %>% .data case_match case_when filter left_join mutate right_join select
+#' @importFrom dplyr %>% .data case_match case_when filter left_join mutate select
 #' @importFrom tidyr pivot_wider replace_na
 #'
-.computeDeviation <- function(m, target, dims, tcalib, flow = c("construction", "renovation"), renAllowed = NULL) {
+.computeDeviation <- function(m, target, dims, tcalib, flow = c("construction", "renovation"),
+                              renAllowed = NULL) {
 
   flow <- match.arg(flow)
 
@@ -623,15 +643,12 @@ runCalibrationOptim <- function(path,
 
   gamsVar <- readSymbol(m, symbol = varSym)
 
-  if (flow == "renovation") {
-    gamsVar <- right_join(gamsVar, renAllowed, by = c("bs", "hs", "bsr", "hsr"))
-  }
-
   cost <- readSymbol(m, symbol = costSym) %>%
     pivot_wider(names_from = .data[["cost"]]) %>%
     replace_na(list(intangible = 0)) # Set missing intangible costs to 0
 
   do.call(expandSets, c(as.list(dims), .m = m)) %>%
+    .filter(renAllowed) %>%
     left_join(gamsVar, by = dims) %>%
     left_join(target, by = dims) %>%
     left_join(cost, by = dims) %>%

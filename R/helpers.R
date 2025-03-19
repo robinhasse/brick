@@ -15,3 +15,32 @@
   x[unlist(lapply(x[[value]] == 0, isTRUE)), value] <- SpecialValues[["EPS"]]
   return(x)
 }
+
+
+
+#' Filter data frame rows with reference data frames
+#'
+#' Performs successive semi_joins with passed data frames by all common columns.
+#' Useful to filter allowed renovations or vintages that exist.
+#'
+#' @author Robin Hasse
+#'
+#' @param x data.frame
+#' @param ... data frames that only have columns existing also in \code{x}
+#' @returns filtered data frame
+#'
+#' @importFrom dplyr semi_join
+
+.filter <- function(x, ...) {
+  filters <- list(...)
+  for (f in filters) {
+    if (is.null(f)) next
+    missingCols <- setdiff(colnames(f), colnames(x))
+    if (length(missingCols) > 0) {
+      stop("The following columns of the filter are not present in x: ",
+           paste(missingCols, collpase = ", "))
+    }
+    x <- semi_join(x, f, by = colnames(f))
+  }
+  x
+}

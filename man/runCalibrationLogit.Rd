@@ -8,6 +8,7 @@ runCalibrationLogit(
   path,
   parameters,
   tcalib,
+  calibTarget,
   gamsOptions = NULL,
   switches = NULL,
   fileName = "main.gms",
@@ -20,6 +21,8 @@ runCalibrationLogit(
 \item{parameters}{named list of calibration parameters}
 
 \item{tcalib}{numeric, time periods to calibrate on}
+
+\item{calibTarget}{list of data frames of calibration targets}
 
 \item{gamsOptions}{named list of GAMS options}
 

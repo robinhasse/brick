@@ -264,8 +264,10 @@ createParameters <- function(m, config, inputDir) {
     filter(.data[["ttot2"]] >= .data[["ttot"]]) %>%
     left_join(lt, by = c("reg", "typ"), relationship = "many-to-many") %>%
     pivot_wider(names_from = "variable") %>%
-    mutate(value = pweibull(.data[["ttot2"]] - .data[["ttot"]],
-                            .data[["shape"]], .data[["scale"]])) %>%
+    mutate(value = (1 - config[["ltEternalShare"]]) *
+             pweibull(.data$ttot2 - .data$ttot,
+                      .data$shape,
+                      .data$scale * config[["ltFactor"]])) %>%
     select(-"shape", -"scale")
   p_probDem <- m$addParameter(
     name = "p_probDem",
@@ -283,8 +285,10 @@ createParameters <- function(m, config, inputDir) {
     left_join(lt, by = c("reg", "typ"), relationship = "many-to-many") %>%
     pivot_wider(names_from = "variable") %>%
     mutate(tcon = (.data[["from"]] + pmin(.data[["ttot"]], .data[["to"]])) / 2,
-           p = pweibull(.data[["ttot"]] - .data[["tcon"]],
-                        .data[["shape"]], .data[["scale"]])) %>%
+           p = (1 - config[["ltEternalShare"]]) *
+             pweibull(.data$ttot - .data$tcon,
+                      .data$shape,
+                      .data$scale * config[["ltFactor"]])) %>%
     left_join(readSymbol(p_dt) %>%
                 rename(dt = "value"),
               by = "ttot") %>%

@@ -38,9 +38,8 @@ BRICK-internal config folder is used.}
  \itemize{
  \item \code{"copyGams"} to recopy the Gams scripts (necessary if changes were
        made in Gams code)
- \item \code{"createInput"} to recreate input data,
- \item \code{"createMatching"} to either recreate the matching data or reaggregate
-       the matching
+ \item \code{"createInput"} to recreate the input data
+ \item \code{"createMatching"} to recreate the matching data
  \item \code{"useAsStart"} to use the run from which we restart as the starting point
  \item \code{"none"} (or any other string) to do none of the above
 }}
