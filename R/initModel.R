@@ -20,9 +20,8 @@
 #'   \itemize{
 #'   \item \code{"copyGams"} to recopy the Gams scripts (necessary if changes were
 #'         made in Gams code)
-#'   \item \code{"createInput"} to recreate input data,
-#'   \item \code{"createMatching"} to either recreate the matching data or reaggregate
-#'         the matching
+#'   \item \code{"createInput"} to recreate the input data
+#'   \item \code{"createMatching"} to recreate the matching data
 #'   \item \code{"useAsStart"} to use the run from which we restart as the starting point
 #'   \item \code{"none"} (or any other string) to do none of the above
 #'  }
@@ -124,11 +123,6 @@ initModel <- function(config = NULL,
     cfg <- readConfig(config = config,
                       configFolder = configFolder)
     title <- paste(cfg[["title"]], sep = "-")
-
-    if (cfg[["switches"]][["RUNTYPE"]] %in% c("calibrationOptimization", "calibrationLogit")) {
-      title <- paste0(title, cfg[["parameters"]][["iteration"]], "Iter",
-                      cfg[["parameters"]][["stepSize"]], "A")
-    }
 
     if (is.null(path)) {
       stamp <- format(Sys.time(), "_%Y-%m-%d_%H.%M.%S")

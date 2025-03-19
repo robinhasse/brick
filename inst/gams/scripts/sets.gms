@@ -204,7 +204,7 @@ r("EuropeanCommissionRenovation") = yes;
 
 $endif.matching
 
-$ifthen.calibration "%RUNTYPE%" == "calibrationOptimization"
+$ifthenE.calibrationOptimization (sameas("%RUNTYPE%","calibration"))and(sameas("%CALIBRATIONMETHOD%","optimization"))
 
 sets
 vinCalib(vin)  "Dynamic vintages in calibration"
@@ -248,4 +248,4 @@ loop((renAllowed(bs, hs, bsr, hsr), vin, tcalib),
 );
 gradientVarsCon(bs, hs, tcalib) = YES;
 
-$endif.calibration
+$endif.calibrationOptimization

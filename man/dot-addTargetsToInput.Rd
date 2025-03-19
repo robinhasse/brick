@@ -4,24 +4,14 @@
 \alias{.addTargetsToInput}
 \title{Add the calibration targets to the input gdx}
 \usage{
-.addTargetsToInput(
-  mInput,
-  path,
-  p_constructionCalibTarget,
-  p_renovationCalibTarget,
-  p_stockCalibTarget = NULL
-)
+.addTargetsToInput(mInput, path, calibTarget)
 }
 \arguments{
 \item{mInput}{gamstransfer container of the input gdx}
 
 \item{path}{character, path to output folder of this run}
 
-\item{p_constructionCalibTarget}{data frame of calibration target for construction flows}
-
-\item{p_renovationCalibTarget}{data frame of calibration target for renovation flows}
-
-\item{p_stockCalibTarget}{data frame of calibration target for the stock, optional}
+\item{calibTarget}{list of data frames of calibration targets}
 }
 \description{
 Add the calibration targets to the input gdx

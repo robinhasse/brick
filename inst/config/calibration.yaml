@@ -11,7 +11,8 @@ ignoreShell: TRUE
 reportingTemplate: ignoreShell_onlyRes
 # switches
 switches:
-  RUNTYPE: calibrationLogit
+  RUNTYPE: calibration
+  CALIBRATIONMETHOD: logit
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 80
