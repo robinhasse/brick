@@ -151,6 +151,15 @@ carbonPrice: []
   # e.g. {sobo: 3, libo: 2}
 ltHsShift: []
 
+### scaling factor for building life time ###
+# scales scale parameter of the Weibull distribution
+ltFactor: 1
+
+### eternal building share
+# share of buildings that never have to be demolished (e.g. monuments)
+# The demolition probability distribution function approaches 1 minus this value
+ltEternalShare: 0
+
 ### carrier prices ###
 # scenario of future energy carrier prices
   # low:     low estimates
@@ -189,10 +198,18 @@ priceSens:
 switches:
 
   ### type of model run ###
+  # Some gams runs during calibration can be declared `scenario`. The switch 
+  #  CALIBRATIONMETHOD is the definite identification of calibration runs.
     # scenario:    run of future scenario
-    # calibration: calibration to historic stock
+    # calibration: calibration to historic stock or flows
     # matching:    matching historic stocks and flows to sources
   RUNTYPE: scenario
+
+  ### type of calibration run ###
+    # NULL:         no calibration run
+    # logit:        calibration heuristic treating BRICK like a logit model
+    # optimization: calibration through outer optimization around BRICK
+  CALIBRATIONMETHOD: NULL
 
   ### optimisation problems to solve ###
   # solving an LP first can help to start from a good initial point
