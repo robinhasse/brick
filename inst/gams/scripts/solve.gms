@@ -124,53 +124,7 @@ repeat \
 until card(p_handle) = 0; \
 subs(all_subs) = yes;
 
-
-
-
-*** scenario / calibration run -------------------------------------------------
-
-$ifthen.fullSys "%RUNTYPE%" == "scenario"
-
-* measure stocks and flows in floor area
-q("num") = no;
-q("area") = yes;
-
-
-$ifthenE.lp (sameas("%SOLVEPROBLEM%","lp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
-solve fullSysLP minimizing v_totObj using lp;
-p_repyFullSysLP('solvestat') = fullSysLP.solvestat;
-p_repyFullSysLP('modelstat') = fullSysLP.modelstat;
-p_repyFullSysLP('resusd')    = fullSysLP.resusd;
-p_repyFullSysLP('objval')    = fullSysLP.objval;
-$endif.lp
-
-
-* non-linear model
-$ifthenE.nlp (sameas("%SOLVEPROBLEM%","nlp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
-
-$ifthen.parallel "%PARALLEL%" == "TRUE"
-
-solveParallel
-
-$else.parallel
-
-solve fullSysNLP minimizing v_totObj using nlp;
-
-p_repyFullSysNLP(subs,'solvestat') = fullSysNLP.solvestat;
-p_repyFullSysNLP(subs,'modelstat') = fullSysNLP.modelstat;
-p_repyFullSysNLP(subs,'resusd')    = fullSysNLP.resusd;
-p_repyFullSysNLP(subs,'objval')    = fullSysNLP.objval;
-
-$endif.parallel
-
-
-
-$endif.nlp
-
-
-*** scenario / calibration run -------------------------------------------------
-
-$elseIfE.fullSys (sameas("%RUNTYPE%","calibration"))and(sameas("%CALIBRATIONMETHOD%","optimization"))
+$ifthen.optimCalibration "%CALIBRATIONMETHOD%" == "optimization"
 
 $ifThen.targetFunc "%TARGETFUNCTION%" == "minsquare"
 $ifThen.calibTarget "%CALIBRATIONTYPE%" == "flows"
@@ -243,6 +197,58 @@ $endIf.calibTarget
 
 $endIf.targetFunc
 
+$endIf.optimCalibration
+
+
+*** scenario / calibration run -------------------------------------------------
+
+$ifthen.fullSys "%RUNTYPE%" == "scenario"
+
+* measure stocks and flows in floor area
+q("num") = no;
+q("area") = yes;
+
+
+$ifthenE.lp (sameas("%SOLVEPROBLEM%","lp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
+solve fullSysLP minimizing v_totObj using lp;
+p_repyFullSysLP('solvestat') = fullSysLP.solvestat;
+p_repyFullSysLP('modelstat') = fullSysLP.modelstat;
+p_repyFullSysLP('resusd')    = fullSysLP.resusd;
+p_repyFullSysLP('objval')    = fullSysLP.objval;
+$endif.lp
+
+
+* non-linear model
+$ifthenE.nlp (sameas("%SOLVEPROBLEM%","nlp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
+
+$ifthen.parallel "%PARALLEL%" == "TRUE"
+
+solveParallel
+
+$else.parallel
+
+solve fullSysNLP minimizing v_totObj using nlp;
+
+p_repyFullSysNLP(subs,'solvestat') = fullSysNLP.solvestat;
+p_repyFullSysNLP(subs,'modelstat') = fullSysNLP.modelstat;
+p_repyFullSysNLP(subs,'resusd')    = fullSysNLP.resusd;
+p_repyFullSysNLP(subs,'objval')    = fullSysNLP.objval;
+
+$endif.parallel
+
+$ifthen.calibrationOptimization "%CALIBRATIONMETHOD%" == "optimization"
+
+p_f(subs, tcalib) = func
+
+$endif.calibrationOptimization
+
+$endif.nlp
+
+
+*** scenario / calibration run -------------------------------------------------
+
+$elseIfE.fullSys (sameas("%RUNTYPE%","calibration"))and(sameas("%CALIBRATIONMETHOD%","optimization"))
+
 $macro extrapolateIntangCon - sum(tcalib, \
   p_specCostCalibCon(state, subs, tcalib)) / card(tcalib);
 
@@ -257,7 +263,21 @@ $macro extrapolateIntangRen - sum(tcalib, \
 q("dwel") = no;
 q("area") = yes;
 
+$ifthenE.lp (sameas("%SOLVEPROBLEM%","lp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
+solve fullSysLP minimizing v_totObj using lp;
+p_repyFullSysLP('solvestat') = fullSysLP.solvestat;
+p_repyFullSysLP('modelstat') = fullSysLP.modelstat;
+p_repyFullSysLP('resusd')    = fullSysLP.resusd;
+p_repyFullSysLP('objval')    = fullSysLP.objval;
+$endif.lp
+
+
+* non-linear model
+$ifthenE.nlp (sameas("%SOLVEPROBLEM%","nlp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
+
 solveParallel
+
+$endif.nlp
 
 *** Compute the functional value
 p_f(subs, tcalib) = func
@@ -294,7 +314,21 @@ loop((bs3, hs3, tcalib2),
   v_construction.l("area", state, subs, ttot) = 0;
   v_renovation.l("area", state, stateFull, vinCalib, subs, ttot) = 0;
 
+$ifthenE.lp (sameas("%SOLVEPROBLEM%","lp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
+  solve fullSysLP minimizing v_totObj using lp;
+  p_repyFullSysLP('solvestat') = fullSysLP.solvestat;
+  p_repyFullSysLP('modelstat') = fullSysLP.modelstat;
+  p_repyFullSysLP('resusd')    = fullSysLP.resusd;
+  p_repyFullSysLP('objval')    = fullSysLP.objval;
+$endif.lp
+
+
+* non-linear model
+$ifthenE.nlp (sameas("%SOLVEPROBLEM%","nlp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
+
   solveParallel
+
+$endif.nlp
 
   p_fDiffCon(bs3, hs3, subs, tcalib) = func
 );
@@ -329,7 +363,21 @@ loop(gradientVarsRen(renType2, bsr3, hsr3, vin2, tcalib2),
   v_construction.l("area", state, subs, ttot) = 0;
   v_renovation.l("area", state, stateFull, vinCalib, subs, ttot) = 0;
 
+$ifthenE.lp (sameas("%SOLVEPROBLEM%","lp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
+  solve fullSysLP minimizing v_totObj using lp;
+  p_repyFullSysLP('solvestat') = fullSysLP.solvestat;
+  p_repyFullSysLP('modelstat') = fullSysLP.modelstat;
+  p_repyFullSysLP('resusd')    = fullSysLP.resusd;
+  p_repyFullSysLP('objval')    = fullSysLP.objval;
+$endif.lp
+
+
+* non-linear model
+$ifthenE.nlp (sameas("%SOLVEPROBLEM%","nlp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
+
   solveParallel
+
+$endif.nlp
 
   p_fDiffRen(renType2, bsr3, hsr3, vin2, subs, tcalib) = func
 );

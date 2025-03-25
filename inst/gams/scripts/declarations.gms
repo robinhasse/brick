@@ -185,6 +185,7 @@ parameters
 p_stockCalibTarget(qty,bs,hs,vin,region,loc,typ,inc,ttot)              "historic stock of buildings in million m2 as calibration target"
 p_constructionCalibTarget(qty,bs,hs,region,loc,typ,inc,ttot)           "historic flow of new buildings as calibration target in million m2/yr"
 p_renovationCalibTarget(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot) "historic flow of renovated and untouched buildings as calibration target in million m2/yr"
+p_f(region, loc, typ, inc, ttot)
 ;
 $endif.calibration
 
@@ -198,7 +199,6 @@ p_specCostCalibRen(bs, hs, bsr, hsr, vin, region, loc, typ, inc, ttot)
 p_xDiffCon(bs, hs, region, loc, typ, inc, ttot)
 p_xDiffRen(renType, bsr, hsr, vin, region, loc, typ, inc, ttot)
 
-p_f(region, loc, typ, inc, ttot)
 p_fDiffCon(bs, hs, region, loc, typ, inc, ttot)
 p_fDiffRen(renType, bsr, hsr, vin, region, loc, typ, inc, ttot)
 

@@ -57,7 +57,7 @@ runCalibration <- function(path,
     path,
     parameters,
     tcalib,
-    calibTarget = .readCalibTarget(),
+    calibTarget = .readCalibTarget(tcalib),
     gamsOptions = gamsOptions,
     switches = switches,
     fileName = fileName,
@@ -190,7 +190,7 @@ runCalibrationLogit <- function(path,
     runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
 
     gdxMin <- file.path(path, "calibrationMin.gdx")
-    file.copy(from = gdxOutput, to = gdxMin)
+    file.copy(from = gdxOutput, to = gdxMin, overwrite = TRUE)
     mMin <- Container$new(gdxMin)
 
     # Evaluate the (virtual) objective of the outer optimization
@@ -230,7 +230,7 @@ runCalibrationLogit <- function(path,
       runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
 
       gdxA <- file.path(path, "calibrationA.gdx")
-      file.copy(from = gdxOutput, to = gdxA)
+      file.copy(from = gdxOutput, to = gdxA, overwrite = TRUE)
       mA <- Container$new(gdxA)
 
       outerObjective <- .combineOuterObjective(mA, outerObjective, p_constructionCalibTarget, p_renovationCalibTarget,
@@ -254,7 +254,7 @@ runCalibrationLogit <- function(path,
           diagnosticsDetail[[nm]],
           diagDetObj[[nm]] %>%
             mutate(iteration = i, iterA = j) %>%
-            select(-any_of(c("f", "fMin", "fPrev"))) # only required for outerObjective
+            select(-any_of(c("fMin", "fPrev"))) # only required for outerObjective
         )
       }), names(diagDetObj))
 
@@ -359,7 +359,8 @@ runCalibrationOptim <- function(path,
     lapply(function(x) data.frame())
 
   diagnosticsDetail <- setNames(nm = c("stepSizeAllIter",
-                                       "armijoStepAllIter")) %>%
+                                       "armijoStepAllIter",
+                                       "outerObjectiveAllIter")) %>%
     lapply(function(x) data.frame())
 
   outerObjectiveIterComp <- data.frame()
@@ -427,16 +428,11 @@ runCalibrationOptim <- function(path,
 
       runGams(path, gamsOptions = gamsOptions, switches = switchesScenRun, gamsCall = gamsCall)
 
-      gdxA <- file.path(path, "calibrationA.gdx")
-      file.copy(from = gdxOutput, to = gdxA)
+      gdxA <- file.path(path, paste0("calibrationA_", j, ".gdx"))
+      file.copy(from = gdxOutput, to = gdxA, overwrite = TRUE)
       mA <- Container$new(gdxA)
 
-      if (switches[["CALIBRATIONTYPE"]] == "stocks") {
-        outerObjective <- .computeOuterObjectiveStock(mA, outerObjective, p_stockCalibTarget, tcalib, varName = "fA")
-      } else {
-        outerObjective <- .combineOuterObjective(mA, outerObjective, p_constructionCalibTarget, p_renovationCalibTarget,
-                                                 tcalib, varName = "fA")
-      }
+      outerObjective <- .readOuterObjectiveOptim(mA, outerObjective, varName = "fA")
 
 
       ## Check step size conditions and update the step size ====
@@ -444,13 +440,14 @@ runCalibrationOptim <- function(path,
       # Filter for combinations that do not satisfy the Armijo condition yet
       armijoStep <- .checkArmijoStep(armijoStep, stepSizeParams, outerObjective, parameters[["sensitivityArmijo"]])
 
-      diagDetObj <- list(stepSizeAllIter = stepSizeParams, armijoStepAllIter = armijoStep)
+      diagDetObj <- list(stepSizeAllIter = stepSizeParams, armijoStepAllIter = armijoStep,
+                         outerObjectiveAllIter = outerObjective)
       diagnosticsDetail <- setNames(lapply(names(diagDetObj), function(nm) {
         rbind(
           diagnosticsDetail[[nm]],
           diagDetObj[[nm]] %>%
             mutate(iteration = i, iterA = j) %>%
-            select(-any_of(c("f", "fMin", "fPrev"))) # only required for outerObjective
+            select(-any_of(c("fMin", "fPrev"))) # only required for outerObjective
         )
       }), names(diagDetObj))
 
@@ -511,7 +508,7 @@ runCalibrationOptim <- function(path,
   .writeCostIntang(file.path(path, "costIntangCon.csv"), optimVarCon, xinitCon, dims$construction, tcalib)
   .writeCostIntang(file.path(path, "costIntangRen.csv"), optimVarRen, xinitRen, dims$renovation, tcalib)
 
-  diagnosticsAll <- c(diagnostics, diagnosticsDetail, outerObjectiveIterComp = outerObjectiveIterComp)
+  diagnosticsAll <- c(diagnostics, diagnosticsDetail, list(outerObjectiveIterComp = outerObjectiveIterComp))
   lapply(names(diagnosticsAll), function(nm) {
     write.csv(diagnosticsAll[[nm]], file = file.path(path, paste0(nm, ".csv")), row.names = FALSE)
   })
@@ -520,15 +517,33 @@ runCalibrationOptim <- function(path,
 
 #' Read calibration targets from input folder
 #'
-.readCalibTarget <- function() {
+.readCalibTarget <- function(tcalib) {
   dims <- list(
     stock        = c("qty", "bs", "hs", "vin", "region", "loc", "typ", "inc", "ttot"),
     construction = c("qty", "bs", "hs", "region", "loc", "typ", "inc", "ttot"),
     renovation   = c("qty", "bs", "hs", "bsr", "hsr", "vin", "region", "loc", "typ", "inc", "ttot")
   )
+  dt <- data.frame(ttot = tcalib) %>%
+    mutate(dt = c(diff(.data$ttot)[1], diff(.data$ttot)))
   lapply(setNames(nm = names(dims)), function(var) {
     file <- paste0("f_", var, "CalibTarget.cs4r")
-    readInput(file, c(dims[[var]], "target"))
+    tmp <- readInput(file, c(dims[[var]], "target")) %>%
+      mutate(target = ifelse(
+        .data$loc == "rural",
+        .data$target / 2,
+        .data$target
+      ))
+    if (var == "renovation") {
+      tmp <- tmp %>%
+        left_join(dt, by = c("ttot")) %>%
+        mutate(target = ifelse(
+          .data$hsr == "0",
+          .data$target / .data$dt,
+          .data$target
+        )) %>%
+        select(-"dt")
+    }
+    return(tmp)
   })
 }
 

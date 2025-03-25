@@ -1,5 +1,5 @@
 ---
-title: "calibration"
+title: "calibration-stocks"
 basedOn: "default.yaml"
 # scope and resolution
 periods: [2000, 2010]
@@ -12,10 +12,12 @@ reportingTemplate: ignoreShell_onlyRes
 # switches
 switches:
   RUNTYPE: calibration
-  CALIBRATIONMETHOD: logit
+  CALIBRATIONMETHOD: optimization
+  TARGETFUNCTION: minsquare
+  CALIBRATIONTYPE: stocks
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 10
-  iterations: 15
+  iterations: 2
   iterationsArmijo: 100
 ...
