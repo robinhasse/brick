@@ -25,6 +25,12 @@ $load p_stockCalibTarget p_renovationCalibTarget p_constructionCalibTarget
 $gdxin
 $endif.calibration
 
+$ifthenE.calibrationOptimization (sameas("%RUNTYPE%","calibration"))and(sameas("%CALIBRATIONMETHOD%","optimization"))
+$gdxin input.gdx
+$load p_diff
+$gdxin
+$endif.calibrationOptimization
+
 $ifThen.lowop not "%CALIBRATIONLOWOP%" == "FALSE"
 $gdxin input.gdx
 $load p_specCostOpe

@@ -283,4 +283,5 @@ calibrationParameters:
   iterationsArmijo: 50
   sensitivityArmijo: 0.01
   stepReduction: 0.5
+  deltaDiffQuotient: 0.1
 ...

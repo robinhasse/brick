@@ -9,13 +9,16 @@ regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
 regions: EUR
 ignoreShell: TRUE
 reportingTemplate: ignoreShell_onlyRes
+ltFactor: 1.5
+ltEternalShare: 0.15
 # switches
 switches:
   RUNTYPE: calibration
   CALIBRATIONMETHOD: logit
 # parameters for calibration
 calibrationParameters:
-  stepSizeInit: 10
-  iterations: 15
-  iterationsArmijo: 100
+  stepSizeInit: 100
+  iterations: 10
+  iterationsArmijo: 20
+  sensitivityArmijo: 0.01
 ...

@@ -217,11 +217,9 @@ runCalibrationLogit <- function(path,
 
       ## Adjust the optimization variable according to current step size ====
       optimVarCon <- .updateXSelect(totalStep, optimVarCon, deviationCon,
-                                    stepSizeParams, dims$construction,
-                                    nameTo = "xA")
+                                    stepSizeParams, dims$construction)
       optimVarRen <- .updateXSelect(totalStep, optimVarRen, deviationRen,
-                                    stepSizeParams, dims$renovation,
-                                    nameTo = "xA")
+                                    stepSizeParams, dims$renovation)
 
       .addSpecCostToInput(mInput, path, optimVarCon, optimVarRen, xinitCon, xinitRen, tcalib, varName = "xA")
 
@@ -263,8 +261,35 @@ runCalibrationLogit <- function(path,
       }
 
       # Update the step size where applicable
-      stepSizeParams <- .updateStepSize(totalStep, stepSizeParams, parameters[["stepReduction"]])
+      stepSizeParams <- .updateStepSize(totalStep, stepSizeParams, outerObjective, parameters[["stepReduction"]])
 
+    }
+
+    # If the armijo condition is still not satisfied for any combination:
+    # Use the step size with the minimum objective function.
+    # Print a warning if this minimum does not exist and use the last step size of the iteration.
+    if (nrow(totalStep) > 0) {
+      stepSizeParams <- .adjustStepSizeAfterArmijo(totalStep, stepSizeParams)
+      stepSizeParams <- .adjustStepSizeAfterArmijo(totalStep, stepSizeParams)
+
+      optimVarCon <- .updateXSelect(totalStep, optimVarCon, deviationCon, stepSizeParams, dims$construction)
+      optimVarRen <- .updateXSelect(totalStep, optimVarRen, deviationRen, stepSizeParams, dims$renovation)
+
+      .addSpecCostToInput(mInput, path, optimVarCon, optimVarRen, xinitCon, xinitRen, tcalib, varName = "xA")
+
+      ## Re-evaluate outer objective of Brick results ====
+
+      # TODO: This is only necessary because in the case of no descent we're using a step size we never computed with before
+      # Can be replaced by any previous step size to save this code bit.
+
+      runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
+
+      gdxA <- file.path(path, "calibrationA.gdx")
+      file.copy(from = gdxOutput, to = gdxA, overwrite = TRUE)
+      mA <- Container$new(gdxA)
+
+      outerObjective <- .combineOuterObjective(mA, outerObjective, p_constructionCalibTarget, p_renovationCalibTarget,
+                                               tcalib, varName = "fA")
     }
 
     # Update optimization variable data
@@ -369,10 +394,6 @@ runCalibrationOptim <- function(path,
 
   .addTargetsToInput(mInput, path, calibTarget)
 
-  p_stockCalibTarget <- select(calibTarget[["stock"]], -"qty")
-  p_constructionCalibTarget <- select(calibTarget[["construction"]], -"qty")
-  p_renovationCalibTarget <- select(calibTarget[["renovation"]], -"qty")
-
   # Initial Brick run
   runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
 
@@ -416,11 +437,9 @@ runCalibrationOptim <- function(path,
 
       ## Adjust the optimization variable according to current step size ====
       optimVarCon <- .updateXSelect(armijoStep, optimVarCon, deviationCon,
-                                    stepSizeParams, dims$construction,
-                                    nameTo = "xA")
+                                    stepSizeParams, dims$construction)
       optimVarRen <- .updateXSelect(armijoStep, optimVarRen, deviationRen,
-                                    stepSizeParams, dims$renovation,
-                                    nameTo = "xA")
+                                    stepSizeParams, dims$renovation)
 
       .addSpecCostToInput(mInput, path, optimVarCon, optimVarRen, xinitCon, xinitRen, tcalib, varName = "xA")
 
@@ -456,7 +475,7 @@ runCalibrationOptim <- function(path,
       }
 
       # Update the step size where applicable
-      stepSizeParams <- .updateStepSize(armijoStep, stepSizeParams, parameters[["stepReduction"]])
+      stepSizeParams <- .updateStepSize(armijoStep, stepSizeParams, outerObjective, parameters[["stepReduction"]])
 
     }
 
@@ -467,6 +486,18 @@ runCalibrationOptim <- function(path,
         pivot_longer(names_to = "func", values_to = "value", cols = "fA") %>%
         mutate(iteration = i)
     )
+
+    # If the armijo condition is still not satisfied for any combination:
+    # Use the step size with the minimum objective function.
+    # Print a warning if this minimum does not exist and use the last step size of the iteration.
+    if (nrow(armijoStep) > 0) {
+      stepSizeParams <- .adjustStepSizeAfterArmijo(armijoStep, stepSizeParams)
+      stepSizeParams <- .adjustStepSizeAfterArmijo(armijoStep, stepSizeParams)
+
+      optimVarCon <- .updateXSelect(armijoStep, optimVarCon, deviationCon, stepSizeParams, dims$construction)
+      optimVarRen <- .updateXSelect(armijoStep, optimVarRen, deviationRen, stepSizeParams, dims$renovation)
+    }
+
 
     # Update optimization variable data
     optimVarCon <- mutate(optimVarCon, x = .data[["xA"]], xA = NULL, xMin = NULL)
@@ -523,7 +554,7 @@ runCalibrationOptim <- function(path,
     construction = c("qty", "bs", "hs", "region", "loc", "typ", "inc", "ttot"),
     renovation   = c("qty", "bs", "hs", "bsr", "hsr", "vin", "region", "loc", "typ", "inc", "ttot")
   )
-  dt <- data.frame(ttot = tcalib) %>%
+  dt <- data.frame(ttot = c(2005, tcalib)) %>%
     mutate(dt = c(diff(.data$ttot)[1], diff(.data$ttot)))
   lapply(setNames(nm = names(dims)), function(var) {
     file <- paste0("f_", var, "CalibTarget.cs4r")
@@ -534,14 +565,22 @@ runCalibrationOptim <- function(path,
         .data$target
       ))
     if (var == "renovation") {
+      # tmp <- tmp %>%
+      #   filter(.data$ttot %in% tcalib) %>%
+      #   left_join(dt, by = c("ttot")) %>%
+      #   mutate(target = ifelse(
+      #     .data$hsr == "0",
+      #     .data$target / .data$dt,
+      #     .data$target
+      #   )) %>%
+      #   select(-"dt")
       tmp <- tmp %>%
-        left_join(dt, by = c("ttot")) %>%
+        filter(.data$ttot %in% tcalib) %>%
         mutate(target = ifelse(
           .data$hsr == "0",
-          .data$target / .data$dt,
+          .data$target / 5,
           .data$target
-        )) %>%
-        select(-"dt")
+        ))
     }
     return(tmp)
   })
@@ -750,19 +789,16 @@ runCalibrationOptim <- function(path,
 #' @importFrom dplyr %>% .data left_join mutate select
 #'
 .initStepSize <- function(i, stepSizeParams, outerObjective, stepSizeInit) {
-  if (i != 1) {
-    stepSizeParams <- stepSizeParams %>%
-      left_join(outerObjective, by = c("region", "loc", "typ", "inc", "ttot")) %>%
-      mutate(stepSize = ifelse(
-        .data[["delta"]] > 0.001,
-        pmax(stepSizeInit, (.data[["fPrev"]] - .data[["f"]]) / .data[["delta"]]),
-        stepSizeInit
-      )) %>%
-      select(-"f", -"fPrev")
-  } else {
-    stepSizeParams <- mutate(stepSizeParams, stepSize = stepSizeInit)
-  }
-  return(stepSizeParams)
+  stepSizeParams %>%
+    left_join(outerObjective, by = c("region", "loc", "typ", "inc", "ttot")) %>%
+    mutate(stepSize = ifelse(
+      i != 1 & .data[["delta"]] > 0.001,
+      pmax(stepSizeInit, (.data[["fPrev"]] - .data[["f"]]) / .data[["delta"]]),
+      stepSizeInit
+    )) %>%
+    mutate(minOuterObj = .data$f,
+           minStepSize = 0) %>%
+    select(-any_of(c("f", "fPrev")))
 }
 
 #' Compute the step size adaptation paramters delta and phi-derivative
@@ -1065,12 +1101,10 @@ runCalibrationOptim <- function(path,
 #' @param deviation data frame with the deviation from historic data and the adjustment parameter 'd'
 #' @param stepSizeParams data frame with the parameters of the step size adaptatation procedure
 #' @param dims character, dimensions of the optimization variable
-#' @param nameTo character, column name to write the updated optimization variable to.
-#'   Should be one of 'x', 'xA', 'xMin'.
 #'
 #' @importFrom dplyr %>% anti_join right_join
 #'
-.updateXSelect <- function(totalStep, optimVar, deviation, stepSizeParams, dims, nameTo = "x") {
+.updateXSelect <- function(totalStep, optimVar, deviation, stepSizeParams, dims) {
   optimVarSelect <- right_join(optimVar, totalStep, by = c("region", "loc", "typ", "inc", "ttot"))
 
   optimVarSelect <- .updateX(optimVarSelect, deviation, stepSizeParams, dims, nameTo = "xA")
@@ -1084,14 +1118,51 @@ runCalibrationOptim <- function(path,
 #'
 #' @param totalStep data frame with combinations to perform the adjustment ot the step size on
 #' @param stepSizeParams data frame with the parameters of the step size adjustment algorithm
+#' @param outerObjective data frame containing the value of the outer objective function.
 #' @param stepReduction numeric, factor applied to stepSize to reduce the step size. Should be < 1.
 #'
 #' @importFrom dplyr %>% .data anti_join mutate right_join
 #'
-.updateStepSize <- function(totalStep, stepSizeParams, stepReduction) {
+.updateStepSize <- function(totalStep, stepSizeParams, outerObjective, stepReduction) {
   stepSizeParamsSelect <- stepSizeParams %>%
     right_join(totalStep, by = c("region", "loc", "typ", "inc", "ttot")) %>%
-    mutate(stepSize = .data[["stepSize"]] * stepReduction)
+    left_join(outerObjective, by = c("region", "loc", "typ", "inc", "ttot")) %>%
+    mutate(minStepSize = ifelse(.data$fA < .data$minOuterObj, .data$stepSize, .data$minStepSize),
+           minOuterObj = pmin(.data$minOuterObj, .data$fA)) %>%
+    mutate(stepSize = .data[["stepSize"]] * stepReduction) %>%
+    select(-any_of(c("f", "fA", "fMin", "fPrev")))
+
+  stepSizeParams %>%
+    anti_join(stepSizeParamsSelect, by = c("region", "loc", "typ", "inc", "ttot")) %>%
+    rbind(stepSizeParamsSelect)
+}
+
+#' Handle the case that the step size adaptation condition is not satisfied after the predefined number of iterations.
+#'
+#' If for any combination the condition is still not satisfied:
+#' Use the step size with the minimum objective function.
+#' Print a warning if this minimum does not exist and use the last step size of the iteration.
+#'
+#' @param totalStep data frame with combinations for which the condition is not satisfied
+#' @param optimVar data frame with the optimization variables
+#' @param deviation data frame with the deviation from historic data and the adjustment parameter 'd'
+#' @param stepSizeParams data frame with the parameters of the step size adaptation procedure
+#' @param dims character, dimensions of the optimization variable
+#'
+#'  @importFrom dplyr mutate right_join
+#'
+.adjustStepSizeAfterArmijo <- function(totalStep, stepSizeParams) {
+  stepSizeParamsSelect <- right_join(stepSizeParams, totalStep,
+                                     by = c("region", "loc", "typ", "inc", "ttot"))
+  if (nrow(stepSizeParamsSelect[stepSizeParamsSelect$minStepSize == 0, ]) > 0) {
+    warning("At least one subset seems to have stalled, i.e. no descent has been detected. ",
+            "Continuing with the smallest step size of the step size adaptation algorithm")
+  }
+  stepSizeParamsSelect <- mutate(stepSizeParamsSelect, stepSize = ifelse(
+    .data$minStepSize != 0,
+    .data$minStepSize,
+    .data$stepSize
+  ))
 
   stepSizeParams %>%
     anti_join(stepSizeParamsSelect, by = c("region", "loc", "typ", "inc", "ttot")) %>%

@@ -9,6 +9,8 @@ regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
 regions: EUR
 ignoreShell: TRUE
 reportingTemplate: ignoreShell_onlyRes
+ltFactor: 1.5
+ltEternalShare: 0.15
 # switches
 switches:
   RUNTYPE: calibration
@@ -17,7 +19,8 @@ switches:
   CALIBRATIONTYPE: flows
 # parameters for calibration
 calibrationParameters:
-  stepSizeInit: 10
-  iterations: 5
-  iterationsArmijo: 100
+  stepSizeInit: 1
+  iterations: 30
+  iterationsArmijo: 20
+  sensitivityArmijo: 0.04
 ...

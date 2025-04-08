@@ -191,7 +191,7 @@ $endif.calibration
 
 $ifthenE.calibrationOptimization (sameas("%RUNTYPE%","calibration"))and(sameas("%CALIBRATIONMETHOD%","optimization"))
 parameters
-p_diff /0.1/
+p_diff
 p_xinitCon(bs, hs, region, loc, typ, inc, ttot)
 p_xinitRen(bs, hs, bsr, hsr, vin, region, loc, typ, inc, ttot)
 p_specCostCalibCon(bs, hs, region, loc, typ, inc, ttot)

@@ -410,6 +410,25 @@ createParameters <- function(m, config, inputDir) {
   )
 
 
+  ## Delta t for difference quotient in optimization calibration
+
+  if (config[["switches"]][["CALIBRATIONMETHOD"]] == "optimization") {
+    invisible(m$addParameter(
+      name = "p_diff",
+      records = config[["calibrationParameters"]][["deltaDiffQuotient"]],
+      description = "Delta used to compute the difference quotient in optimization calibration"
+    ))
+  }
+
+  if (grepl("calibration", config[["switches"]][["RUNTYPE"]], fixed = TRUE)) {
+    invisible(m$addSet(
+      "tcalib",
+      records = periodFromConfig(config, "tcalib"),
+      description = "time steps considered by the calibration when minimising deviation from target trajectories"
+    ))
+  }
+
+
   ## discrete choice calibration =====
 
   invisible(m$addParameter(
