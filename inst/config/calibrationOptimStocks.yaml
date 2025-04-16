@@ -2,7 +2,7 @@
 title: "calibration-stocks"
 basedOn: "default.yaml"
 # scope and resolution
-periods: [2000, 2010]
+periods: [2000, 2010, 2020]
 startyear: 2010
 calibperiods: 2010
 regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
@@ -20,8 +20,9 @@ switches:
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 1
-  iterations: 3
+  iterations: 2
   iterationsArmijo: 20
   sensitivityArmijo: 0.04
   deltaDiffQuotient: 0.1
+  modifyData: TRUE
 ...

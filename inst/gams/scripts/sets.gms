@@ -214,17 +214,22 @@ gradientVarsRen(renType, bsr, hsr, vin, ttot)                       "Combination
 ;
 
 alias(renType, renType2);
+alias(vinCalib, vinCalib2);
 
+$ifThen.aggregateDim "%AGGREGATEDIM%" == "FALSE"
 *** Only the vintages relevant for the calibration are taken into account
 loop(tcalib,
   vinCalib(vin)$vinExists(tcalib, vin) = yes;
 );
+$elseIf.aggregateDim "%AGGREGATEDIM%" == "vin"
+vinCalib("all") = yes;
+$endIf.aggregateDim
 
 *** Determine the combinations to loop over in the calibration
-loop((renAllowed(bs, hs, bsr, hsr), vin, tcalib),
-  gradientVarsRen("identRepl", bsr, hsr, vin, tcalib)$sameas(hs, hsr) = YES;
-  gradientVarsRen("newSys", bsr, hsr, vin, tcalib)$(not sameas(hs, hsr) and not sameas(hsr, "0")) = YES;
-  gradientVarsRen("0", bsr, hsr, vin, tcalib)$(sameas(hsr, "0")) = YES;
+loop((renAllowed(bs, hs, bsr, hsr), vinCalib, tcalib),
+  gradientVarsRen("identRepl", bsr, hsr, vinCalib, tcalib)$sameas(hs, hsr) = YES;
+  gradientVarsRen("newSys", bsr, hsr, vinCalib, tcalib)$(not sameas(hs, hsr) and not sameas(hsr, "0")) = YES;
+  gradientVarsRen("0", bsr, hsr, vinCalib, tcalib)$(sameas(hsr, "0")) = YES;
 );
 gradientVarsCon(bs, hs, tcalib) = YES;
 

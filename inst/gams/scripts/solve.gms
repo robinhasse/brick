@@ -1,3 +1,5 @@
+$offOrder
+
 *** models ---------------------------------------------------------------------
 
 model fullSysLP "full system linear optimisation"
@@ -126,6 +128,7 @@ subs(all_subs) = yes;
 
 $ifthen.optimCalibration "%CALIBRATIONMETHOD%" == "optimization"
 
+$ifThen.aggregateDim "%AGGREGATEDIM%" == "FALSE"
 $ifThen.targetFunc "%TARGETFUNCTION%" == "minsquare"
 $ifThen.calibTarget "%CALIBRATIONTYPE%" == "flows"
 $macro func sum(state3$(p_constructionCalibTarget("area", state3, subs, tcalib)), \
@@ -197,6 +200,30 @@ $endIf.calibTarget
 
 $endIf.targetFunc
 
+$elseIf.aggregateDim "%AGGREGATEDIM%" == "vin"
+
+$ifThen.targetFunc "%TARGETFUNCTION%" == "minsquare"
+$ifThen.calibTarget "%CALIBRATIONTYPE%" == "flows"
+$macro func sum(state3$(p_constructionCalibTarget("area", state3, subs, tcalib)), \
+  power(p_constructionCalibTarget("area", state3, subs, tcalib) - v_construction.l("area", state3, subs, tcalib), 2)) \
+  + sum((state3, stateFull3)$(renAllowed(state3, stateFull3) and sum(vin3, p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib)) ne NA), \
+  power(sum(vin3, p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib)) - sum(vin3, v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib)), 2));
+
+$elseIf.calibTarget "%CALIBRATIONTYPE%" == "stocks"
+$macro func sum(state3, \
+  power(sum(vin3, p_stockCalibTarget("area", state3, vin3, subs, tcalib)) - sum(vin3, v_stock.l("area", state3, vin3, subs, tcalib)), 2));
+
+$elseIf.calibTarget "%CALIBRATIONTYPE%" == "stockszero"
+$macro func sum(state3, \
+  power(sum(vin3, p_stockCalibTarget("area", state3, vin3, subs, tcalib)) - sum(vin3, v_stock.l("area", state3, vin3, subs, tcalib)), 2)) \
+  + sum((state3, stateFull3)$zeroFlow(state3, stateFull3), \
+  power(sum(vin3, p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib)) - sum(vin3, v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib)), 2));
+$endIf.calibTarget
+
+$endIf.targetFunc
+
+$endIf.aggregateDim
+
 $endIf.optimCalibration
 
 
@@ -249,11 +276,14 @@ $endif.nlp
 
 $elseIfE.fullSys (sameas("%RUNTYPE%","calibration"))and(sameas("%CALIBRATIONMETHOD%","optimization"))
 
-$macro extrapolateIntangCon - sum(tcalib, \
+$macro extrapolateIntangCon sum(tcalib, \
   p_specCostCalibCon(state, subs, tcalib)) / card(tcalib);
 
-$macro extrapolateIntangRen - sum(tcalib, \
+$macro extrapolateIntangRen sum(tcalib, \
   p_specCostCalibRen(state, stateFull, vin, subs, tcalib)) / card(tcalib);
+
+$macro extrapolateIntangRenVin sum((vinCalib, tcalib)$(ord(vinCalib) = card(vinCalib)), \
+  p_specCostCalibRen(state, stateFull, vinCalib, subs, tcalib)) / card(tcalib);
 
 *********************************************************************************
 *** Preparation of the calibration
@@ -284,7 +314,7 @@ p_f(subs, tcalib) = func
 
 *** Store renovation and construction values
 p_construction("area", state, subs, t) = v_construction.l("area", state, subs, t);
-p_renovation("area", state, stateFull, vinCalib, subs, t) = v_renovation.l("area", state, stateFull, vinCalib, subs, t);
+p_renovation("area", state, stateFull, vin, subs, t) = v_renovation.l("area", state, stateFull, vin, subs, t);
 p_stock("area", state, vin, subs, t) = v_stock.l("area", state, vin, subs, t);
 
 *** Save the model statistics
@@ -293,8 +323,8 @@ p_repyFullSysNLP(subs,'modelstat') = fullSysNLP.modelstat;
 p_repyFullSysNLP(subs,'resusd')    = fullSysNLP.resusd;
 p_repyFullSysNLP(subs,'objval')    = fullSysNLP.objval;
 
-p_xinitCon(state, subs, tcalib) = p_specCostCon("intangible", state, subs, tcalib);
-p_xinitRen(state, stateFull, vinCalib, subs, tcalib)$renAllowed(state, stateFull) = p_specCostRen("intangible", state, stateFull, vinCalib, subs, tcalib);
+p_xinitCon(state, subs, t) = p_specCostCon("intangible", state, subs, t);
+p_xinitRen(state, stateFull, vin, subs, t)$renAllowed(state, stateFull) = p_specCostRen("intangible", state, stateFull, vin, subs, t);
 
 *** Compute the gradient
 loop((bs3, hs3, tcalib2),
@@ -310,9 +340,9 @@ loop((bs3, hs3, tcalib2),
 
   p_specCostCon("intangible", state, subs, t) = p_xinitCon(state, subs, t) + p_specCostCalibCon(state, subs, t);
 
-  v_stock.l("area", state, vinCalib, subs, ttot) = 0;
+  v_stock.l("area", state, vin, subs, ttot) = 0;
   v_construction.l("area", state, subs, ttot) = 0;
-  v_renovation.l("area", state, stateFull, vinCalib, subs, ttot) = 0;
+  v_renovation.l("area", state, stateFull, vin, subs, ttot) = 0;
 
 $ifthenE.lp (sameas("%SOLVEPROBLEM%","lp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
   solve fullSysLP minimizing v_totObj using lp;
@@ -352,16 +382,18 @@ loop(gradientVarsRen(renType2, bsr3, hsr3, vin2, tcalib2),
     p_specCostCalibRen(bs, hs, bsr, hsr, vinCalib, subs, tcalib)$sameas(hsr, "0") = p_xDiffRen("0", bsr, hsr, vinCalib, subs, tcalib);
   );
 
-  p_specCostCalibRen(state, stateFull, vin, subs, t)$(not tcalib(t))
+  p_specCostCalibRen(state, stateFull, vin, subs, t)$(not tcalib(t) and vinCalib(vin))
                                                              = extrapolateIntangRen
+  p_specCostCalibRen(state, stateFull, vin, subs, t)$(not tcalib(t) and not vinCalib(vin))
+                                                             = extrapolateIntangRenVin
 
-  p_specCostRen("intangible", state, stateFull, vinCalib, subs, t)$renAllowed(state, stateFull)
-                                                  = p_xinitRen(state, stateFull, vinCalib, subs, t)
-                                                  + p_specCostCalibRen(state, stateFull, vinCalib, subs, t);
+  p_specCostRen("intangible", state, stateFull, vin, subs, t)$renAllowed(state, stateFull)
+                                                  = p_xinitRen(state, stateFull, vin, subs, t)
+                                                  + p_specCostCalibRen(state, stateFull, vin, subs, t);
 
-  v_stock.l("area", state, vinCalib, subs, ttot) = 0;
+  v_stock.l("area", state, vin, subs, ttot) = 0;
   v_construction.l("area", state, subs, ttot) = 0;
-  v_renovation.l("area", state, stateFull, vinCalib, subs, ttot) = 0;
+  v_renovation.l("area", state, stateFull, vin, subs, ttot) = 0;
 
 $ifthenE.lp (sameas("%SOLVEPROBLEM%","lp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
   solve fullSysLP minimizing v_totObj using lp;
@@ -413,3 +445,6 @@ reg(region) = yes;
 subs(all_subs) = yes;
 
 $endif.matching
+
+
+$onOrder

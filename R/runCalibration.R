@@ -57,7 +57,7 @@ runCalibration <- function(path,
     path,
     parameters,
     tcalib,
-    calibTarget = .readCalibTarget(tcalib),
+    calibTarget = .readCalibTarget(tcalib, modifyData = parameters[["modifyData"]]),
     gamsOptions = gamsOptions,
     switches = switches,
     fileName = fileName,
@@ -108,6 +108,7 @@ runCalibrationLogit <- function(path,
   gdxInput <- file.path(path, "input.gdx")
   mInput <- Container$new(gdxInput)
   renAllowed <- readSymbol(mInput, symbol = "renAllowed")
+  vinExists <- readSymbol(mInput, symbol = "vinExists")
   xinitCon <- filter(readSymbol(mInput, "p_specCostCon"), .data[["cost"]] == "intangible")
   xinitRen <- filter(readSymbol(mInput, "p_specCostRen"), .data[["cost"]] == "intangible")
 
@@ -161,7 +162,7 @@ runCalibrationLogit <- function(path,
     deviationCon <- .computeDeviation(m, p_constructionCalibTarget, dims$construction, tcalib, flow = "construction")
 
     deviationRen <- .computeDeviation(m, p_renovationCalibTarget, dims$renovation, tcalib,
-                                      flow = "renovation", renAllowed = renAllowed)
+                                      flow = "renovation", renAllowed = renAllowed, vinExists = vinExists)
 
     # Compute parameters delta and phi-derivative of the step size adaptation
     stepSizeParams <- .combineStepSizeParams(.computeStepSizeParams(deviationCon),
@@ -548,39 +549,42 @@ runCalibrationOptim <- function(path,
 
 #' Read calibration targets from input folder
 #'
-.readCalibTarget <- function(tcalib) {
+.readCalibTarget <- function(tcalib, modifyData = FALSE) {
   dims <- list(
     stock        = c("qty", "bs", "hs", "vin", "region", "loc", "typ", "inc", "ttot"),
     construction = c("qty", "bs", "hs", "region", "loc", "typ", "inc", "ttot"),
     renovation   = c("qty", "bs", "hs", "bsr", "hsr", "vin", "region", "loc", "typ", "inc", "ttot")
   )
-  dt <- data.frame(ttot = c(2005, tcalib)) %>%
-    mutate(dt = c(diff(.data$ttot)[1], diff(.data$ttot)))
+  # dt <- data.frame(ttot = c(2005, tcalib)) %>%
+  #   mutate(dt = c(diff(.data$ttot)[1], diff(.data$ttot)))
   lapply(setNames(nm = names(dims)), function(var) {
     file <- paste0("f_", var, "CalibTarget.cs4r")
-    tmp <- readInput(file, c(dims[[var]], "target")) %>%
-      mutate(target = ifelse(
-        .data$loc == "rural",
-        .data$target / 2,
-        .data$target
-      ))
-    if (var == "renovation") {
-      # tmp <- tmp %>%
-      #   filter(.data$ttot %in% tcalib) %>%
-      #   left_join(dt, by = c("ttot")) %>%
-      #   mutate(target = ifelse(
-      #     .data$hsr == "0",
-      #     .data$target / .data$dt,
-      #     .data$target
-      #   )) %>%
-      #   select(-"dt")
+    tmp <- readInput(file, c(dims[[var]], "target"))
+    if(isTRUE(modifyData)) {
       tmp <- tmp %>%
-        filter(.data$ttot %in% tcalib) %>%
         mutate(target = ifelse(
-          .data$hsr == "0",
-          .data$target / 5,
+          .data$loc == "rural",
+          .data$target / 2,
           .data$target
         ))
+      if (var == "renovation") {
+        # tmp <- tmp %>%
+        #   filter(.data$ttot %in% tcalib) %>%
+        #   left_join(dt, by = c("ttot")) %>%
+        #   mutate(target = ifelse(
+        #     .data$hsr == "0",
+        #     .data$target / .data$dt,
+        #     .data$target
+        #   )) %>%
+        #   select(-"dt")
+        tmp <- tmp %>%
+          filter(.data$ttot %in% tcalib) %>%
+          mutate(target = ifelse(
+            .data$hsr == "0",
+            .data$target / 5,
+            .data$target
+          ))
+      }
     }
     return(tmp)
   })
@@ -688,7 +692,7 @@ runCalibrationOptim <- function(path,
 #' @importFrom tidyr pivot_wider replace_na
 #'
 .computeDeviation <- function(m, target, dims, tcalib, flow = c("construction", "renovation"),
-                              renAllowed = NULL) {
+                              renAllowed = NULL, vinExists = NULL) {
 
   flow <- match.arg(flow)
 
@@ -698,16 +702,23 @@ runCalibrationOptim <- function(path,
   gamsVar <- readSymbol(m, symbol = varSym)
 
   cost <- readSymbol(m, symbol = costSym) %>%
-    pivot_wider(names_from = .data[["cost"]]) %>%
-    replace_na(list(intangible = 0)) # Set missing intangible costs to 0
+    pivot_wider(names_from = .data[["cost"]])
 
-  do.call(expandSets, c(as.list(dims), .m = m)) %>%
-    .filter(renAllowed) %>%
+  deviation <- do.call(expandSets, c(as.list(dims), .m = m)) %>%
+    .filter(renAllowed, vinExists) %>%
     left_join(gamsVar, by = dims) %>%
     left_join(target, by = dims) %>%
     left_join(cost, by = dims) %>%
-    filter(.data[["ttot"]] %in% tcalib) %>%
-    replace_na(list(value = 0, target = 0)) %>%
+    filter(.data[["ttot"]] %in% tcalib)
+  if (flow == "renovation") {
+    deviation <- mutate(deviation, tangible = ifelse(
+      .data$bsr == 0 & .data$hsr == 0,
+      0, # Set tangible cost of zero renovation to zero
+      .data$tangible
+    ))
+  }
+  deviation %>%
+    replace_na(list(intangible = 0, value = 0, target = 0)) %>% # Set missing intangible costs to 0
     mutate(dev = .data[["value"]] / .data[["target"]],
            # Store case of computing the descent direction d
            dCase = case_when(

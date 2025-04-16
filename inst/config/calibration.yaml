@@ -17,8 +17,9 @@ switches:
   CALIBRATIONMETHOD: logit
 # parameters for calibration
 calibrationParameters:
-  stepSizeInit: 100
+  stepSizeInit: 80
   iterations: 10
   iterationsArmijo: 20
   sensitivityArmijo: 0.01
+  modifyData: FALSE
 ...

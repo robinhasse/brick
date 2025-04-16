@@ -78,11 +78,23 @@ createSets <- function(m, config) {
 
   vintages <- getDimMap("vin", config[["granularity"]])
 
-  vin <- m$addSet(
-    name = "vin",
-    records = unique(getElement(vintages, "vin")),
-    description = "construction vintage cohort"
-  )
+  if (config[["switches"]][["AGGREGATEDIM"]] == "vin") {
+
+    vin <- m$addSet(
+      name = "vin",
+      records = c(unique(getElement(vintages, "vin")), "all"),
+      description = "construction vintage cohort"
+    )
+
+  } else {
+
+    vin <- m$addSet(
+      name = "vin",
+      records = unique(getElement(vintages, "vin")),
+      description = "construction vintage cohort"
+    )
+
+  }
 
   vinExists <- expandSets(ttot, vin) %>%
     left_join(vintages, by = "vin") %>%
