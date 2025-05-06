@@ -4,7 +4,7 @@
 \alias{.computeOuterObjective}
 \title{Evaluate the outer objective function.}
 \usage{
-.computeOuterObjective(m, gamsVar, target, dims, tcalib)
+.computeOuterObjective(m, gamsVar, target, dims, tcalib, agg = NULL)
 }
 \arguments{
 \item{m}{Gams transfer container object to read set values from}
@@ -16,6 +16,8 @@
 \item{dims}{character, dimensions of data}
 
 \item{tcalib}{numeric, calibration time steps}
+
+\item{agg}{character, dimension(s) to aggregate the data over}
 }
 \description{
 In case of the logit calibration, this outer objective function is virtual:

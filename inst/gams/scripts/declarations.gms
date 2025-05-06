@@ -185,25 +185,25 @@ parameters
 p_stockCalibTarget(qty,bs,hs,vin,region,loc,typ,inc,ttot)              "historic stock of buildings in million m2 as calibration target"
 p_constructionCalibTarget(qty,bs,hs,region,loc,typ,inc,ttot)           "historic flow of new buildings as calibration target in million m2/yr"
 p_renovationCalibTarget(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot) "historic flow of renovated and untouched buildings as calibration target in million m2/yr"
-p_f(region, loc, typ, inc, ttot)
+p_f(region, loc, typ, inc, ttot)                                       "value of the objective function in the outer optimization of the calibration; unit depends on target choice"
 ;
 $endif.calibration
 
 $ifthenE.calibrationOptimization (sameas("%RUNTYPE%","calibration"))and(sameas("%CALIBRATIONMETHOD%","optimization"))
 parameters
-p_diff
-p_xinitCon(bs, hs, region, loc, typ, inc, ttot)
-p_xinitRen(bs, hs, bsr, hsr, vin, region, loc, typ, inc, ttot)
-p_specCostCalibCon(bs, hs, region, loc, typ, inc, ttot)
-p_specCostCalibRen(bs, hs, bsr, hsr, vin, region, loc, typ, inc, ttot)
-p_xDiffCon(bs, hs, region, loc, typ, inc, ttot)
-p_xDiffRen(renType, bsr, hsr, vin, region, loc, typ, inc, ttot)
+p_diff                                                              "Difference in the argument of the outer objective function used in the difference quotient"
+p_xinitCon(bs, hs, region, loc, typ, inc, ttot)                        "Intangible costs of construction at the beginning of this calibration iteration"
+p_xinitRen(bs, hs, bsr, hsr, vin, region, loc, typ, inc, ttot)         "Intangible costs of renovation at the beginning of this calibration iteration"
+p_specCostCalibCon(bs, hs, region, loc, typ, inc, ttot)                "Intangible costs of construction after adding p_diff to one entry of the vectorized costs; duplicate of p_xDiffCon"
+p_specCostCalibRen(bs, hs, bsr, hsr, vin, region, loc, typ, inc, ttot) "Intangible costs of renovation after adding p_diff to one entry of the vectorized costs at full resolution"
+p_xDiffCon(bs, hs, region, loc, typ, inc, ttot)                        "Intangible costs of construction after adding p_diff to one entry of the vectorized costs"
+p_xDiffRen(renType, bsr, hsr, vin, region, loc, typ, inc, ttot)        "Intangible costs of renovation after adding p_diff to one entry of the vectorized costs"
 
-p_fDiffCon(bs, hs, region, loc, typ, inc, ttot)
-p_fDiffRen(renType, bsr, hsr, vin, region, loc, typ, inc, ttot)
+p_fDiffCon(bs, hs, region, loc, typ, inc, ttot)                        "objective value computed with p_diff added to the respective entry of intangible construction costs"
+p_fDiffRen(renType, bsr, hsr, vin, region, loc, typ, inc, ttot)        "objective value computed with p_diff added to the respective entry of intangible renovation costs"
 
-p_renovation(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot)
-p_construction(qty,bs,hs,region,loc,typ,inc,ttot)
-p_stock(qty, bs, hs, vin, region, loc, typ, inc, ttot)
+p_renovation(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot)            "flow of renovated and untouched buildings in million m2/yr; used to store v_renovation after the initial model solve"
+p_construction(qty,bs,hs,region,loc,typ,inc,ttot)                      "flow of new buildings in million m2/yr; used to store v_construction after the initial model solve"
+p_stock(qty, bs, hs, vin, region, loc, typ, inc, ttot)                 "stock of buildings in million m2; used to store v_stock after the initial model solve"
 ;
 $endif.calibrationOptimization

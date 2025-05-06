@@ -2,24 +2,25 @@
 title: "calibration"
 basedOn: "default.yaml"
 # scope and resolution
-periods: [2000, 2010]
+periods: [2000, 2010, 2020]
 startyear: 2010
 calibperiods: 2010
 regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
 regions: EUR
+inputRevision: 0.8.3
 ignoreShell: TRUE
 reportingTemplate: ignoreShell_onlyRes
-ltFactor: 1.5
-ltEternalShare: 0.15
+ltEternalShare: 0.05
 # switches
 switches:
   RUNTYPE: calibration
   CALIBRATIONMETHOD: logit
+  AGGREGATEDIM: vin
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 80
-  iterations: 10
+  iterations: 2
   iterationsArmijo: 20
   sensitivityArmijo: 0.01
-  modifyData: FALSE
+  modifyData: TRUE
 ...

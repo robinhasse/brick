@@ -4,7 +4,12 @@
 \alias{.readCalibTarget}
 \title{Read calibration targets from input folder}
 \usage{
-.readCalibTarget()
+.readCalibTarget(tcalib, modifyData = FALSE)
+}
+\arguments{
+\item{tcalib}{numeric, calibration time periods}
+
+\item{modifyData}{logical, switch to control whether to alter data read from matching}
 }
 \description{
 Read calibration targets from input folder

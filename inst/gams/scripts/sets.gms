@@ -188,8 +188,8 @@ $ifthen.calibrationOptimization "%CALIBRATIONMETHOD%" == "optimization"
 
 sets
 tcalib(ttot) "time steps considered by the calibration when minimising deviation from target trajectories"
-*** Temporary: To check whether the stock calibration uses the right flow
-zeroFlow(bs, hs, bsr, hsr)
+*** Temporary: Store renovation combinations with at least one zero element
+zeroFlow(bs, hs, bsr, hsr)      "renovation combinations where either the building shell or the heating system are left untouched"
 ;
 
 alias(tcalib, tcalib2);
@@ -208,7 +208,7 @@ $endIf.shell
 $ifthen.calibrationRun "%RUNTYPE%" == "calibration"
 
 sets
-vinCalib(vin)  "Dynamic vintages in calibration"
+vinCalib(ttot, vin)  "Dynamic vintages in calibration"
 gradientVarsCon(bs, hs, ttot)                       "Combinations to loop over to compute the gradient in the calibration"
 gradientVarsRen(renType, bsr, hsr, vin, ttot)                       "Combinations to loop over to compute the gradient in the calibration"
 ;
@@ -216,20 +216,15 @@ gradientVarsRen(renType, bsr, hsr, vin, ttot)                       "Combination
 alias(renType, renType2);
 alias(vinCalib, vinCalib2);
 
-$ifThen.aggregateDim "%AGGREGATEDIM%" == "FALSE"
-*** Only the vintages relevant for the calibration are taken into account
-loop(tcalib,
-  vinCalib(vin)$vinExists(tcalib, vin) = yes;
-);
-$elseIf.aggregateDim "%AGGREGATEDIM%" == "vin"
-vinCalib("all") = yes;
-$endIf.aggregateDim
+$gdxin input.gdx
+$load vinCalib
+$gdxin
 
 *** Determine the combinations to loop over in the calibration
-loop((renAllowed(bs, hs, bsr, hsr), vinCalib, tcalib),
-  gradientVarsRen("identRepl", bsr, hsr, vinCalib, tcalib)$sameas(hs, hsr) = YES;
-  gradientVarsRen("newSys", bsr, hsr, vinCalib, tcalib)$(not sameas(hs, hsr) and not sameas(hsr, "0")) = YES;
-  gradientVarsRen("0", bsr, hsr, vinCalib, tcalib)$(sameas(hsr, "0")) = YES;
+loop((renAllowed(bs, hs, bsr, hsr), vinCalib(tcalib, vin)),
+  gradientVarsRen("identRepl", bsr, hsr, vin, tcalib)$sameas(hs, hsr) = YES;
+  gradientVarsRen("newSys", bsr, hsr, vin, tcalib)$(not sameas(hs, hsr) and not sameas(hsr, "0")) = YES;
+  gradientVarsRen("0", bsr, hsr, vin, tcalib)$(sameas(hsr, "0")) = YES;
 );
 gradientVarsCon(bs, hs, tcalib) = YES;
 

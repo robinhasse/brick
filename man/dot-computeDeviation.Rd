@@ -11,7 +11,9 @@ Then compute the adjustment term for the calibration \code{d}}
   dims,
   tcalib,
   flow = c("construction", "renovation"),
-  renAllowed = NULL
+  renAllowed = NULL,
+  vinExists = NULL,
+  agg = NULL
 )
 }
 \arguments{
@@ -26,6 +28,10 @@ Then compute the adjustment term for the calibration \code{d}}
 \item{flow}{character, either 'construction' or 'renovation'}
 
 \item{renAllowed}{data frame with allowed renovation transitions}
+
+\item{vinExists}{data frame with existing vintages for each time period}
+
+\item{agg}{character, dimensions to aggregate Brick results and target data over}
 }
 \description{
 Compute the deviation between historic data and Brick results.

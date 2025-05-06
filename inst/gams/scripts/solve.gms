@@ -336,8 +336,6 @@ loop((bs3, hs3, tcalib2),
                                     = p_diff;
   p_specCostCalibCon(state, subs, tcalib) = p_xDiffCon(state, subs, tcalib);
 
-  p_specCostCalibCon(state, subs, t)$(not tcalib(t)) = extrapolateIntangCon
-
   p_specCostCon("intangible", state, subs, t) = p_xinitCon(state, subs, t) + p_specCostCalibCon(state, subs, t);
 
   v_stock.l("area", state, vin, subs, ttot) = 0;
@@ -364,32 +362,26 @@ $endif.nlp
 );
 
 loop(gradientVarsRen(renType2, bsr3, hsr3, vin2, tcalib2),
-  p_xDiffRen(renType, bsr, hsr, vinCalib, subs, tcalib)$(gradientVarsRen(renType, bsr, hsr, vinCalib, tcalib)
+  p_xDiffRen(renType, bsr, hsr, vin, subs, tcalib)$(gradientVarsRen(renType, bsr, hsr, vin, tcalib)
                                                             and (not sameas(renType, renType2)
                                                                  or not sameas(bsr, bsr3) or not sameas(hsr, hsr3)
-                                                                 or not sameas(vinCalib, vin2) or not sameas(tcalib, tcalib2)))
+                                                                 or not sameas(vin, vin2) or not sameas(tcalib, tcalib2)))
                                                           = 0;
-  p_xDiffRen(renType, bsr, hsr, vinCalib, subs, tcalib)$(gradientVarsRen(renType, bsr, hsr, vinCalib, tcalib)
+  p_xDiffRen(renType, bsr, hsr, vin, subs, tcalib)$(gradientVarsRen(renType, bsr, hsr, vin, tcalib)
                                                             and (sameas(renType, renType2)
                                                                  and sameas(bsr, bsr3) and sameas(hsr, hsr3)
-                                                                 and sameas(vinCalib, vin2) and sameas(tcalib, tcalib2)))
+                                                                 and sameas(vin, vin2) and sameas(tcalib, tcalib2)))
                                                           = p_diff;
   loop(renAllowed(bs, hs, bsr, hsr),
-    p_specCostCalibRen(bs, hs, bsr, hsr, vinCalib, subs, tcalib)$sameas(hs, hsr)
-                                                                           = p_xDiffRen("identRepl", bsr, hsr, vinCalib, subs, tcalib);
-    p_specCostCalibRen(bs, hs, bsr, hsr, vinCalib, subs, tcalib)$(not sameas(hs, hsr) and not sameas(hsr, "0"))
-                                                                           = p_xDiffRen("newSys", bsr, hsr, vinCalib, subs, tcalib);
-    p_specCostCalibRen(bs, hs, bsr, hsr, vinCalib, subs, tcalib)$sameas(hsr, "0") = p_xDiffRen("0", bsr, hsr, vinCalib, subs, tcalib);
+    p_specCostCalibRen(bs, hs, bsr, hsr, vin, subs, tcalib)$(vinCalib(tcalib, vin) and sameas(hs, hsr))
+                                                                           = p_xDiffRen("identRepl", bsr, hsr, vin, subs, tcalib);
+    p_specCostCalibRen(bs, hs, bsr, hsr, vin, subs, tcalib)$(vinCalib(tcalib, vin) and not sameas(hs, hsr) and not sameas(hsr, "0"))
+                                                                           = p_xDiffRen("newSys", bsr, hsr, vin, subs, tcalib);
+    p_specCostCalibRen(bs, hs, bsr, hsr, vin, subs, tcalib)$(vinCalib(tcalib, vin) and sameas(hsr, "0")) = p_xDiffRen("0", bsr, hsr, vin, subs, tcalib);
   );
+  display p_xDiffRen, p_specCostCalibRen;
 
-  p_specCostCalibRen(state, stateFull, vin, subs, t)$(not tcalib(t) and vinCalib(vin))
-                                                             = extrapolateIntangRen
-  p_specCostCalibRen(state, stateFull, vin, subs, t)$(not tcalib(t) and not vinCalib(vin))
-                                                             = extrapolateIntangRenVin
-
-  p_specCostRen("intangible", state, stateFull, vin, subs, t)$renAllowed(state, stateFull)
-                                                  = p_xinitRen(state, stateFull, vin, subs, t)
-                                                  + p_specCostCalibRen(state, stateFull, vin, subs, t);
+  p_specCostRen("intangible", renAllowed, vin, subs, t) = p_xinitRen(renAllowed, vin, subs, t) + p_specCostCalibRen(renAllowed, vin, subs, t);
 
   v_stock.l("area", state, vin, subs, ttot) = 0;
   v_construction.l("area", state, subs, ttot) = 0;

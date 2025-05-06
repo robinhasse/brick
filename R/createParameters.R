@@ -420,7 +420,7 @@ createParameters <- function(m, config, inputDir) {
     ))
   }
 
-  if (grepl("calibration", config[["switches"]][["RUNTYPE"]], fixed = TRUE)) {
+  if (grepl("calibration", config[["switches"]][["RUNTYPE"]])) {
     invisible(m$addSet(
       "tcalib",
       records = periodFromConfig(config, "tcalib"),

@@ -4,7 +4,16 @@
 \alias{.determineSpecCost}
 \title{Assemble specific costs from initial specific costs and the optimization variable}
 \usage{
-.determineSpecCost(optimVar, xinit, dims, tcalib, varName = "x")
+.determineSpecCost(
+  optimVar,
+  xinit,
+  dims,
+  tcalib,
+  flow = c("construction", "renovation"),
+  varName = "x",
+  vinExists = NULL,
+  vinCalib = NULL
+)
 }
 \arguments{
 \item{optimVar}{data frame with the optimization variable 'x' and optionally 'xMin' and 'xA'}
@@ -15,8 +24,14 @@
 
 \item{tcalib}{numeric, calibration time steps}
 
+\item{flow}{character, type of flow, either construction or renovation}
+
 \item{varName}{character, optimization variable to calculate specific costs from.
 Should be one of 'x', 'xA' or 'xMin'.}
+
+\item{vinExists}{data frame of vintages that exist for each time period}
+
+\item{vinCalib}{data frame with vintages that exist in calibration periods}
 }
 \description{
 Assemble specific costs from initial specific costs and the optimization variable

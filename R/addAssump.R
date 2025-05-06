@@ -38,7 +38,7 @@ addAssump <- function(df, assumpFile) {
     for (no in nos) {
       chunk <- assump[assump$.chunk == no, ]
       cols <- apply(chunk, 2, function(c) sum(!is.na(c)))
-      if (length(setdiff(unique(cols), c(0, nrow(chunk))))) {
+      if (any(!cols %in% c(0, nrow(chunk)))) {
         stop("Problem in chunk no ", no, ". Every dimension of a chunk has to ",
              "be either entirely empty or entirely defined")
       }

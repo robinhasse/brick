@@ -2,7 +2,7 @@
 title: "calibration-stocks-zeroF"
 basedOn: "default.yaml"
 # scope and resolution
-periods: [2005, 2010]
+periods: [2000, 2010, 2020]
 startyear: 2010
 calibperiods: 2010
 regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
@@ -18,10 +18,11 @@ switches:
   CALIBRATIONMETHOD: optimization
   TARGETFUNCTION: minsquare
   CALIBRATIONTYPE: stockszero
+  # AGGREGATEDIM: vin
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 1
-  iterations: 30
+  iterations: 3
   iterationsArmijo: 20
   sensitivityArmijo: 0.04
   deltaDiffQuotient: 0.1

@@ -17,10 +17,11 @@ switches:
   CALIBRATIONMETHOD: optimization
   TARGETFUNCTION: minsquare
   CALIBRATIONTYPE: stocks
+  AGGREGATEDIM: vin
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 1
-  iterations: 2
+  iterations: 3
   iterationsArmijo: 20
   sensitivityArmijo: 0.04
   deltaDiffQuotient: 0.1
