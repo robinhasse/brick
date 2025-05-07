@@ -1,0 +1,11 @@
+sum(refMap_VHK(refVar,hs),
+  sum((vin,loc,typ,inc)$vinExists(t,vin),
+    sum(bs,
+      v_stock("area",bs,hs,vin,r,loc,typ,inc,t)
+    )
+    +
+    sum((state,bsr)$renAllowed(state,bsr,hs),
+      v_renovation("area",state,bsr,hs,vin,r,loc,typ,inc,t)
+    )
+  )
+)$sameas(ref,"VHK")
