@@ -83,6 +83,7 @@ createCalibrationTarget <- function(path, outDir) {
   v$renovation <- v$renovation %>%
     left_join(dt, by = c(ttot = "ttotAgg")) %>%
     left_join(dtVin, by = c(ttot = "ttotAgg", "vin")) %>%
+    # ttot are the aggregated periods from here on
     mutate(dtVin = replace_na(.data$dtVin, 0),
            ttotPrev = .data$ttot - .data$dt,
            untouched = .data$bsr == "0" & .data$hsr == "0") %>%

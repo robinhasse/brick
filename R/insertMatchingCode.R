@@ -17,7 +17,7 @@ insertMatchingCode <- function(path) {
 
   references <- readSymbol(m, "ref")
   refMaps <- grep(.refMapName(""), m$listSets(), value = TRUE)
-  domains <- lapply(setNames(nm = refMaps), function(r) m$getSymbols(r)[[1]]$domain)
+  domains <- lapply(setNames(nm = refMaps), function(reg) m$getSymbols(reg)[[1]]$domain)
 
 
 

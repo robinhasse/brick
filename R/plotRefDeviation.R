@@ -71,8 +71,6 @@ plotRefDeviation <- function(path, dropZeroWeightRefs = TRUE) {
              abs(.data[["value"]]) <= 0.3                     ~ "10-30 %"
            ))
 
-  refDeviation <- readSymbol(m, "v_refDeviation")
-  refWeight <- readSymbol(m, "p_refWeight")
   refDeviationTot <- full_join(refDeviation, refWeight,
                                by = "reference") %>%
     filter(.data[["reference"]] %in% refs) %>%
