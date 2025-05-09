@@ -73,12 +73,7 @@ $endif.shell
 *  q_dwelSizeStock
 *  q_dwelSizeConstruction
 *  q_dwelSize_Odyssee
-* q_renRate_EuropeanCommissionRenovation
-* q_heatingShare_Odyssee
-* q_heatingShare_IDEES2
-* q_vinShare_EUBDB
-*  q_finiteHeatingShareCon
-*  q_finiteHeatingShareRen
+*  q_renRate_EuropeanCommissionRenovation
   q_replacementDeviation
   q_flowVariation
   q_flowVariationTot

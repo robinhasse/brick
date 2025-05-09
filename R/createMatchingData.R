@@ -123,7 +123,7 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
 
   refConfig <- getRefs()
   references <- refConfig[["reference"]]
-  referencesRel <- refConfig[unlist(lapply(refConfig[["isRelative"]], isTRUE)), "reference"]
+  referencesRel <- refConfig[.isTRUE(refConfig[["isRelative"]]), "reference"]
   referencesAbs <- setdiff(references, referencesRel)
 
   referencesUsed <- refConfig %>%

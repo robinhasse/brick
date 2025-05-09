@@ -48,11 +48,6 @@ plotRefDeviation <- function(path, dropZeroWeightRefs = TRUE) {
     refs <- intersect(refs, refWithWeight)
   }
 
-  refDeviationTot <- full_join(refDeviation, refWeight,
-                               by = "reference") %>%
-    filter(.data[["reference"]] %in% refs) %>%
-    mutate(value = .data[["value.x"]] * .data[["value.y"]])
-
   refDeviationVar <- readSymbol(m, "v_refDeviationVar")
   refVals <- readSymbol(m, "p_refVals")
   refValsBasic <- readSymbol(m, "v_refValsBasic")

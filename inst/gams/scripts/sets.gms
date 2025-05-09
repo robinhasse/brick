@@ -129,7 +129,7 @@ refVarGroupExists (reference,refVarGroup,reg,ttot) "There is a value for this co
 refVarRef(reference,refVar)                        "mapping references to reference variables"
 refVarBasic(reference,refVar,refVarGroup)          "mapping reference variables to group summed to basic value of a share reference"
 hsCarrier(hs,carrier)                              "mapping between heating system and energy carrier"
-inSec(typ,sec)                                     "mapping between building type and buildings subsector"
+typInSec(typ,sec)                                     "mapping between building type and buildings subsector"
 
 *** control sets (should be empty)
 ErrStock(bs,hs,vin,reg,loc,typ,inc,ttot)              "Error in stock of buildings"
@@ -155,7 +155,7 @@ $gdxin input.gdx
 $load renAllowed
 $load vinExists
 $load hsCarrier
-$load inSec
+$load typInSec
 $load hsBan
 $gdxin
 

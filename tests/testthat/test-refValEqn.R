@@ -21,14 +21,7 @@ test_that("All .gms scripts in inst/gams/matching comply with rules", {
     ref <- sub("^(.+)\\.gms$", "\\1", script)
     code <- readLines(file, warn = FALSE)
 
-    expect_true(
-      findSameas(code, ref),
-      info = paste0("Script ", file, " must contain $sameas(ref,\"", ref, "\")")
-    )
-
-    expect_false(
-      usesAnotherRefMap(code, ref),
-      info = paste("Script", file, "uses a refMap from another reference.")
-    )
+    expect_true(findSameas(code, !!ref))
+    expect_false(usesAnotherRefMap(code, !!ref))
   }
 })

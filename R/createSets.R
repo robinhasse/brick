@@ -279,13 +279,13 @@ createSets <- function(m, config) {
     description = "buildings subsector"
   )
 
-  inSec <- typMap %>%
+  typInSec <- typMap %>%
     select("typ", sec = "subsector") %>%
     unique()
-  inSec <- m$addSet(
-    name = "inSec",
+  typInSec <- m$addSet(
+    name = "typInSec",
     domain = c(typ, sec),
-    records = inSec,
+    records = typInSec,
     description = "mapping between building type and buildings subsector"
   )
 

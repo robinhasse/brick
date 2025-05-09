@@ -12,7 +12,7 @@
 #' @importFrom gamstransfer SpecialValues
 
 .explicitZero <- function(x, value = "value") {
-  x[unlist(lapply(x[[value]] == 0, isTRUE)), value] <- SpecialValues[["EPS"]]
+  x[.isTRUE(x[[value]] == 0), value] <- SpecialValues[["EPS"]]
   return(x)
 }
 
@@ -105,4 +105,19 @@
   }
   result <- c(rbind(x, insert))
   result[-length(result)]
+}
+
+
+
+#' Test if vector elements are TRUE
+#'
+#' Perform \code{isTRUE} on each vecotr element
+#'
+#' @author Robin Hasse
+#'
+#' @param x vector
+#' @returns logical vector
+
+.isTRUE <- function(x) {
+  unlist(lapply(x, isTRUE))
 }

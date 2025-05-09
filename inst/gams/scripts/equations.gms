@@ -597,35 +597,6 @@ q_replacementDeviation..
      + sum(hs, sqr(v_slackRenHS(hs,vin,subs,t))))
     * p_dt(t)
   )
-
-
-;
-
-
-*** force pleasant heating distribution ----------------------------------------
-
-* For testing purposes
-
-* force finite share for all heating system options
-q_finiteHeatingShareCon(bs,hs,subs,t)..
-  v_construction("area",bs,hs,subs,t)
-  =g=
-  0.05
-  *
-  sum(hs2,
-    v_construction("area",bs,hs2,subs,t)
-  )
-;
-
-q_finiteHeatingShareRen(state,bsr,hsr,vin,subs,t)$(    vinExists(t,vin)
-                                                   and renAllowed(state,bsr,hsr))..
-  v_renovation("area",state,bsr,hsr,vin,subs,t)
-  =g=
-  0.05
-  *
-  sum(hsr2$renAllowed(state,bsr,hsr2),
-    v_renovation("area",state,bsr,hsr2,vin,subs,t)
-  )
 ;
 
 

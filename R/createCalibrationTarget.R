@@ -28,20 +28,27 @@
 
 createCalibrationTarget <- function(path, outDir) {
 
+  # CONFIG ---------------------------------------------------------------------
+
   periods <- c(2000, 2005, 2010, 2015, 2020)
 
-  dt <- data.frame(ttot = periods, dt = c(NA, diff(periods)))
+  dt <- data.frame(ttotAgg = periods, dt = c(NA, diff(periods)))
 
   periodMap <- dt %>%
     filter(!is.na(.data$dt)) %>%
-    group_by(period = .data$ttot) %>%
-    reframe(ttot = seq(to = .data$period, length.out = .data$dt))
+    group_by(.data$ttotAgg) %>%
+    reframe(ttot = seq(to = .data$ttotAgg, length.out = .data$dt))
+
+
+
+  # READ DATA ------------------------------------------------------------------
 
   m <- Container$new(file.path(path, "output.gdx"))
 
   dtVin <- readSymbol(m, "p_dtVin") %>%
-    right_join(periodMap, by = "ttot") %>%
-    group_by(across(all_of(c(ttot = "period", "vin")))) %>%
+    rename(ttotAgg = "ttot") %>%
+    right_join(periodMap, by = "ttotAgg") %>%
+    group_by(across(all_of(c("ttotAgg", "vin")))) %>%
     summarise(dtVin = sum(.data$value), .groups = "drop")
 
   vars <- c(
@@ -54,6 +61,12 @@ createCalibrationTarget <- function(path, outDir) {
 
   v <- lapply(vars, readSymbol, x = m, selectArea = FALSE)
 
+
+
+  # AGGREGATION ----------------------------------------------------------------
+
+  ## temporal ====
+
   v$stock <- v$stock %>%
     filter(.data$ttot %in% periods)
 
@@ -63,12 +76,13 @@ createCalibrationTarget <- function(path, outDir) {
       right_join(periodMap, by = "ttot") %>%
       group_by(across(-all_of(c("ttot", "value")))) %>%
       summarise(value = mean(.data$value), .groups = "drop") %>%
-      rename(ttot = "period")
+      rename(ttot = "ttotAgg")
   })
 
+  # recalculate zero renovation flows that fulfil the stock balance
   v$renovation <- v$renovation %>%
-    left_join(dt, by = "ttot") %>%
-    left_join(dtVin, by = c("ttot", "vin")) %>%
+    left_join(dt, by = c(ttot = "ttotAgg")) %>%
+    left_join(dtVin, by = c(ttot = "ttotAgg", "vin")) %>%
     mutate(dtVin = replace_na(.data$dtVin, 0),
            ttotPrev = .data$ttot - .data$dt,
            untouched = .data$bsr == "0" & .data$hsr == "0") %>%
@@ -78,19 +92,17 @@ createCalibrationTarget <- function(path, outDir) {
     left_join(v$construction,
               by = c("qty", "bs", "hs", "reg", "loc", "typ", "inc", "ttot"),
               suffix = c("", "Construction"))  %>%
-    left_join(v$demolition,
-              by = c("qty", "bs", "hs", "vin", "reg", "loc", "typ", "inc", "ttot"),
-              suffix = c("", "Demolition")) %>%
     group_by(across(all_of(c("qty", "bs", "hs", "vin", "reg", "loc", "typ", "inc", "ttot")))) %>%
     mutate(value = ifelse(.data$untouched,
                           .data$valueStockPrev / .data$dt +
                             .data$valueConstruction * .data$dtVin / .data$dt -
-                            .data$valueDemolition -
                             sum(.data$value[!.data$untouched]),
                           .data$value)) %>%
     ungroup() %>%
-    select(-"ttotPrev", -"dt", -"dtVin", -"untouched",
-           -"valueStockPrev", -"valueConstruction", -"valueDemolition")
+    select(all_of(names(v$renovation)))
+
+
+  ## spatial ====
 
   v <- lapply(v, function(x) {
     x %>%
@@ -98,6 +110,10 @@ createCalibrationTarget <- function(path, outDir) {
       summarise(value = signif(sum(.data$value), 4)) %>%
       mutate(reg = "EUR", .before = "loc")
   })
+
+
+
+  # OUTPUT ---------------------------------------------------------------------
 
   if (!dir.exists(outDir)) {
     dir.create(outDir)
