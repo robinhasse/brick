@@ -158,8 +158,8 @@ createSets <- function(m, config) {
 
   # Independent stock subset ---------------------------------------------------
 
-  reg <- m$addSet(
-    name = "reg",
+  region <- m$addSet(
+    name = "region",
     records = config[["regions"]],
     description = "region"
   )
@@ -220,20 +220,20 @@ createSets <- function(m, config) {
       ungroup() %>%
       filter(.data[["ttot"]] > .data[["value"]]) %>%
       select(-"value")
-    hsBan <- expandSets(var, reg, ttot, hs) %>%
+    hsBan <- expandSets(var, region, ttot, hs) %>%
       mutate(across(everything(), as.character)) %>%
       mutate(ttot = as.numeric(.data[["ttot"]]))
     hsBan <- hsBan %>%
       inner_join(hsBanConfig, by = intersect(colnames(hsBan),
                                              colnames(hsBanConfig))) %>%
-      select("var", "reg", "ttot", "hs")
+      select("var", "region", "ttot", "hs")
   } else {
     hsBan <- NULL
   }
   hsBan <- m$addSet(
     name = "hsBan",
     records = hsBan,
-    domain = c(var, reg, ttot, hs),
+    domain = c(var, region, ttot, hs),
     description = "forbidden heating systems in the respective variable in given period"
   )
 

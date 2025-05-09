@@ -53,7 +53,7 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
       mutate(reference = ref) %>%
       select("reference",
              refVar = "variable",
-             reg = "region",
+             region = "region",
              ttot = "period",
              "value") %>%
       .explicitZero()
@@ -150,18 +150,18 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
   # TODO: this should come from refs
   refVals <- do.call(rbind, lapply(references, getRefData, regions, periods))
   refValsMed <- refVals %>%
-    group_by(across(all_of(c("reference", "reg")))) %>%
+    group_by(across(all_of(c("reference", "region")))) %>%
     summarise(value = median(abs(.data[["value"]][.data[["value"]] != 0]),
                              na.rm = TRUE),
               .groups = "drop")
 
   # data-dependent sets
   refVarExists <- refVals[!is.na(refVals$value),
-                          c("reference", "refVar", "reg", "ttot")] %>%
+                          c("reference", "refVar", "region", "ttot")] %>%
     .unique()
   refVarGroupExists <- refVarExists %>%
     inner_join(refVarBasic, by = c("reference", "refVar")) %>%
-    select("reference", "refVarGroup", "reg", "ttot") %>%
+    select("reference", "refVarGroup", "region", "ttot") %>%
     .unique()
 
 
@@ -181,7 +181,7 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
 
   invisible(m$addParameter(
     name = "p_refVals",
-    domain = c("reference", "refVar", "reg", "ttot"),
+    domain = c("reference", "refVar", "region", "ttot"),
     records = refVals,
     domainForwarding = TRUE,
     description = "Reference values to match"
@@ -189,7 +189,7 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
 
   invisible(m$addParameter(
     name = "p_refValsMed",
-    domain = c("reference", "reg"),
+    domain = c("reference", "region"),
     records = refValsMed,
     domainForwarding = TRUE,
     description = "Median of all reference values for one reference in one region"
@@ -245,14 +245,14 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
 
   refVarExists <- m$addSet(
     name = "refVarExists",
-    domain = c("reference", "refVar", "reg", "ttot"),
+    domain = c("reference", "refVar", "region", "ttot"),
     records = refVarExists,
     description = "There is a value for this combination of reference, variable, region and period"
   )
 
   refVarGroupExists <- m$addSet(
     name = "refVarGroupExists",
-    domain = c("reference", "refVarGroup", "reg", "ttot"),
+    domain = c("reference", "refVarGroup", "region", "ttot"),
     records = refVarGroupExists,
     description = "There is a value for this combination of reference, variable group, region and period"
   )

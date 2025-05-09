@@ -353,21 +353,21 @@ q(qty) = yes;
 q("num") = no;
 *q("area") = yes;
 
-r(reg) = no;
+reg(region) = no;
 subs(all_subs) = no;
 
-loop(reg,
-  r(reg) = yes;
-  subs(reg,loc,typ,inc) = yes;
+loop(region,
+  reg(region) = yes;
+  subs(region,loc,typ,inc) = yes;
 
   solve matching minimizing v_matchingObj using qcp;
   execute_unload "test.gdx";
 
-  r(reg) = no;
-  subs(reg,loc,typ,inc) = no;
+  reg(region) = no;
+  subs(region,loc,typ,inc) = no;
 );
 
-r(reg) = yes;
+reg(region) = yes;
 subs(all_subs) = yes;
 
 $endif.matching

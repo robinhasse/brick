@@ -17,8 +17,8 @@ carrier "energy carrier"
 sec "buildings subsector"
 
 *** stock subset dimesions
-reg "all regions"
-r(reg) "regions"
+region "all regions"
+reg(region) "regions"
 loc "location of building (rural, urban)"
 typ "type of residential building (SFH, MFH)"
 inc "income quantile"
@@ -89,7 +89,7 @@ alias(t,t2);
 *** load fundamental sets
 $gdxin input.gdx
 $load bsr hsr bs hs
-$load reg loc typ inc
+$load region loc typ inc
 $load tall ttot t thist tinit
 $load vin
 $load carrier
@@ -110,8 +110,8 @@ $endif.matching
 
 sets
 *** building subset
-all_subs(reg,loc,typ,inc) "all building stock subsets"
-subs(reg,loc,typ,inc)     "building stock subsets in the solution process"
+all_subs(region,loc,typ,inc) "all building stock subsets"
+subs(region,loc,typ,inc)     "building stock subsets in the solution process"
 
 
 *** building state
@@ -124,22 +124,22 @@ vinExists(ttot,vin)                                "Can this vintage cohort exis
 renAllowed(bs,hs,bsr,hsr)                          "Is this renovation transition allowed"
 sameState(bs,hs,bsr,hsr)                           "Is the state after the renovation the same as before"
 renEffective(bs,hs,bsr,hsr)                        "Renovations without untouched buildings"
-refVarExists (reference,refVar,reg,ttot)           "There is a value for this combination of reference, variable, region and period"
-refVarGroupExists (reference,refVarGroup,reg,ttot) "There is a value for this combination of reference, variable group, region and period"
+refVarExists (reference,refVar,region,ttot)           "There is a value for this combination of reference, variable, region and period"
+refVarGroupExists (reference,refVarGroup,region,ttot) "There is a value for this combination of reference, variable group, region and period"
 refVarRef(reference,refVar)                        "mapping references to reference variables"
 refVarBasic(reference,refVar,refVarGroup)          "mapping reference variables to group summed to basic value of a share reference"
 hsCarrier(hs,carrier)                              "mapping between heating system and energy carrier"
 typInSec(typ,sec)                                     "mapping between building type and buildings subsector"
 
 *** control sets (should be empty)
-ErrStock(bs,hs,vin,reg,loc,typ,inc,ttot)              "Error in stock of buildings"
-ErrConstruction(bs,hs,reg,loc,typ,inc,ttot)           "Error in flow of new buildings"
-ErrRenovation(bs,hs,bsr,hsr,vin,reg,loc,typ,inc,ttot) "Error in flow of renovated and untouched buildings"
-ErrDemolition(bs,hs,vin,reg,loc,typ,inc,ttot)         "Error in flow of demolished buildings"
+ErrStock(bs,hs,vin,region,loc,typ,inc,ttot)              "Error in stock of buildings"
+ErrConstruction(bs,hs,region,loc,typ,inc,ttot)           "Error in flow of new buildings"
+ErrRenovation(bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot) "Error in flow of renovated and untouched buildings"
+ErrDemolition(bs,hs,vin,region,loc,typ,inc,ttot)         "Error in flow of demolished buildings"
 
 
 *** heating system ban
-hsBan(var,reg,ttot,hs) "heating systems are forbidden in the respective variable after given period"
+hsBan(var,region,ttot,hs) "heating systems are forbidden in the respective variable after given period"
 ;
 
 *** aliases
@@ -167,12 +167,12 @@ $load refVarBasic
 $gdxin
 $endif.matching
 
-r(reg)              = yes;
-all_subs(reg,loc,typ,inc) = yes;
-subs(all_subs)            = yes;
-stateFull(bsr,hsr)        = yes;
-state(bs,hs)              = yes;
-ren(state,stateFull)      = yes;
+reg(region)                  = yes;
+all_subs(region,loc,typ,inc) = yes;
+subs(all_subs)               = yes;
+stateFull(bsr,hsr)           = yes;
+state(bs,hs)                 = yes;
+ren(state,stateFull)         = yes;
 
 *** TODO: initialise mappings with loaded data
 sameState(bs,hs,bsr,hsr)$(    (sameas(bsr,bs) or sameas(bsr,"0"))

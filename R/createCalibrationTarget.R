@@ -87,12 +87,12 @@ createCalibrationTarget <- function(path, outDir) {
            ttotPrev = .data$ttot - .data$dt,
            untouched = .data$bsr == "0" & .data$hsr == "0") %>%
     left_join(v$stock,
-              by = c("qty", "bs", "hs", "vin", "reg", "loc", "typ", "inc", ttotPrev = "ttot"),
+              by = c("qty", "bs", "hs", "vin", "region", "loc", "typ", "inc", ttotPrev = "ttot"),
               suffix = c("", "StockPrev")) %>%
     left_join(v$construction,
-              by = c("qty", "bs", "hs", "reg", "loc", "typ", "inc", "ttot"),
+              by = c("qty", "bs", "hs", "region", "loc", "typ", "inc", "ttot"),
               suffix = c("", "Construction"))  %>%
-    group_by(across(all_of(c("qty", "bs", "hs", "vin", "reg", "loc", "typ", "inc", "ttot")))) %>%
+    group_by(across(all_of(c("qty", "bs", "hs", "vin", "region", "loc", "typ", "inc", "ttot")))) %>%
     mutate(value = ifelse(.data$untouched,
                           .data$valueStockPrev / .data$dt +
                             .data$valueConstruction * .data$dtVin / .data$dt -
@@ -106,9 +106,9 @@ createCalibrationTarget <- function(path, outDir) {
 
   v <- lapply(v, function(x) {
     x %>%
-      group_by(across(-all_of(c("reg", "value")))) %>%
+      group_by(across(-all_of(c("region", "value")))) %>%
       summarise(value = signif(sum(.data$value), 4)) %>%
-      mutate(reg = "EUR", .before = "loc")
+      mutate(region = "EUR", .before = "loc")
   })
 
 

@@ -69,18 +69,18 @@ $endif.history
 *** derived parameters ---------------------------------------------------------
 
 * floor-space specific final energy demand
-p_feDemand(hs,bs,vin,r,typ,ttot) =
-  p_ueDemand(bs,vin,r,typ)
-  / p_eff(hs,r,typ,ttot)
+p_feDemand(hs,bs,vin,reg,typ,ttot) =
+  p_ueDemand(bs,vin,reg,typ)
+  / p_eff(hs,reg,typ,ttot)
 ;
 
 $ifThen.lowop "%CALIBRATIONLOWOP%" == "FALSE"
 * floor-space specific operation cost
-p_specCostOpe(bs,hs,vin,r,loc,typ,ttot) =
-  p_feDemand(hs,bs,vin,r,typ,ttot)
+p_specCostOpe(bs,hs,vin,reg,loc,typ,ttot) =
+  p_feDemand(hs,bs,vin,reg,typ,ttot)
   * sum(hsCarrier(hs,carrier),
-      p_carrierPrice(carrier,r,ttot)
-      + p_carbonPrice(ttot) * p_carrierEmi(carrier,r,ttot)
+      p_carrierPrice(carrier,reg,ttot)
+      + p_carbonPrice(ttot) * p_carrierEmi(carrier,reg,ttot)
     )
 ;
 display "Compute operational costs in GAMS code";
@@ -99,29 +99,29 @@ p_discountFac(typ,ttot) =
 * - individual renovations for building shell and heating system respectively
 * - average across relevant vintages
 
-p_lccCon(cost,var,bs,hs,r,loc,typ,inc,ttot) =
+p_lccCon(cost,var,bs,hs,reg,loc,typ,inc,ttot) =
   sum(ttot2$(ttot2.val ge ttot.val),
     p_discountFac(typ,ttot2) / p_discountFac(typ,ttot)
     *
     (
-      p_specCostCon(cost,bs,hs,r,loc,typ,inc,ttot2)$(    sameas(var,"construction")
+      p_specCostCon(cost,bs,hs,reg,loc,typ,inc,ttot2)$(    sameas(var,"construction")
                                                      and sameas(ttot,ttot2))
       + sum(vin$vinExists(ttot2,vin),
           p_dtVin(ttot,vin)
           / p_dt(ttot)
           * (
-              p_specCostOpe(bs,hs,vin,r,loc,typ,ttot)$(    sameas(var,"stock")
+              p_specCostOpe(bs,hs,vin,reg,loc,typ,ttot)$(    sameas(var,"stock")
                                                        and sameas(cost,"tangible"))
-            + p_specCostRen(cost,bs,hs,bs,"0",vin,r,loc,typ,inc,ttot)$sameas(var,"renovation")
-              / p_LifeTimeBS(r)
-            + p_specCostRen(cost,bs,hs,"0",hs,vin,r,loc,typ,inc,ttot)$sameas(var,"renovation")
-              / p_LifeTimeHS(hs,r,typ)
+            + p_specCostRen(cost,bs,hs,bs,"0",vin,reg,loc,typ,inc,ttot)$sameas(var,"renovation")
+              / p_LifeTimeBS(reg)
+            + p_specCostRen(cost,bs,hs,"0",hs,vin,reg,loc,typ,inc,ttot)$sameas(var,"renovation")
+              / p_LifeTimeHS(hs,reg,typ)
           )
-          * (1 - p_probDem(r,typ,ttot2,ttot))
+          * (1 - p_probDem(reg,typ,ttot2,ttot))
       ) * p_dt(ttot2)
       + p_specCostDem$(    sameas(var,"demolition")
                        and sameas(cost,"tangible"))
-        * (p_probDem(r,typ,ttot2,ttot) - p_probDem(r,typ,ttot2-1,ttot))
+        * (p_probDem(reg,typ,ttot2,ttot) - p_probDem(reg,typ,ttot2-1,ttot))
     )
   )
 ;
@@ -135,7 +135,7 @@ p_lccCon(cost,var,bs,hs,r,loc,typ,inc,ttot) =
 $ifthen.matching "%RUNTYPE%" == "matching"
 
 * temporary fix assuming a heating system life time of 20 years
-p_refVals(refVarExists("EuropeanCommissionRenovation",refVar,r,t)) = 0.05;
+p_refVals(refVarExists("EuropeanCommissionRenovation",refVar,reg,t)) = 0.05;
 
 
 p_refWeight(reference) = 1;
@@ -167,6 +167,6 @@ p_refWeight(ref)$sameas(ref,"Hotmaps") = 1E2;
 p_flowVariationWeight = 5E3;
 p_slackRenWeight = 1E4;
 
-* p_refValsMed(reference,r) = 1;  !! TODO: remove or rewrite normalisation of references
+* p_refValsMed(reference,reg) = 1;  !! TODO: remove or rewrite normalisation of references
 
 $endif.matching

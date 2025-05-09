@@ -197,7 +197,7 @@ runCalibrationLogit <- function(path,
     outerObjective <- .combineOuterObjective(mMin, outerObjective, p_constructionCalibTarget, p_renovationCalibTarget,
                                              tcalib, varName = "fMin")
 
-    totalStep <- select(stepSizeParams, "reg", "loc", "typ", "inc", "ttot")
+    totalStep <- select(stepSizeParams, "region", "loc", "typ", "inc", "ttot")
 
     # Check for which combinations the armijo step size algorithm cannot be applied:
     # If a point close to the starting point does not satisfy the Armijo condition,
@@ -207,7 +207,7 @@ runCalibrationLogit <- function(path,
 
     # If the Armijo condition is satisfied for the test point, we apply the armijo step size algorithm
     armijoStep <- totalStep %>%
-      anti_join(heuristicStep, by = c("reg", "loc", "typ", "inc", "ttot"))
+      anti_join(heuristicStep, by = c("region", "loc", "typ", "inc", "ttot"))
 
 
 
@@ -405,7 +405,7 @@ runCalibrationOptim <- function(path,
 
     stepSizeParams <- .initStepSize(i, stepSizeParams, outerObjective, parameters[["stepSizeInit"]])
 
-    armijoStep <- select(stepSizeParams, "reg", "loc", "typ", "inc", "ttot")
+    armijoStep <- select(stepSizeParams, "region", "loc", "typ", "inc", "ttot")
 
 
 
@@ -522,9 +522,9 @@ runCalibrationOptim <- function(path,
 #'
 .readCalibTarget <- function() {
   dims <- list(
-    stock        = c("qty", "bs", "hs", "vin", "reg", "loc", "typ", "inc", "ttot"),
-    construction = c("qty", "bs", "hs", "reg", "loc", "typ", "inc", "ttot"),
-    renovation   = c("qty", "bs", "hs", "bsr", "hsr", "vin", "reg", "loc", "typ", "inc", "ttot")
+    stock        = c("qty", "bs", "hs", "vin", "region", "loc", "typ", "inc", "ttot"),
+    construction = c("qty", "bs", "hs", "region", "loc", "typ", "inc", "ttot"),
+    renovation   = c("qty", "bs", "hs", "bsr", "hsr", "vin", "region", "loc", "typ", "inc", "ttot")
   )
   lapply(setNames(nm = names(dims)), function(var) {
     file <- paste0("f_", var, "CalibTarget.cs4r")
@@ -554,7 +554,7 @@ runCalibrationOptim <- function(path,
 #' @importFrom dplyr %>% .data filter mutate
 #'
 .initOptimVarCon <- function(mInput, tcalib) {
-  expandSets("bs", "hs", "reg", "loc", "typ", "inc", "ttot", .m = mInput) %>%
+  expandSets("bs", "hs", "region", "loc", "typ", "inc", "ttot", .m = mInput) %>%
     filter(.data[["ttot"]] %in% tcalib) %>%
     mutate(x = 0)
 }
@@ -568,7 +568,7 @@ runCalibrationOptim <- function(path,
 #' @importFrom dplyr %>% .data filter mutate right_join
 #'
 .initOptimVarRen <- function(mInput, tcalib, renAllowed) {
-  expandSets("bs", "hs", "bsr", "hsr", "vin", "reg", "loc", "typ", "inc", "ttot", .m = mInput) %>%
+  expandSets("bs", "hs", "bsr", "hsr", "vin", "region", "loc", "typ", "inc", "ttot", .m = mInput) %>%
     filter(.data[["ttot"]] %in% tcalib) %>%
     .filter(renAllowed) %>%
     mutate(x = 0)
@@ -582,7 +582,7 @@ runCalibrationOptim <- function(path,
 #' @importFrom dplyr %>% .data filter
 #'
 .initOuterObjective <- function(mInput, tcalib) {
-  expandSets("reg", "loc", "typ", "inc", "ttot", .m = mInput) %>%
+  expandSets("region", "loc", "typ", "inc", "ttot", .m = mInput) %>%
     filter(.data[["ttot"]] %in% tcalib)
 }
 
@@ -596,21 +596,21 @@ runCalibrationOptim <- function(path,
 
   invisible(mInput$addParameter(
     name = "p_stockCalibTarget",
-    domain = c("qty", "bs", "hs", "vin", "reg", "loc", "typ", "inc", "ttot"),
+    domain = c("qty", "bs", "hs", "vin", "region", "loc", "typ", "inc", "ttot"),
     records = rename(calibTarget[["stock"]], value = "target"),
     description = "historic stock of buildings as calibration target in million m2"
   ))
 
   invisible(mInput$addParameter(
     name = "p_constructionCalibTarget",
-    domain = c("qty", "bs", "hs", "reg", "loc", "typ", "inc", "ttot"),
+    domain = c("qty", "bs", "hs", "region", "loc", "typ", "inc", "ttot"),
     records = rename(calibTarget[["construction"]], value = "target"),
     description = "historic flow of new buildings as calibration target in million m2/yr"
   ))
 
   invisible(mInput$addParameter(
     name = "p_renovationCalibTarget",
-    domain = c("qty", "bs", "hs", "bsr", "hsr", "vin", "reg", "loc", "typ", "inc", "ttot"),
+    domain = c("qty", "bs", "hs", "bsr", "hsr", "vin", "region", "loc", "typ", "inc", "ttot"),
     records = rename(calibTarget[["renovation"]], value = "target"),
     description = "historic flow of renovated and untouched buildings as calibration target in million m2/yr"
   ))
@@ -703,16 +703,16 @@ runCalibrationOptim <- function(path,
   p_diff <- readSymbol(m, symbol = "p_diff")[[1]]
 
   p_d <- p_fDiff %>%
-    left_join(p_f, by = c("reg", "loc", "typ", "inc", "ttot")) %>%
+    left_join(p_f, by = c("region", "loc", "typ", "inc", "ttot")) %>%
     mutate(d = - (.data[["fDiff"]] - .data[["f"]]) / p_diff) %>%
     select(-"f", -"fDiff")
 
   if (flow == "construction") {
     p_d <- do.call(expandSets, c(as.list(dims), .m = m)) %>%
-      right_join(p_d, by = c("bs", "hs", "reg", "loc", "typ", "inc", "ttot"))
+      right_join(p_d, by = c("bs", "hs", "region", "loc", "typ", "inc", "ttot"))
   } else {
     p_d <- do.call(expandSets, c(as.list(dims), .m = m)) %>%
-      right_join(p_d, by = c("bsr", "hsr", "vin", "reg", "loc", "typ", "inc", "ttot")) %>%
+      right_join(p_d, by = c("bsr", "hsr", "vin", "region", "loc", "typ", "inc", "ttot")) %>%
       filter(
         .data[["renType"]] == "0" & .data[["hsr"]] == "0" # zero renovation
         | .data[["renType"]] == "identRepl" & .data[["hs"]] == .data[["hsr"]] # identical replacement
@@ -737,7 +737,7 @@ runCalibrationOptim <- function(path,
 .initStepSize <- function(i, stepSizeParams, outerObjective, stepSizeInit) {
   if (i != 1) {
     stepSizeParams <- stepSizeParams %>%
-      left_join(outerObjective, by = c("reg", "loc", "typ", "inc", "ttot")) %>%
+      left_join(outerObjective, by = c("region", "loc", "typ", "inc", "ttot")) %>%
       mutate(stepSize = ifelse(
         .data[["delta"]] > 0.001,
         pmax(stepSizeInit, (.data[["fPrev"]] - .data[["f"]]) / .data[["delta"]]),
@@ -758,7 +758,7 @@ runCalibrationOptim <- function(path,
 #'
 .computeStepSizeParams <- function(deviation) {
   deviation %>%
-    group_by(across(all_of(c("reg", "loc", "typ", "inc", "ttot")))) %>%
+    group_by(across(all_of(c("region", "loc", "typ", "inc", "ttot")))) %>%
     summarise(delta = sum(.data[["d"]]^2), .groups = "drop") %>%
     mutate(phiDeriv = - .data[["delta"]])
 }
@@ -775,7 +775,7 @@ runCalibrationOptim <- function(path,
           mutate(flow = "construction"),
         paramsRen %>%
           mutate(flow = "renovation")) %>%
-    group_by(across(all_of(c("reg", "loc", "typ", "inc", "ttot")))) %>%
+    group_by(across(all_of(c("region", "loc", "typ", "inc", "ttot")))) %>%
     summarise(delta = sum(.data[["delta"]]), phiDeriv = sum(.data[["phiDeriv"]]), .groups = "drop")
 }
 
@@ -799,7 +799,7 @@ runCalibrationOptim <- function(path,
 
   optimVar %>%
     left_join(deviation, by = dims) %>%
-    left_join(stepSizeParams, by = c("reg", "loc", "typ", "inc", "ttot")) %>%
+    left_join(stepSizeParams, by = c("region", "loc", "typ", "inc", "ttot")) %>%
     # Set step size to one if descent direction was computed by alternative approach
     mutate(stepSize = ifelse(.data[["dCase"]] == "oneZero", 1, .data[["stepSize"]]),
            xNew = .data[["x"]] + factorMin * .data[["stepSize"]] * .data[["d"]]) %>%
@@ -858,8 +858,8 @@ runCalibrationOptim <- function(path,
   p_specCostConTang <- filter(readSymbol(m, symbol = "p_specCostCon"), .data[["cost"]] == "tangible")
   p_specCostRenTang <- filter(readSymbol(m, symbol = "p_specCostRen"), .data[["cost"]] == "tangible")
 
-  dimsCon <- c("bs", "hs", "reg", "loc", "typ", "inc", "ttot")
-  dimsRen <- c("bs", "hs", "bsr", "hsr", "vin", "reg", "loc", "typ", "inc", "ttot")
+  dimsCon <- c("bs", "hs", "region", "loc", "typ", "inc", "ttot")
+  dimsRen <- c("bs", "hs", "bsr", "hsr", "vin", "region", "loc", "typ", "inc", "ttot")
 
   p_specCostConData <- rbind(
     p_specCostConTang,
@@ -916,7 +916,7 @@ runCalibrationOptim <- function(path,
     left_join(gamsVar, by = dims) %>%
     replace_na(list(value = 0, target = 0)) %>%
     filter(.data[["ttot"]] %in% tcalib) %>%
-    group_by(across(all_of(c("reg", "loc", "typ", "inc", "ttot")))) %>%
+    group_by(across(all_of(c("region", "loc", "typ", "inc", "ttot")))) %>%
     summarise(value = .sumSquare(.data[["value"]], .data[["target"]]), .groups = "drop")
 }
 
@@ -948,12 +948,12 @@ runCalibrationOptim <- function(path,
     .computeOuterObjective(m, v_renovation, p_renovationCalibTarget, dimsRen, tcalib) %>%
       mutate(flow = "renovation")
   ) %>%
-    group_by(across(all_of(c("reg", "loc", "typ", "inc", "ttot")))) %>%
+    group_by(across(all_of(c("region", "loc", "typ", "inc", "ttot")))) %>%
     summarise(fNew = sum(.data[["value"]]), .groups = "drop") %>%
     rename_with(~ varName, .cols = "fNew") %>%
     right_join(outerObjective %>%
                  select(-any_of(varName)),
-               by = c("reg", "loc", "typ", "inc", "ttot"))
+               by = c("region", "loc", "typ", "inc", "ttot"))
 
 }
 
@@ -978,7 +978,7 @@ runCalibrationOptim <- function(path,
     rename_with(~ varName, .cols = "value") %>%
     right_join(outerObjective %>%
                  select(-any_of(varName)),
-               by = c("reg", "loc", "typ", "inc", "ttot"))
+               by = c("region", "loc", "typ", "inc", "ttot"))
 }
 
 
@@ -999,7 +999,7 @@ runCalibrationOptim <- function(path,
     rename_with(~ varName, .cols = "value") %>%
     right_join(outerObjective %>%
                  select(-any_of(varName)),
-               by = c("reg", "loc", "typ", "inc", "ttot"))
+               by = c("region", "loc", "typ", "inc", "ttot"))
 
 }
 
@@ -1019,11 +1019,11 @@ runCalibrationOptim <- function(path,
 .checkArmijoStep <- function(prevStep, stepSizeParams, outerObjective, sensitivityArmijo,
                              varName = "fA", factorMin = 1) {
   prevStep %>%
-    left_join(outerObjective, by = c("reg", "loc", "typ", "inc", "ttot")) %>%
-    left_join(stepSizeParams, by = c("reg", "loc", "typ", "inc", "ttot")) %>%
+    left_join(outerObjective, by = c("region", "loc", "typ", "inc", "ttot")) %>%
+    left_join(stepSizeParams, by = c("region", "loc", "typ", "inc", "ttot")) %>%
     filter(.data[[varName]] > (.data[["f"]]
                                + factorMin * sensitivityArmijo * .data[["stepSize"]] * .data[["phiDeriv"]])) %>%
-    select("reg", "loc", "typ", "inc", "ttot")
+    select("region", "loc", "typ", "inc", "ttot")
 }
 
 #' Check if the condition of the heuristic step size adaptation holds:
@@ -1038,9 +1038,9 @@ runCalibrationOptim <- function(path,
 #'
 .checkHeuristicStep <- function(prevStep, outerObjective) {
   prevStep %>%
-    left_join(outerObjective, by = c("reg", "loc", "typ", "inc", "ttot")) %>%
+    left_join(outerObjective, by = c("region", "loc", "typ", "inc", "ttot")) %>%
     filter(.data[["fA"]] > .data[["f"]]) %>%
-    select("reg", "loc", "typ", "inc", "ttot")
+    select("region", "loc", "typ", "inc", "ttot")
 }
 
 #' Update the optimization variable 'x' for selected combinations only
@@ -1056,7 +1056,7 @@ runCalibrationOptim <- function(path,
 #' @importFrom dplyr %>% anti_join right_join
 #'
 .updateXSelect <- function(totalStep, optimVar, deviation, stepSizeParams, dims, nameTo = "x") {
-  optimVarSelect <- right_join(optimVar, totalStep, by = c("reg", "loc", "typ", "inc", "ttot"))
+  optimVarSelect <- right_join(optimVar, totalStep, by = c("region", "loc", "typ", "inc", "ttot"))
 
   optimVarSelect <- .updateX(optimVarSelect, deviation, stepSizeParams, dims, nameTo = "xA")
 
@@ -1075,11 +1075,11 @@ runCalibrationOptim <- function(path,
 #'
 .updateStepSize <- function(totalStep, stepSizeParams, stepReduction) {
   stepSizeParamsSelect <- stepSizeParams %>%
-    right_join(totalStep, by = c("reg", "loc", "typ", "inc", "ttot")) %>%
+    right_join(totalStep, by = c("region", "loc", "typ", "inc", "ttot")) %>%
     mutate(stepSize = .data[["stepSize"]] * stepReduction)
 
   stepSizeParams %>%
-    anti_join(stepSizeParamsSelect, by = c("reg", "loc", "typ", "inc", "ttot")) %>%
+    anti_join(stepSizeParamsSelect, by = c("region", "loc", "typ", "inc", "ttot")) %>%
     rbind(stepSizeParamsSelect)
 }
 

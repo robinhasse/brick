@@ -54,10 +54,10 @@ plotRefDeviation <- function(path, dropZeroWeightRefs = TRUE) {
   refVarBasic <- readSymbol(m, "refVarBasic")
 
   refDeviationVarRel <- refDeviationVar %>%
-    left_join(refVals, by = c("reference", "refVar", "reg", "ttot"),
+    left_join(refVals, by = c("reference", "refVar", "region", "ttot"),
               suffix = c("", ".ref")) %>%
     left_join(refVarBasic, by = c("reference", "refVar")) %>%
-    left_join(refValsBasic, by = c("reference", "refVarGroup", "reg", ttot = "t"),
+    left_join(refValsBasic, by = c("reference", "refVarGroup", "region", ttot = "t"),
               suffix = c("", ".basic")) %>%
     filter(.data[["reference"]] %in% refs) %>%
     mutate(value.basic = replace_na(.data[["value.basic"]], 1),
@@ -85,7 +85,7 @@ plotRefDeviation <- function(path, dropZeroWeightRefs = TRUE) {
   }
   pdfPath <- file.path(plotDir, "refDeviation.pdf")
 
-  regions <- unique(refDeviation[["reg"]])
+  regions <- unique(refDeviation[["region"]])
   periods <- sort(unique(refDeviation[["ttot"]]))
 
   message("writing PDF: ", pdfPath)
@@ -93,9 +93,9 @@ plotRefDeviation <- function(path, dropZeroWeightRefs = TRUE) {
                  width = 8.5, height = 11.5, paper = "a4",
                  title = "BRICK matching: reference deviation")
 
-  for (r in regions) {
+  for (reg in regions) {
     p <- refDeviationVarRel %>%
-      filter(.data$reg %in% r) %>%
+      filter(.data$region %in% reg) %>%
       mutate(reference = linebreak(.data$reference)) %>%
       ggplot(aes(.data[["ttot"]], .data[["refVar"]])) +
       geom_vline(aes(xintercept = .data$period),
@@ -118,7 +118,7 @@ plotRefDeviation <- function(path, dropZeroWeightRefs = TRUE) {
                                       `10-30 %` = "#e7b416",
                                       `> 30 %`  = "#cc3232"),
                         na.value = "lightgrey") +
-      ggtitle("Reference deviation", r) +
+      ggtitle("Reference deviation", reg) +
       theme_minimal() +
       theme(strip.background = element_blank(),
             panel.grid.major = element_blank(),
@@ -138,7 +138,7 @@ plotRefDeviation <- function(path, dropZeroWeightRefs = TRUE) {
     geom_col(aes(.data[["ttot"]], .data[["value"]], fill = .data[["reference"]])) +
     scale_fill_brewer(palette = "Set3") +
     scale_y_continuous("total reference deviation") +
-    facet_wrap("reg", scales = "free_y") +
+    facet_wrap("region", scales = "free_y") +
     theme_minimal() +
     theme(panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),

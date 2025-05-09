@@ -1,5 +1,5 @@
 sum(refMap_OdysseeIDEES_heating(refVar,typ,hs),
   sum((bs,vin,loc,inc)$vinExists(t,vin),
-    v_stock("area",bs,hs,vin,r,loc,typ,inc,t)
+    v_stock("area",bs,hs,vin,reg,loc,typ,inc,t)
   )
 )$sameas(ref,"OdysseeIDEES_heating")
