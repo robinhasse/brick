@@ -12,7 +12,7 @@ guessColnames <- function(x, m) {
   for (j in seq_len(ncol(x))) {
     if (colnames(x)[j] == "value") next
     if (all(grepl("^[A-Z]{3}$", x[[j]]))) {
-      colnames(x)[j] <- "reg"
+      colnames(x)[j] <- "region"
     } else if (all(grepl("^\\d{4}$", as.character(x[[j]])))) {
       colnames(x)[j] <- "ttot"
       x[[j]] <- as.numeric(x[[j]])

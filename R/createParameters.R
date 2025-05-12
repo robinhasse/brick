@@ -77,22 +77,22 @@ createParameters <- function(m, config, inputDir) {
   ## construction ====
 
   p_specCostConTang <- readInput("f_costConstruction.cs4r",
-                                 c("ttot", "reg", "bs", "hs", "typ"),
+                                 c("ttot", "region", "bs", "hs", "typ"),
                                  inputDir) %>%
     toModelResolution(m)
-  p_specCostCon <- expandSets("cost", "bs", "hs", "reg", "loc", "typ", "inc", "ttot",
+  p_specCostCon <- expandSets("cost", "bs", "hs", "region", "loc", "typ", "inc", "ttot",
                               .m = m)
   p_specCostConTang <- p_specCostCon %>%
     filter(.data[["cost"]] == "tangible") %>%
     left_join(p_specCostConTang,
-              by = c("bs", "hs", "reg", "typ", "ttot"))
+              by = c("bs", "hs", "region", "typ", "ttot"))
   p_specCostConIntang <- p_specCostCon %>%
     filter(.data[["cost"]] == "intangible") %>%
     addAssump(intangCostFiles[["con"]])
   p_specCostCon <- rbind(p_specCostConTang, p_specCostConIntang)
   p_specCostCon <- m$addParameter(
     name = "p_specCostCon",
-    domain = c("cost", state, "reg", "loc", "typ", "inc", "ttot"),
+    domain = c("cost", state, "region", "loc", "typ", "inc", "ttot"),
     records = p_specCostCon,
     description = "floor-space specific construction cost in USD/m2"
   )
@@ -101,24 +101,24 @@ createParameters <- function(m, config, inputDir) {
   ## renovation ====
 
   p_specCostRenTang <- readInput("f_costRenovation.cs4r",
-                                 c("ttot", "reg", "bs", "hs", "bsr", "hsr",
+                                 c("ttot", "region", "bs", "hs", "bsr", "hsr",
                                    "typ", "vin"),
                                  inputDir) %>%
     toModelResolution(m) %>%
     .explicitZero()
-  p_specCostRen <- expandSets("cost", "bs", "hs", "bsr", "hsr", "vin", "reg",
+  p_specCostRen <- expandSets("cost", "bs", "hs", "bsr", "hsr", "vin", "region",
                               "loc", "typ", "inc", "ttot", .m = m)
   p_specCostRenTang <- p_specCostRen %>%
     filter(.data[["cost"]] == "tangible") %>%
     left_join(p_specCostRenTang,
-              by = c("ttot", "reg", "bs", "hs", "bsr", "hsr", "typ", "vin"))
+              by = c("ttot", "region", "bs", "hs", "bsr", "hsr", "typ", "vin"))
   p_specCostRenIntang <- p_specCostRen %>%
     filter(.data[["cost"]] == "intangible") %>%
     addAssump(intangCostFiles[["ren"]])
   p_specCostRen <- rbind(p_specCostRenTang, p_specCostRenIntang)
   p_specCostRen <- m$addParameter(
     name = "p_specCostRen",
-    domain = c("cost", state, stateR, "vin", "reg", "loc", "typ", "inc", "ttot"),
+    domain = c("cost", state, stateR, "vin", "region", "loc", "typ", "inc", "ttot"),
     records = p_specCostRen,
     description = "floor-space specific renovation cost in USD/m2"
   )
@@ -149,17 +149,17 @@ createParameters <- function(m, config, inputDir) {
 
   ### energy carrier prices and emission intensities ####
   carrierData <- readInput("f_carrierPrices.cs4r",
-                           c("ttot", "reg", "variable", "unit", "carrier", "level"),
+                           c("ttot", "region", "variable", "unit", "carrier", "level"),
                            inputDir)
 
   p_carrierPrice <- carrierData %>%
     filter(.data[["variable"]] == "price") %>%
     .filterLevel(carrierPriceLevel, "carrierPrice") %>%
-    select("carrier", "reg", "ttot", "value") %>%
+    select("carrier", "region", "ttot", "value") %>%
     toModelResolution(m)
   p_carrierPrice <- m$addParameter(
     name = "p_carrierPrice",
-    domain = c("carrier", "reg", "ttot"),
+    domain = c("carrier", "region", "ttot"),
     records = p_carrierPrice,
     description = "final energy carrier price in USD/kWh"
   )
@@ -167,37 +167,37 @@ createParameters <- function(m, config, inputDir) {
   p_carrierEmi <- carrierData %>%
     filter(.data[["variable"]] == "emi") %>%
     .filterLevel(carrierEmiLevel, "carrierEmi") %>%
-    select("carrier", "reg", "ttot", "value") %>%
+    select("carrier", "region", "ttot", "value") %>%
     toModelResolution(m)
   p_carrierEmi <- m$addParameter(
     name = "p_carrierEmi",
-    domain = c("carrier", "reg", "ttot"),
+    domain = c("carrier", "region", "ttot"),
     records = p_carrierEmi,
     description = "energy carrier emission intensity in t_CO2/kWh"
   )
 
   ### useful energy demand for space heating ####
   p_ueDemand <- readInput("f_ueDemand.cs4r",
-                          c("reg", "typ", "vin", "bs", "value"),
+                          c("region", "typ", "vin", "bs", "value"),
                           inputDir) %>%
-    select("bs", "vin", "reg", "typ", "value") %>%
+    select("bs", "vin", "region", "typ", "value") %>%
     toModelResolution(m)
   p_ueDemand <- m$addParameter(
     name = "p_ueDemand",
-    domain = c("bs", "vin", "reg", "typ"),
+    domain = c("bs", "vin", "region", "typ"),
     records = p_ueDemand,
     description = "floor-space specific useful energy demand for space heating in kWh/yr/m2"
   )
 
   ### FE-to-UE-efficiency of heating systems ####
   p_eff <- readInput("f_heatingEfficiency.cs4r",
-                     c("ttot", "reg", "hs", "typ", "value"),
+                     c("ttot", "region", "hs", "typ", "value"),
                      inputDir) %>%
-    select("hs", "reg", "typ", "ttot", "value") %>%
+    select("hs", "region", "typ", "ttot", "value") %>%
     toModelResolution(m)
   p_eff <- m$addParameter(
     name = "p_eff",
-    domain = c("hs", "reg", "typ", "ttot"),
+    domain = c("hs", "region", "typ", "ttot"),
     records = p_eff,
     description = "technical efficiency of space heating technologies"
   )
@@ -218,9 +218,9 @@ createParameters <- function(m, config, inputDir) {
   cutOffShare <- 0.95
 
   # read Weibull life time parameters
-  lt   <- readInput("f_lifetimeBuilding.cs4r",      c("reg", "typ", "variable"),       inputDir)
-  ltBs <- readInput("f_lifetimeBuildingShell.cs4r", c("reg", "variable"),              inputDir)
-  ltHs <- readInput("f_lifetimeHeatingSystem.cs4r", c("reg", "typ", "hs", "variable"), inputDir)
+  lt   <- readInput("f_lifetimeBuilding.cs4r",      c("region", "typ", "variable"),       inputDir)
+  ltBs <- readInput("f_lifetimeBuildingShell.cs4r", c("region", "variable"),              inputDir)
+  ltHs <- readInput("f_lifetimeHeatingSystem.cs4r", c("region", "typ", "hs", "variable"), inputDir)
 
   # shift scale parameter of Weibull distribution
   ltHsShift <- config[["ltHsShift"]]
@@ -236,33 +236,32 @@ createParameters <- function(m, config, inputDir) {
 
   # Calculate share of buildings that need to be renovated or demolished between
   # given time steps assuming a Weibull distribution of the technology life time.
-  # Optionally pass the prior standing life time; adjust the share to subtract demolitions
-  # during the prior standing life time.
+  # Optionally pass the prior standing life time; adjust the share to subtract
+  # demolitions during the prior standing life time.
   shareRen <- function(ttot2, params, standingLifeTime = 0) {
 
     expandSets(ttot2 = "ttot", "ttot", .m = m) %>%
+      filter(.data$ttot2 <= .data$ttot) %>%
       left_join(readSymbol(p_dt) %>%
                   rename(dt = "value"),
                 by = c(ttot2 = "ttot")) %>%
       cross_join(params) %>%
       pivot_wider(names_from = "variable") %>%
       # pweibull(0) = 0, so for standingLifeTime = 0 we have value = pweibull(lt)
-      mutate(lt = .data[["ttot"]] - .data[["ttot2"]]
-             + .data[["dt"]] / 2 + standingLifeTime,
-             value = (pweibull(.data[["lt"]], .data[["shape"]], .data[["scale"]])
-                      - pweibull(standingLifeTime, .data[["shape"]], .data[["scale"]]))
-             / (1 - pweibull(standingLifeTime, .data[["shape"]], .data[["scale"]])),
-             value = ifelse(.data[["value"]] > cutOffShare,
-                            1, .data[["value"]])) %>%
-      select(-"shape", -"scale", -"dt", -"lt")
+      mutate(lt = .data$ttot - .data$ttot2 + .data$dt / 2 + standingLifeTime,
+             p  = pweibull(.data$lt,         .data$shape, .data$scale),
+             p0 = pweibull(standingLifeTime, .data$shape, .data$scale),
+             value = (.data$p - .data$p0) / (1 - .data$p0),
+             value = ifelse(.data$value > cutOffShare, 1, .data$value)) %>%
+      select(-"shape", -"scale", -"dt", -"lt", -"p", -"p0")
   }
 
   ## building ====
 
   # parameter for monitoring purposes
-  p_probDem <- expandSets("reg", "typ", ttot2 = "ttot", "ttot", .m = m) %>%
+  p_probDem <- expandSets("region", "typ", ttot2 = "ttot", "ttot", .m = m) %>%
     filter(.data[["ttot2"]] >= .data[["ttot"]]) %>%
-    left_join(lt, by = c("reg", "typ"), relationship = "many-to-many") %>%
+    left_join(lt, by = c("region", "typ"), relationship = "many-to-many") %>%
     pivot_wider(names_from = "variable") %>%
     mutate(value = (1 - config[["ltEternalShare"]]) *
              pweibull(.data$ttot2 - .data$ttot,
@@ -271,35 +270,19 @@ createParameters <- function(m, config, inputDir) {
     select(-"shape", -"scale")
   p_probDem <- m$addParameter(
     name = "p_probDem",
-    domain = c("reg", "typ", "ttot2", "ttot"),
+    domain = c("region", "typ", "ttot2", "ttot"),
     records = p_probDem,
     description = "probability of a building having reached its end of life"
   )
 
-  # share of stock from previous time step that has to be demolished as it
-  # reaches its end of life
-  p_shareDem <- expandSets("vin", "reg", "typ", "ttot", .m = m) %>%
-    left_join(vintages, by = "vin") %>%
-    inner_join(vinExists,
-               by = c("vin", "ttot")) %>%
-    left_join(lt, by = c("reg", "typ"), relationship = "many-to-many") %>%
-    pivot_wider(names_from = "variable") %>%
-    mutate(tcon = (.data[["from"]] + pmin(.data[["ttot"]], .data[["to"]])) / 2,
-           p = (1 - config[["ltEternalShare"]]) *
-             pweibull(.data$ttot - .data$tcon,
-                      .data$shape,
-                      .data$scale * config[["ltFactor"]])) %>%
+  p_shareDem <- expandSets("vin", "region", "typ", "ttot", .m = m) %>%
     left_join(readSymbol(p_dt) %>%
                 rename(dt = "value"),
               by = "ttot") %>%
-    group_by(across(all_of(c("vin", "reg", "typ")))) %>%
-    arrange(.data[["ttot"]]) %>%
-    mutate(value = c(0, diff(.data[["p"]])) /
-             (1 - lag(.data[["p"]], default = 0)) / .data[["dt"]]) %>%
-    select("vin", "reg", "typ", "ttot", "value")
+    select("vin", "region", "typ", "ttot", "value")
   p_shareDem <- m$addParameter(
     name = "p_shareDem",
-    domain = c("vin", "reg", "typ", "ttot"),
+    domain = c("vin", "region", "typ", "ttot"),
     records = p_shareDem,
     description = "minimum share of demolition at end of life"
   )
@@ -308,32 +291,32 @@ createParameters <- function(m, config, inputDir) {
 
   p_lifeTimeBS <- ltBs %>%
     calc_addVariable(lt = "scale * gamma(1 + 1 / shape)", only.new = TRUE) %>%
-    select("reg", "value") %>%
+    select("region", "value") %>%
     toModelResolution(m)
   p_lifeTimeBS <- m$addParameter(
     name = "p_lifeTimeBS",
-    domain = "reg",
+    domain = "region",
     records = p_lifeTimeBS,
     description = "life time of heating system in yr"
   )
 
   p_shareRenBS <- shareRen(ttot, ltBs) %>%
-    select("reg", "ttot2", "ttot", "value") %>%
+    select("region", "ttot2", "ttot", "value") %>%
     toModelResolution(m)
   p_shareRenBS <- m$addParameter(
     name = "p_shareRenBS",
-    domain = c("reg", "ttot2", "ttot"),
+    domain = c("region", "ttot2", "ttot"),
     records = p_shareRenBS,
     description = "minimum share of renovation from the building shell reaching end of life"
   )
 
   # assumption: average life time of initial stock of building shells: 12 years
   p_shareRenBSinit <- shareRen(ttot, ltBs, standingLifeTime = 12) %>%
-    select("reg", "ttot2", "ttot", "value") %>%
+    select("region", "ttot2", "ttot", "value") %>%
     toModelResolution(m)
   p_shareRenBSinit <- m$addParameter(
     name = "p_shareRenBSinit",
-    domain = c("reg", "ttot2", "ttot"),
+    domain = c("region", "ttot2", "ttot"),
     records = p_shareRenBSinit,
     description = "minimum share of renovation from the building shell of initial stock reaching end of life"
   )
@@ -342,32 +325,32 @@ createParameters <- function(m, config, inputDir) {
 
   p_lifeTimeHS <- ltHs %>%
     calc_addVariable(lt = "scale * gamma(1 + 1 / shape)", only.new = TRUE) %>%
-    select("hs", "reg", "typ", "value") %>%
+    select("hs", "region", "typ", "value") %>%
     toModelResolution(m)
   p_lifeTimeHS <- m$addParameter(
     name = "p_lifeTimeHS",
-    domain = c("hs", "reg", "typ"),
+    domain = c("hs", "region", "typ"),
     records = p_lifeTimeHS,
     description = "life time of heating system in yr"
   )
 
   p_shareRenHS <- shareRen(ttot, ltHs) %>%
-    select("hs", "reg", "typ", "ttot2", "ttot", "value") %>%
+    select("hs", "region", "typ", "ttot2", "ttot", "value") %>%
     toModelResolution(m)
   p_shareRenHS <- m$addParameter(
     name = "p_shareRenHS",
-    domain = c("hs", "reg", "typ", "ttot2", "ttot"),
+    domain = c("hs", "region", "typ", "ttot2", "ttot"),
     records = p_shareRenHS,
     description = "minimum share of renovation from the heating system reaching end of life"
   )
 
-  # assumption: average life time of initial stock of heating systems: 6 years
-  p_shareRenHSinit <- shareRen(ttot, ltHs, standingLifeTime = 6) %>%
-    select("hs", "reg", "typ", "ttot2", "ttot", "value") %>%
+  # assumption: average life time of initial stock of heating systems: 12 years
+  p_shareRenHSinit <- shareRen(ttot, ltHs, standingLifeTime = 12) %>%
+    select("hs", "region", "typ", "ttot2", "ttot", "value") %>%
     toModelResolution(m)
   p_shareRenHSinit <- m$addParameter(
     name = "p_shareRenHSinit",
-    domain = c("hs", "reg", "typ", "ttot2", "ttot"),
+    domain = c("hs", "region", "typ", "ttot2", "ttot"),
     records = p_shareRenHSinit,
     description = "minimum share of renovation from the heating system of initial stock reaching end of life"
   )
@@ -391,23 +374,23 @@ createParameters <- function(m, config, inputDir) {
   ## price sensitivity ====
 
   priceSensBS <- unlist(config[["priceSens"]][["bs"]])
-  priceSensBS <- expandSets("var", "reg", "loc", "typ", "inc", .m = m) %>%
+  priceSensBS <- expandSets("var", "region", "loc", "typ", "inc", .m = m) %>%
     filter(.data[["var"]] %in% names(priceSensBS)) %>%
     mutate(value = priceSensBS[.data[["var"]]])
   priceSensBS <- m$addParameter(
     name = "priceSensBS",
-    domain = c("var", "reg", "loc", "typ", "inc"),
+    domain = c("var", "region", "loc", "typ", "inc"),
     records = priceSensBS,
     description = "price sensitivity of building shell choice"
   )
 
   priceSensHS <- unlist(config[["priceSens"]][["hs"]])
-  priceSensHS <- expandSets("var", "reg", "loc", "typ", "inc", .m = m) %>%
+  priceSensHS <- expandSets("var", "region", "loc", "typ", "inc", .m = m) %>%
     filter(.data[["var"]] %in% names(priceSensHS)) %>%
     mutate(value = priceSensHS[.data[["var"]]])
   priceSensHS <- m$addParameter(
     name = "priceSensHS",
-    domain = c("var", "reg", "loc", "typ", "inc"),
+    domain = c("var", "region", "loc", "typ", "inc"),
     records = priceSensHS,
     description = "price sensitivity of heating system choice"
   )
@@ -429,7 +412,7 @@ createParameters <- function(m, config, inputDir) {
 
   # read pop data
   pop <- readInput("f_population.cs4r",
-                   c("ttot", "reg", "scenario", "loc", "typ"),
+                   c("ttot", "region", "scenario", "loc", "typ"),
                    inputDir)
 
   if (!isTRUE(popScenario %in% unique(pop[["scenario"]]))) {
@@ -442,14 +425,14 @@ createParameters <- function(m, config, inputDir) {
     .filterLevel(popScenario, "popScenario", "scenario") %>%
     toModelResolution(m)
 
-  p_population <- expandSets("reg", "loc", "typ", "inc", "ttot", .m = m) %>%
-    left_join(pop, by = c("reg", "typ", "loc", "ttot"),
+  p_population <- expandSets("region", "loc", "typ", "inc", "ttot", .m = m) %>%
+    left_join(pop, by = c("region", "typ", "loc", "ttot"),
               relationship = "many-to-many") %>%
-    select("reg", "loc", "typ", "inc", "ttot", "value")
+    select("region", "loc", "typ", "inc", "ttot", "value")
 
   p_population <- m$addParameter(
     name = "p_population",
-    domain = c("reg", "loc", "typ", "inc", "ttot"),
+    domain = c("region", "loc", "typ", "inc", "ttot"),
     records = p_population,
     description = "number of people in million"
   )
@@ -462,17 +445,17 @@ createParameters <- function(m, config, inputDir) {
 
   # read floor space data
   p_floorPerCap <- readInput("f_floorspacePerCap.cs4r",
-                             c("ttot", "reg", "scenario", "typ", "loc"),
+                             c("ttot", "region", "scenario", "typ", "loc"),
                              inputDir) %>%
     .filterLevel(fsScenario, "fsScenario", "scenario") %>%
     toModelResolution(m)
 
-  p_floorPerCap <- expandSets("reg", "loc", "typ", "inc", "ttot", .m = m) %>%
-    left_join(p_floorPerCap, by = c("reg", "loc", "typ", "ttot"))
+  p_floorPerCap <- expandSets("region", "loc", "typ", "inc", "ttot", .m = m) %>%
+    left_join(p_floorPerCap, by = c("region", "loc", "typ", "ttot"))
 
   p_floorPerCap <- m$addParameter(
     name = "p_floorPerCap",
-    domain = c("reg", "loc", "typ", "inc", "ttot"),
+    domain = c("region", "loc", "typ", "inc", "ttot"),
     records = p_floorPerCap,
     description = "floor space per capita in m2"
   )
@@ -498,16 +481,16 @@ createParameters <- function(m, config, inputDir) {
 
   # stock of residential floor space
   p_stockHist <- readInput("f_buildingStock.cs4r",
-                           c("ttot", "reg", "variable", "typ", "loc", "vin", "hs", "bs"),
+                           c("ttot", "region", "variable", "typ", "loc", "vin", "hs", "bs"),
                            inputDir) %>%
     filter(.data[["variable"]] == "floor") %>%
     select(-"variable") %>%
     mutate(qty = "area")
-  p_stockHist <- expandSets("qty", "bs", "hs", "vin", "reg", "loc", "typ",
+  p_stockHist <- expandSets("qty", "bs", "hs", "vin", "region", "loc", "typ",
                             "inc", "ttot", .m = m) %>%
     inner_join(vinExists, by = c("vin", "ttot")) %>%
     left_join(p_stockHist,
-              by = c("qty", "bs", "hs", "vin", "reg", "loc", "typ", "ttot")) %>%
+              by = c("qty", "bs", "hs", "vin", "region", "loc", "typ", "ttot")) %>%
     mutate(value = replace_na(.data[["value"]], 0))
 
   if (isTRUE(config[["ignoreShell"]])) {
@@ -519,7 +502,7 @@ createParameters <- function(m, config, inputDir) {
 
   p_stockHist <- m$addParameter(
     name = "p_stockHist",
-    domain = c("qty", "bs", "hs", "vin", "reg", "loc", "typ", "inc", "ttot"),
+    domain = c("qty", "bs", "hs", "vin", "region", "loc", "typ", "inc", "ttot"),
     records = p_stockHist,
     description = "historic stock of buildings in million m2"
   )

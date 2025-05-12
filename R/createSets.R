@@ -26,7 +26,7 @@ createSets <- function(m, config) {
   )
   invisible(m$addSet(
     name = "qty",
-    records = c("area", "dwel"),
+    records = c("area", "num"),
     description = "quantity unit to measure stocks and flows in"
   ))
 
@@ -158,8 +158,8 @@ createSets <- function(m, config) {
 
   # Independent stock subset ---------------------------------------------------
 
-  reg <- m$addSet(
-    name = "reg",
+  region <- m$addSet(
+    name = "region",
     records = config[["regions"]],
     description = "region"
   )
@@ -173,7 +173,14 @@ createSets <- function(m, config) {
     description = "location of building (rural, urban)"
   )
 
-  typ <- getBrickMapping("buildingType.csv") %>%
+  typMap <- getBrickMapping("buildingType.csv")
+  # TODO: remove once dim maps are dynamic
+  if (config[["switches"]][["RUNTYPE"]] == "matching") {
+    typMap <- typMap %>%
+      rbind(data.frame(typ = "Com", subsector = "Com"))
+  }
+
+  typ <- typMap %>%
     getElement("typ") %>%
     unique()
   typ <- m$addSet(
@@ -213,20 +220,20 @@ createSets <- function(m, config) {
       ungroup() %>%
       filter(.data[["ttot"]] > .data[["value"]]) %>%
       select(-"value")
-    hsBan <- expandSets(var, reg, ttot, hs) %>%
+    hsBan <- expandSets(var, region, ttot, hs) %>%
       mutate(across(everything(), as.character)) %>%
       mutate(ttot = as.numeric(.data[["ttot"]]))
     hsBan <- hsBan %>%
       inner_join(hsBanConfig, by = intersect(colnames(hsBan),
                                              colnames(hsBanConfig))) %>%
-      select("var", "reg", "ttot", "hs")
+      select("var", "region", "ttot", "hs")
   } else {
     hsBan <- NULL
   }
   hsBan <- m$addSet(
     name = "hsBan",
     records = hsBan,
-    domain = c(var, reg, ttot, hs),
+    domain = c(var, region, ttot, hs),
     description = "forbidden heating systems in the respective variable in given period"
   )
 
@@ -258,6 +265,28 @@ createSets <- function(m, config) {
     domain = c(bs, hs, bsr, hsr),
     records = renAllowed,
     description = "Is this renovation transition allowed"
+  )
+
+
+  ## Buildings subsectors ====
+
+  sec <- typMap %>%
+    getElement("subsector") %>%
+    unique()
+  sec <- m$addSet(
+    name = "sec",
+    records = sec,
+    description = "buildings subsector"
+  )
+
+  typInSec <- typMap %>%
+    select("typ", sec = "subsector") %>%
+    unique()
+  typInSec <- m$addSet(
+    name = "typInSec",
+    domain = c(typ, sec),
+    records = typInSec,
+    description = "mapping between building type and buildings subsector"
   )
 
 

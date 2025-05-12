@@ -1,0 +1,1 @@
+v_renRate_EuropeanCommissionRenovation(refVar,reg,t)$sameas(ref,"EuropeanCommissionRenovation")

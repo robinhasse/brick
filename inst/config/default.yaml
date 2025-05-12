@@ -115,7 +115,7 @@ matchingRun: NULL
 gamsCall:  gams
 solverLP:  cplex
 solverNLP: conopt4
-solverQCP: conopt4
+solverQCP: cplex
 
 
 # switches ---------------------------------------------------------------------
@@ -269,6 +269,14 @@ gamsOptions:
   ### page width ###
     # page width of log file (max number of characters in one line)
   pw: 185
+
+  ### solver option file ###
+  # Default option file for the gams solver
+    # 0: none
+    # 1:    <solverName.opt>, (e.g. conopt.opt)
+    # 2:    <solverName.op2>, (e.g. conopt.op2)
+  optfile: 0
+
 
 # parameters for calibration -----------------------------------
 

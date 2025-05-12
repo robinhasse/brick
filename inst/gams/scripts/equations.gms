@@ -347,7 +347,9 @@ q_buildingShellLifeTime(q,bs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot
         )
     )
   )
-  =g=
+  =e=
+  v_slackRenBS(bs,vin,subs,ttot)
+  +
   sum(hsr,
     sum(ttot2$(    ttot2.val le ttot.val
                !!and p_shareRenBS(reg,ttot2 + 1,ttot) < 1
@@ -369,7 +371,7 @@ q_buildingShellLifeTime(q,bs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot
 
 * heating system
 q_heatingSystemLifeTime(q,hs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot,vin)
-                                                              and t(ttot))..
+                                                            and t(ttot))..
   sum(bs,
     sum(ttot2$(    ttot2.val le ttot.val
                !!and p_shareRenHS(hs,reg,typ,ttot2 + 1,ttot) < 1
@@ -380,22 +382,27 @@ q_heatingSystemLifeTime(q,hs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot
         + sum(stateFull(bsr,hsr)$(    renAllowed(bs,hs,stateFull)
                                   and not sameas(hsr,"0")),
             v_renovation(q,bs,hs,bsr,hsr,vin,subs,ttot2)
-          )
         )
+      )
     )
   )
-  =g=
+  =e=
+  v_slackRenHS(hs,vin,subs,ttot)
+  +
   sum(bsr,
     sum(ttot2$(    ttot2.val le ttot.val
                !!and p_shareRenHS(hs,reg,typ,ttot2 + 1,ttot) < 1
                and vinExists(ttot2,vin)),
       p_shareRenHS(hs,reg,typ,ttot2,ttot)
       * (
-        sum(bs(bsr), v_construction(q,bs,hs,subs,ttot2)) * p_dtVin(ttot2,vin)
-        + sum(state$renAllowed(state,bsr,hs),
-            v_renovation(q,state,bsr,hs,vin,subs,ttot2) * p_dt(ttot2)
-          )
-        )
+        sum(bs(bsr),
+            v_construction(q,bs,hs,subs,ttot2))
+        * p_dtVin(ttot2,vin)
+        +
+        sum(state$renAllowed(state,bsr,hs),
+            v_renovation(q,state,bsr,hs,vin,subs,ttot2))
+        * p_dt(ttot2)
+      )
       +
       p_shareRenHSinit(hs,reg,typ,ttot2,ttot)
       * sum(bs(bsr), v_stock(q,bs,hs,vin,subs,ttot2)$(tinit(ttot2)))
@@ -485,28 +492,28 @@ q_dwelSizeStock(vin,subs,ttot)$vinExists(ttot,vin)..
   sum(state, v_stock("area",state,vin,subs,ttot))
   =e=
   v_dwelSizeStock(vin,subs,ttot)
-  * sum(state, v_stock("dwel",state,vin,subs,ttot))
+  * sum(state, v_stock("num",state,vin,subs,ttot))
 ;
 
 q_dwelSizeConstruction(subs,ttot)..
   sum(state, v_construction("area",state,subs,ttot))
   =e=
   v_dwelSizeConstruction(subs,ttot)
-  * sum(state, v_construction("dwel",state,subs,ttot))
+  * sum(state, v_construction("num",state,subs,ttot))
 ;
 
 q_dwelSizeRenovation(vin,subs,ttot)$vinExists(ttot,vin)..
-  sum(ren, v_renovation("area",ren,vin,subs,ttot))
+  sum(ren(renAllowed), v_renovation("area",ren,vin,subs,ttot))
   =e=
   v_dwelSizeRenovation(vin,subs,ttot)
-  * sum(ren, v_renovation("dwel",ren,vin,subs,ttot))
+  * sum(ren(renAllowed), v_renovation("num",ren,vin,subs,ttot))
 ;
 
 q_dwelSizeDemolition(vin,subs,ttot)$vinExists(ttot,vin)..
   sum(state, v_demolition("area",state,vin,subs,ttot))
   =e=
   v_dwelSizeDemolition(vin,subs,ttot)
-  * sum(state, v_demolition("dwel",state,vin,subs,ttot))
+  * sum(state, v_demolition("num",state,vin,subs,ttot))
 ;
 
 
@@ -517,11 +524,10 @@ $ifthen.matching "%RUNTYPE%" == "matching"
 
 * sum all temporal variation in the flow variables to one number
 
-* total variation
 q_flowVariationTot..
   v_flowVariationTot
   =e=
-  sum(varFlow,
+  sum(varFlow$(not(sameas(varFlow,"demolition"))),
     sum(subs,
       sum(t$((ord(t) lt card(t))),
           v_flowVariation(varFlow,"area",subs,t)
@@ -530,67 +536,73 @@ q_flowVariationTot..
   )
 ;
 
-q_flowVariation(varFlow,q,subs,t)$((ord(t) lt card(t)))..
+
+* Square of temporal variations in each flow
+
+q_flowVariation(varFlow,q,subs,t)$(ord(t) lt card(t))..
   v_flowVariation(varFlow,q,subs,t)
   =e=
   sum(state,
-    sqr(
-      (v_construction(q,state,subs,t) - v_construction(q,state,subs,t+1))
-      / p_dt(t+1)
-    )
+    sqr(v_flowVariationCon(q,state,subs,t))
   )$sameas(varFlow,"construction")
   +
-  sum(ren,
-    sqr(
-      (
-          sum(vinExists(t,vin),   v_renovation(q,ren,vin,subs,t))
-        - sum(vinExists(t+1,vin), v_renovation(q,ren,vin,subs,t+1))
-      )
-      / p_dt(t+1)
-    )
+  sum(ren(renAllowed),
+    sqr(v_flowVariationRen(q,ren,subs,t) / 8)  !! rescale to roughly match order of magnitude of other flows
   )$sameas(varFlow,"renovation")
   +
-  sum(state,
-    sqr(
-      (
-          sum(vinExists(t,vin),   v_demolition(q,state,vin,subs,t))
-        - sum(vinExists(t+1,vin), v_demolition(q,state,vin,subs,t+1))
-      )
-      / p_dt(t+1)
-    )
+  sum(state, 
+    sqr(v_flowVariationDem(q,state,subs,t))
   )$sameas(varFlow,"demolition")
 ;
 
 
+* temporal variations of each flow
 
-*** force pleasant heating distribution ----------------------------------------
-
-* For testing purposes
-
-* force finite share for all heating system options
-q_finiteHeatingShareCon(bs,hs,subs,t)..
-  v_construction("area",bs,hs,subs,t)
-  =g=
-  0.05
-  *
-  sum(hs2,
-    v_construction("area",bs,hs2,subs,t)
-  )
+q_flowVariationCon(q,state,subs,t)$(ord(t) lt card(t))..
+  v_flowVariationCon(q,state,subs,t)
+  =e=
+  (  v_construction(q,state,subs,t+1)
+   - v_construction(q,state,subs,t))
+  / p_dt(t+1)
 ;
 
-q_finiteHeatingShareRen(state,bsr,hsr,vin,subs,t)$vinExists(t,vin)..
-  v_renovation("area",state,bsr,hsr,vin,subs,t)
-  =g=
-  0.05
-  *
-  sum(hsr2,
-    v_renovation("area",state,bsr,hsr2,vin,subs,t)
+q_flowVariationRen(q,ren,subs,t)$(    (ord(t) lt card(t))
+                                  and renAllowed(ren))..
+  v_flowVariationRen(q,ren,subs,t)
+  =e=
+  (  sum(vinExists(t,vin),   v_renovation(q,ren,vin,subs,t))
+   - sum(vinExists(t+1,vin), v_renovation(q,ren,vin,subs,t+1)))
+  / p_dt(t+1)
+;
+
+q_flowVariationDem(q,state,subs,t)$(ord(t) lt card(t))..
+  v_flowVariationDem(q,state,subs,t)
+  =e=
+  (  sum(vinExists(t,vin),   v_demolition(q,state,vin,subs,t))
+   - sum(vinExists(t+1,vin), v_demolition(q,state,vin,subs,t+1)))
+  / p_dt(t+1)
+;
+
+
+
+*** minimum technology replacement ---------------------------------------------
+
+* deviation from replacement according to life time
+q_replacementDeviation..
+  v_replacementDeviation
+  =e=
+  sum((vin,subs,t)$(    vinExists(t,vin)
+                    and ord(t) gt 1),
+    (  sum(bs, sqr(v_slackRenBS(bs,vin,subs,t)))
+     + sum(hs, sqr(v_slackRenHS(hs,vin,subs,t))))
+    * p_dt(t)
   )
 ;
 
 
 
 *** matching objective ---------------------------------------------------------
+
 q_matchingObj..
   v_matchingObj
   =e=
@@ -598,6 +610,9 @@ q_matchingObj..
   +
   p_flowVariationWeight
   * v_flowVariationTot
+  +
+  p_slackRenWeight
+  * v_replacementDeviation
 ;
 
 
@@ -609,22 +624,22 @@ q_matchingObj..
 q_refDeviationTot..
   v_refDeviationTot
   =e=
-  sum((r,reg,t),
-    v_refDeviation(r,reg,t)
-    * p_refWeight(r,reg,t)
+  sum((ref,reg,t),
+    v_refDeviation(ref,reg,t)
+    * p_refWeight(ref)
   )
 ;
 
 
 * summed squared deviation from reference sources
 
-q_refDeviation(r,reg,t)..
-  v_refDeviation(r,reg,t)
+q_refDeviation(ref,reg,t)..
+  v_refDeviation(ref,reg,t)
   =e=
-  sum(refVarExists(r,refVar,reg,t),
+  sum(refVarExists(ref,refVar,reg,t),
     sqr(
-      v_refDeviationVar(r,refVar,reg,t)
-      / p_refValsMed(r,reg)
+      v_refDeviationVar(ref,refVar,reg,t)
+!!      / p_refValsMed(ref,reg)
     )
   )
 ;
@@ -632,97 +647,43 @@ q_refDeviation(r,reg,t)..
 
 * deviation from each variable in reference sources
 
-q_refDeviationVar(refVarExists(r,refVar,reg,t))..
-  v_refDeviationVar(r,refVar,reg,t)
+q_refDeviationVar(refVarExists(ref,refVar,reg,t))..
+  v_refDeviationVar(ref,refVar,reg,t)
   =e=
-  !! mredgebuildings_location
-  sum(refMap_mredgebuildings_location(refVar,loc),
-    sum((state,vin,typ,inc)$vinExists(t,vin),
-      v_stock("area",state,vin,reg,loc,typ,inc,t)
-    )
-  )$sameas(r,"mredgebuildings_location")
-  +
-
-  !! mredgebuildings_heating
-  sum(refMap_mredgebuildings_heating(refVar,hs),
-    sum((bs,vin,loc,typ,inc)$vinExists(t,vin),
-      v_stock("area",bs,hs,vin,reg,loc,typ,inc,t)
-    )
-  )$sameas(r,"mredgebuildings_heating")
-  +
-
-  !! mredgebuildings_buildingType
-  sum(refMap_mredgebuildings_buildingType(refVar,typ),
-    sum((state,vin,loc,inc)$vinExists(t,vin),
-      v_stock("area",state,vin,reg,loc,typ,inc,t)
-    )
-  )$sameas(r,"mredgebuildings_buildingType")
-  +
-
-  !! mredgebuildings_vintage
-  sum(refMap_mredgebuildings_vintage(refVar,vin)$vinExists(t,vin),
-    sum((state,loc,typ,inc),
-      v_stock("area",state,vin,reg,loc,typ,inc,t)
-    )
-  )$sameas(r,"mredgebuildings_vintage")
-  +
-
-  !! Odyssee_stock
-  sum(refMap_Odyssee_stock(refVar,typ,hs,q),
-    sum((bs,loc,vin,inc)$vinExists(t,vin),
-      v_stock(q,bs,hs,vin,reg,loc,typ,inc,t)
-    )
-  )$sameas(r,"Odyssee_stock")
-  +
-
-  !! Odyssee_construction
-  sum(refMap_Odyssee_construction(refVar,typ),
-    sum((state,loc,inc),
-      v_construction("dwel",state,reg,loc,typ,inc,t)
-    )
-  )$sameas(r,"Odyssee_construction")
-  +
-
-  !! Odyssee_constructionFloor
-  sum(refMap_Odyssee_constructionFloor(refVar,typ),
-    sum((state,loc,inc),
-      v_construction("area",state,reg,loc,typ,inc,t)
-    )
-  )$sameas(r,"Odyssee_constructionFloor")
-  +
-
-  !! Odyssee_dwelSize
-  v_dwelSize_Odyssee(refVar,reg,t)$sameas(r,"Odyssee_dwelSize")
-  +
-
-  !! Odyssee_heatingShare
-  v_heatingShare_Odyssee(refVar,reg,t)$sameas(r,"Odyssee_heatingShare")
-  +
-
-  !! IDEES_heatingShare
-  v_heatingShare_IDEES(refVar,reg,t)$sameas(r,"IDEES_heatingShare")
-  +
-
-  !! EUBDB_stock
-  sum(refMap_EUBDB_stock(refVar,hs,typ,q),
-    sum((bs,loc,vin,inc)$vinExists(t,vin),
-      v_stock(q,bs,hs,vin,reg,loc,typ,inc,t)
-    )
-  )$sameas(r,"EUBDB_stock")
-  +
-
-  !! EUBDB_vintage
-  v_vinShare_EUBDB(refVar,reg,t)$sameas(r,"EUBDB_vintage")
-  +
-
-  !! EuropeanCommissionRenovation
-  v_renRate_EuropeanCommissionRenovation(refVar,reg,t)$sameas(r,"EuropeanCommissionRenovation")
-
-
-
-  -
-  p_refVals(r,refVar,reg,t)
+  v_refVals(ref,refVar,reg,t)
+  - p_refVals(ref,refVar,reg,t)
+  * (
+    1$refAbs(ref)
+    +
+    sum(refVarBasic(ref,refVar,refVarGroup),
+      v_refValsBasic(ref,refVarGroup,reg,t)
+    )$refRel(ref)
+  )
 ;
+
+
+* aggregate reference variables of share references to basic value
+
+q_refValsBasic(ref,refVarGroup,reg,t)$(refVarGroupExists(ref,refVarGroup,reg,t)
+                                       and refRel(ref))..
+  v_refValsBasic(ref,refVarGroup,reg,t)
+  =e=
+  sum(refVarBasic(ref,refVar,refVarGroup),
+    v_refVals(ref,refVar,reg,t)
+  )
+;
+
+
+* aggregate BRICK variables to reference variable
+
+q_refVals(refVarExists(ref,refVar,reg,t))..
+  v_refVals(ref,refVar,reg,t)
+  =e=
+!! AUTOCODE.insertRefValEqn
+!! Don't edit by hand, code is generated by R script
+!! AUTOCODE_end.insertRefValEqn
+;
+
 
 
 
@@ -745,63 +706,19 @@ q_dwelSize_Odyssee(refVar,reg,t)$refVarExists("Odyssee_dwelSize",refVar,reg,t)..
   sum(refMap_Odyssee_dwelSize(refVar,var,typ),
     sum((state,loc,inc),
       sum(vinExists(t,vin),
-        v_stock("dwel",state,vin,reg,loc,typ,inc,t)
+        v_stock("num",state,vin,reg,loc,typ,inc,t)
       )$sameas(var,"stock")
       +
-      v_construction("dwel",state,reg,loc,typ,inc,t)$sameas(var,"construction")
+      v_construction("num",state,reg,loc,typ,inc,t)$sameas(var,"construction")
     )
   )
 ;
 
 
-* vintage shares in stock
-q_vinShare_EUBDB(refVar,reg,t)$refVarExists("EUBDB_vintage",refVar,reg,t)..
-  sum(refMap_EUBDB_vintage(refVar,vin,typ),
-    sum((state,loc,inc),
-      v_stock("area",state,vin,reg,loc,typ,inc,t)$vinExists(t,vin) !! EUBDB references dwellings, temporary change
-    )
-  )
-  =e=
-  v_vinShare_EUBDB(refVar,reg,t)
-  *
-  sum(typ$(sum(refMap_EUBDB_vintage(refVar,vin,typ), 1) gt 0),
-    sum((state,vin2,loc,inc),
-      v_stock("area",state,vin2,reg,loc,typ,inc,t)$vinExists(t,vin2) !! EUBDB references dwellings, temporary change
-    )
-  )
-;
 
 
-* heating system shares
-q_heatingShare_Odyssee(refVar,reg,t)$refVarExists("Odyssee_heatingShare",refVar,reg,t)..
-  sum(refMap_Odyssee_heatingShare(refVar,typ,hs),
-    sum((bs,vin,loc,inc)$vinExists(t,vin),
-      v_stock("area",bs,hs,vin,reg,loc,typ,inc,t)$vinExists(t,vin) !! Odyssee references dwellings, temporary change
-    )
-  )
-  =e=
-  v_heatingShare_Odyssee(refVar,reg,t)
-  *
-  sum(typ$(sum(refMap_Odyssee_heatingShare(refVar,typ,hs), 1) gt 0),
-    sum((state,vin,loc,inc)$vinExists(t,vin),
-      v_stock("area",state,vin,reg,loc,typ,inc,t) !! Odyssee references dwellings, temporary change
-    )
-  )
-;
 
-q_heatingShare_IDEES(refVar,reg,t)$refVarExists("IDEES_heatingShare",refVar,reg,t)..
-  sum(refMap_IDEES_heatingShare(refVar,hs),
-    sum((bs,vin,loc,typ,inc)$vinExists(t,vin),
-      v_stock("area",bs,hs,vin,reg,loc,typ,inc,t)$vinExists(t,vin) !! IDEES references households, temporary change
-    )
-  )
-  =e=
-  v_heatingShare_IDEES(refVar,reg,t)
-  *
-  sum((state,vin,loc,typ,inc)$vinExists(t,vin),
-    v_stock("area",state,vin,reg,loc,typ,inc,t) !! IDEES references households, temporary change
-  )
-;
+
 
 
 * subsectoral renovation rate
@@ -823,6 +740,23 @@ q_renRate_EuropeanCommissionRenovation(refVar,reg,t)$refVarExists("EuropeanCommi
       v_stock("area",state,vin,reg,loc,typ,inc,t) !! EuropeanCommissionRenovation references dwellings, temporary change
     )
   )
+;
+
+
+*** TEST -----------------------------------------------------------------------
+
+equation q_testCon(qty,bs,hs,reg,loc,typ,inc);
+q_testCon(q,state,subs)..
+  sum(tinit, v_construction(q,state,subs,tinit))
+  =l=
+  sum(tinit, v_construction(q,state,subs,tinit+1))
+;
+
+equation q_testRen(qty,bs,hs,bsr,hsr,vin,reg,loc,typ,inc);
+q_testRen(q,ren,vin,subs)..
+  sum(tinit, v_renovation(q,ren,vin,subs,tinit))
+  =l=
+  sum(tinit, v_renovation(q,ren,vin,subs,tinit+1))
 ;
 
 $endif.matching

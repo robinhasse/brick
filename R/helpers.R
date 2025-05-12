@@ -12,7 +12,7 @@
 #' @importFrom gamstransfer SpecialValues
 
 .explicitZero <- function(x, value = "value") {
-  x[unlist(lapply(x[[value]] == 0, isTRUE)), value] <- SpecialValues[["EPS"]]
+  x[.isTRUE(x[[value]] == 0), value] <- SpecialValues[["EPS"]]
   return(x)
 }
 
@@ -43,4 +43,81 @@
     x <- semi_join(x, f, by = colnames(f))
   }
   x
+}
+
+
+
+#' Create reference mapping name
+#'
+#' @author Robin Hasse
+#'
+#' @param ref character, reference name
+#' @param file file extension appended unless set to \code{FALSE}
+#' @returns character with reference mapping name
+
+.refMapName <- function(ref, file = FALSE) {
+  name <- paste0("refMap_", ref)
+  if (!isFALSE(file)) {
+    name <- paste(name, file, sep = ".")
+  }
+  return(name)
+}
+
+
+
+#' Extract elements that are unique to gams
+#'
+#' Wrapper around \code{unique} that also drops elements that differ in cases
+#' but are identical to gams as it is case-insensitive.
+#'
+#' @author Robin Hasse
+#'
+#' @param x a vector or a data frame
+#' @returns an object of the same kind but possibly fewer elements. Vectors can
+#'   be shorter and data frames can have fewer rows
+
+.unique <- function(x) {
+  x <- unique(x)
+  x <- if (is.data.frame(x)) {
+    x[!duplicated(apply(x, 2, tolower)), ]
+  } else {
+    x[!duplicated(tolower(x))]
+  }
+  return(x)
+}
+
+
+
+#' Insert element between each element of a vector
+#'
+#' @author Robin Hasse
+#'
+#' @param x vector
+#' @param insert element to insert
+#' @returns vector of length \code{length(x) * 2 - 1}
+
+.insertBetween <- function(x, insert) {
+  if (!is.vector(x)) {
+    stop("'x' has to be a vector.")
+  }
+  if (length(insert) != 1) {
+    stop("'insert' has to be of length 1.")
+  }
+  result <- c(rbind(x, insert))
+  result[-length(result)]
+}
+
+
+
+#' Test if vector elements are TRUE
+#'
+#' Perform \code{isTRUE} on each vecotr element
+#'
+#' @author Robin Hasse
+#'
+#' @param x vector
+#' @returns logical vector
+
+.isTRUE <- function(x) {
+  unlist(lapply(x, isTRUE))
 }
