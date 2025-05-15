@@ -24,6 +24,9 @@
 #'
 #' @importFrom gamstransfer Container
 #' @importFrom utils write.table
+#' @importFrom dplyr .data %>% mutate filter select group_by across all_of
+#'   ungroup reframe group_modify
+#' @importFrom tidyr replace_na
 #' @export
 
 createCalibrationTarget <- function(path, outDir) {
@@ -41,6 +44,53 @@ createCalibrationTarget <- function(path, outDir) {
 
 
 
+  # FUNCTIONS ------------------------------------------------------------------
+
+  joinVar <- function(x, v, var, by = NULL, valueSuffix = NULL) {
+    dataVar <- v[[var]]
+    names(dataVar)[names(dataVar) == "value"] <- paste0(var, valueSuffix)
+    cols <- intersect(names(x), names(dataVar))
+    cols <- c(cols[!cols %in% by], by)
+    dplyr::left_join(x, dataVar, by = cols)
+  }
+
+
+  # find renovation transition closest to average renovation while satisfying
+  # stock balances
+  correctRenovation <- function(x, key) {
+    identityMatrix <- diag(nrow(x))
+
+    stockBal <- c("Prev", "Next")
+
+    constraintMatrix <- do.call(cbind, lapply(stockBal, function(constraint) {
+      stats::model.matrix(
+        stats::reformulate(paste0("state", constraint), intercept = FALSE),
+        data = x
+      )
+    }))
+
+    constraintRhs <- do.call(c, lapply(stockBal, function(constraint) {
+      rhs <- unique(x[paste0(c("state", "rhs"), constraint)])
+      setNames(rhs[[2]], paste0("state", constraint, rhs[[1]]))
+    }))
+
+    # remove one constraint as it is linearly dependent on the others
+    constraints <- names(constraintRhs)[-which.max(constraintRhs)]
+    constraintRhs <- constraintRhs[constraints]
+    constraintMatrix <- constraintMatrix[, constraints]
+
+    r <- quadprog::solve.QP(Dmat = identityMatrix,
+                            dvec = x$estimate,
+                            Amat = cbind(constraintMatrix, identityMatrix),
+                            bvec = c(constraintRhs, rep(0, nrow(x))),
+                            meq = length(constraintRhs))
+
+    x$value <- pmax(0, r$solution)
+    x
+  }
+
+
+
   # READ DATA ------------------------------------------------------------------
 
   m <- Container$new(file.path(path, "output.gdx"))
@@ -50,6 +100,8 @@ createCalibrationTarget <- function(path, outDir) {
     right_join(periodMap, by = "ttotAgg") %>%
     group_by(across(all_of(c("ttotAgg", "vin")))) %>%
     summarise(dtVin = sum(.data$value), .groups = "drop")
+
+  renAllowed <- readSymbol(m, "renAllowed")
 
   vars <- c(
     stock = "v_stock",
@@ -81,24 +133,32 @@ createCalibrationTarget <- function(path, outDir) {
 
   # recalculate zero renovation flows that fulfil the stock balance
   v$renovation <- v$renovation %>%
+    rename(renovation = "value") %>%
+    semi_join(renAllowed, by = c("bs", "hs", "bsr", "hsr")) %>%
     left_join(dt, by = c(ttot = "ttotAgg")) %>%
     left_join(dtVin, by = c(ttot = "ttotAgg", "vin")) %>%
     # ttot are the aggregated periods from here on
-    mutate(dtVin = replace_na(.data$dtVin, 0),
+    mutate(across(all_of(c("bs", "hs", "bsr", "hsr")), as.character),
+           .bsr = ifelse(.data$bsr == "0", .data$bs, .data$bsr),
+           .hsr = ifelse(.data$hsr == "0", .data$hs, .data$hsr),
+           statePrev = paste(.data$bs, .data$hs),
+           stateNext = paste(.data$.bsr, .data$.hsr),
+           dtVin = replace_na(.data$dtVin, 0),
            ttotPrev = .data$ttot - .data$dt,
            untouched = .data$bsr == "0" & .data$hsr == "0") %>%
-    left_join(v$stock,
-              by = c("qty", "bs", "hs", "vin", "region", "loc", "typ", "inc", ttotPrev = "ttot"),
-              suffix = c("", "StockPrev")) %>%
-    left_join(v$construction,
-              by = c("qty", "bs", "hs", "region", "loc", "typ", "inc", "ttot"),
-              suffix = c("", "Construction"))  %>%
-    group_by(across(all_of(c("qty", "bs", "hs", "vin", "region", "loc", "typ", "inc", "ttot")))) %>%
-    mutate(value = ifelse(.data$untouched,
-                          .data$valueStockPrev / .data$dt +
-                            .data$valueConstruction * .data$dtVin / .data$dt -
-                            sum(.data$value[!.data$untouched]),
-                          .data$value)) %>%
+    joinVar(v, "stock", by = c(.bsr = "bs", .hsr = "hs"), valueSuffix = "Next") %>%
+    joinVar(v, "stock", by = c(ttotPrev = "ttot"), valueSuffix = "Prev") %>%
+    joinVar(v, "construction") %>%
+    joinVar(v, "demolition", by = c(.bsr = "bs", .hsr = "hs")) %>%
+    replace_na(list(stockPrev = 0)) %>%
+    mutate(rhsPrev = .data$stockPrev / .data$dt + .data$construction * .data$dtVin / .data$dt,
+           rhsNext = .data$stockNext / .data$dt + .data$demolition) %>%
+    group_by(across(all_of(setdiff(names(v$renovation), "value")))) %>%
+    mutate(estimate = ifelse(.data$untouched,
+                             .data$rhsPrev - sum(.data$renovation[!.data$untouched]),
+                             .data$renovation)) %>%
+    group_by(across(all_of(c("qty", "vin", "region", "loc", "typ", "inc", "ttot")))) %>%
+    group_modify(correctRenovation) %>%
     ungroup() %>%
     select(all_of(names(v$renovation)))
 
