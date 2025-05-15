@@ -291,7 +291,7 @@ q_stockBalNext(q,state(bs,hs),vin,subs,ttot)$(    vinExists(ttot,vin)
 * calculation of floor space demand
 * TODO: move this calculation to mredgebuildings
 
-q_housingDemand(subs,t)..
+q_housingDemand(subs(reg,loc,typ,inc),t)$typInSec(typ,"Res")..
   p_population(subs,t) * p_floorPerCap(subs,t)
   =l=
   sum(state,
