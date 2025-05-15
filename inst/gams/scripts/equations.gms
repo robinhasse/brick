@@ -240,7 +240,8 @@ q_statusQuoPref(subs,t)..
   p_statusQuoPref
   * sum((bs,hs,bsr,hsr,vin)$(    not(sameas(hs,hsr))
                              and not(sameas(hsr,"0"))
-                             and vinExists(t,vin)),
+                             and vinExists(t,vin)
+                             and renAllowed(bs,hs,bsr,hsr)),
     v_renovation("area",bs,hs,bsr,hsr,vin,subs,t)
   )
 ;
@@ -437,7 +438,8 @@ q_minDivConHS(bs,hs,subs,t)..
 
 
 * building shell choice in renovation
-q_minDivRenBS(state,bsr,hsr,vin,subs,t)$vinExists(t,vin)..
+q_minDivRenBS(state,bsr,hsr,vin,subs,t)$(    vinExists(t,vin)
+                                         and renAllowed(state,bsr,hsr))..
   v_renovation("area",state,bsr,hsr,vin,subs,t)
   =g=
   sum(bsr2,
@@ -447,7 +449,8 @@ q_minDivRenBS(state,bsr,hsr,vin,subs,t)$vinExists(t,vin)..
 ;
 
 * heating system choice in renovation
-q_minDivRenHS(state,bsr,hsr,vin,subs,t)$vinExists(t,vin)..
+q_minDivRenHS(state,bsr,hsr,vin,subs,t)$(    vinExists(t,vin)
+                                         and renAllowed(state,bsr,hsr))..
   v_renovation("area",state,bsr,hsr,vin,subs,t)
   =g=
   sum(hsr2,
@@ -463,7 +466,9 @@ q_minDivRenHS(state,bsr,hsr,vin,subs,t)$vinExists(t,vin)..
 
 q_maxRenRate(reg,t)..
   sum(state,
-    sum(stateFull(bsr,hsr)$(not(sameas(bsr,"0") and sameas(hsr,"0"))),
+    sum(stateFull(bsr,hsr)$(    not(sameas(bsr,"0")
+                            and sameas(hsr,"0"))
+                            and renAllowed(state,stateFull)),
       sum(vin$vinExists(t,vin),
         sum(loc, sum(typ, sum(inc,
           v_renovation("area",state,stateFull,vin,reg,loc,typ,inc,t)
@@ -550,7 +555,7 @@ q_flowVariation(varFlow,q,subs,t)$(ord(t) lt card(t))..
     sqr(v_flowVariationRen(q,ren,subs,t) / 8)  !! rescale to roughly match order of magnitude of other flows
   )$sameas(varFlow,"renovation")
   +
-  sum(state, 
+  sum(state,
     sqr(v_flowVariationDem(q,state,subs,t))
   )$sameas(varFlow,"demolition")
 ;
@@ -745,15 +750,15 @@ q_renRate_EuropeanCommissionRenovation(refVar,reg,t)$refVarExists("EuropeanCommi
 
 *** TEST -----------------------------------------------------------------------
 
-equation q_testCon(qty,bs,hs,reg,loc,typ,inc);
+equation q_testCon(qty,bs,hs,region,loc,typ,inc);
 q_testCon(q,state,subs)..
   sum(tinit, v_construction(q,state,subs,tinit))
   =l=
   sum(tinit, v_construction(q,state,subs,tinit+1))
 ;
 
-equation q_testRen(qty,bs,hs,bsr,hsr,vin,reg,loc,typ,inc);
-q_testRen(q,ren,vin,subs)..
+equation q_testRen(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc);
+q_testRen(q,ren,vin,subs)$renAllowed(ren)..
   sum(tinit, v_renovation(q,ren,vin,subs,tinit))
   =l=
   sum(tinit, v_renovation(q,ren,vin,subs,tinit+1))
