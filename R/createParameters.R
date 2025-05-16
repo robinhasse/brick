@@ -100,14 +100,24 @@ createParameters <- function(m, config, inputDir) {
 
   ## renovation ====
 
-  p_specCostRenTang <- readInput("f_costRenovation.cs4r",
-                                 c("ttot", "region", "bs", "hs", "bsr", "hsr",
-                                   "typ", "vin"),
+  p_specCostRenBsTang <- readInput("f_costRenovationBS.cs4r",
+                                 c("ttot", "region", "typ", "bs", "bsr", "vin"),
                                  inputDir) %>%
     toModelResolution(m) %>%
     .explicitZero()
-  p_specCostRen <- expandSets("cost", "bs", "hs", "bsr", "hsr", "vin", "region",
-                              "loc", "typ", "inc", "ttot", .m = m)
+  p_specCostRenBS <- expandSets("cost", "bs", "bsr", "vin", "region", "typ", "ttot", .m = m)
+
+  p_specCostRenHsTang <- readInput("f_costRenovationHS.cs4r",
+                                   c("ttot", "region", "hs", "hsr", "bs", "typ", "vin"),
+                                   inputDir) %>%
+    toModelResolution(m) %>%
+    .explicitZero()
+# TODO: continue here
+  p_specCostRenHS <- expandSets("cost", "bs", "hs", "bsr", "hsr", "vin", "region",
+                                "loc", "typ", "inc", "ttot", .m = m)
+
+
+
   p_specCostRenTang <- p_specCostRen %>%
     filter(.data[["cost"]] == "tangible") %>%
     left_join(p_specCostRenTang,

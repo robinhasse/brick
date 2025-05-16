@@ -69,12 +69,26 @@ q_ConCost(subs,t)..
 q_RenCost(subs,t)..
   v_RenCost(subs,t)
   =e=
-  sum(vin$vinExists(t,vin), sum(renAllowed,
-    v_renovation("area",renAllowed,vin,subs,t)
-    * sum(cost,
-        p_specCostRen(cost,renAllowed,vin,subs,t)
+  sum(vin$vinExists(t,vin),
+$ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE" !! TODO: this might be generalisable
+    sum(cost,
+      sum(renAllowedBS,
+        v_renovationBS("area",renAllowedBS,vin,subs,t)
+        * p_specCostRenBS(cost,renAllowedBS,vin,subs,t)
       )
-  ))
+      +
+      sum(renAllowedHS,
+        v_renovationHS("area",renAllowedHS,vin,subs,t)
+        * p_specCostRenHS(cost,renAllowedBS,vin,subs,t)
+      )
+    )
+$else.sequentialRen
+    sum((renAllowed, cost),
+      v_renovation("area",renAllowed,vin,subs,t)
+      * p_specCostRen(cost,renAllowed,vin,subs,t)
+    )
+$endif.sequentialRen
+  )
 ;
 
 
@@ -168,52 +182,74 @@ q_HeteroPrefCon(subs,t)..
 q_HeteroPrefRen(subs,t)..
   v_HeteroPrefRen(subs,t)
   =e=
-  sum(state, sum(vin$vinExists(t,vin),
-    1 / priceSensBS("renovation", subs)
-    * sum(bsr,
-        sum(hsr$renAllowed(state,bsr,hsr),
-          v_renovation("area",state,bsr,hsr,vin,subs,t)
-        )
-        * (
-          log(
-            sum(hsr$renAllowed(state,bsr,hsr),
-              v_renovation("area",state,bsr,hsr,vin,subs,t)
-            )
-            + epsilon
-          )
-          - 1
-        )
-      )
-    + 1 / priceSensHS("renovation", subs)
+  sum((state,vinExists(t,vin)),
+      v_EntropyRenBS(state,vin,subs,t) / priceSensBS("renovation",subs)
+    + v_EntropyRenHS(state,vin,subs,t) / priceSensHS("renovation",subs)
+
+  )
+;
+
+q_EntropyRenBS(state,vin,subs,t)$vinExists(t,vin)..
+  v_EntropyRenBS(state,vin,subs,t)
+  =e=
+  sum(renAllowedBS(state,bsr),
+    v_renovationBS("area",state,bsr,vin,subs,t)
     * (
-      sum(bsr,
-        sum(hsr$renAllowed(state,bsr,hsr),
-          v_renovation("area",state,bsr,hsr,vin,subs,t)
-          * (
-            log(
-              v_renovation("area",state,bsr,hsr,vin,subs,t)
-              + epsilon
-            )
-            - 1
-          )
-        )
+      log(
+        v_renovationBS("area",state,bsr,vin,subs,t)
+        + epsilon
       )
-      - sum(bsr,
-          sum(hsr$renAllowed(state,bsr,hsr),
-            v_renovation("area",state,bsr,hsr,vin,subs,t)
-          )
-          * (
-            log(
-              sum(hsr$renAllowed(state,bsr,hsr),
-                v_renovation("area",state,bsr,hsr,vin,subs,t)
-              )
-              + epsilon
-            )
-            - 1
-          )
-      )
+      - 1
     )
-  ))
+  )
+;
+
+
+q_EntropyRenHS(state,vin,subs,t)$vinExists(t,vin)..
+  v_EntropyRenHS(state,vin,subs,t)
+  =e=
+$ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
+  sum(renAllowedHS(state,hsr),
+    v_renovationHS("area",state,hsr,vin,subs,t)
+    * (
+      log(
+        v_renovationHS("area",state,hsr,vin,subs,t)
+        + epsilon
+      )
+      - 1
+    )
+  )
+$else.sequentialRen
+  sum(renAllowed,
+    v_renovation("area",renAllowed,vin,subs,t)
+    * (
+      log(
+        v_renovation("area",renAllowed,vin,subs,t)
+        + epsilon
+      )
+      - 1
+    )
+  )
+  - 
+  v_EntropyRenBS(state,vin,subs,t)
+$endif.sequentialRen
+;
+
+
+q_renovationBS(q,state,bsr,vin,subs,t)$vinExists(t,vin)..
+  v_renovationBS(q,state,bsr,vin,subs,t)
+  =e=
+  sum(renAllowed(state,bsr,hsr),
+    v_renovation(q,state,bsr,hsr,vin,subs,t)
+  )
+;
+
+q_renovationHS(q,state,hsr,vin,subs,t)$vinExists(t,vin)..
+  v_renovationHS(q,state,hsr,vin,subs,t)
+  =e=
+  sum(renAllowed(state,bsr,hsr),
+    v_renovation(q,state,bsr,hsr,vin,subs,t)
+  )
 ;
 
 
@@ -238,11 +274,11 @@ q_statusQuoPref(subs,t)..
   v_statusQuoPref(subs,t)
   =e=
   p_statusQuoPref
-  * sum((bs,hs,bsr,hsr,vin)$(    not(sameas(hs,hsr))
-                             and not(sameas(hsr,"0"))
-                             and vinExists(t,vin)
-                             and renAllowed(bs,hs,bsr,hsr)),
-    v_renovation("area",bs,hs,bsr,hsr,vin,subs,t)
+  * sum((bs,hs,hsr,vin)$(    not(sameas(hs,hsr))
+                         and not(sameas(hsr,"0"))
+                         and vinExists(t,vin)
+                         and renAllowedHS(bs,hs,hsr)),
+    v_renovationHS("area",bs,hs,hsr,vin,subs,t)
   )
 ;
 
@@ -267,6 +303,7 @@ q_stockBalPrev(q,state,vin,subs,ttot)$(    vinExists(ttot,vin)
     )
 ;
 
+
 * Renovation flow in time step t either go into stock of next time step or
 * demolition
 
@@ -284,6 +321,52 @@ q_stockBalNext(q,state(bs,hs),vin,subs,ttot)$(    vinExists(ttot,vin)
       )
     )
 ;
+
+
+
+*** building stock balance (sequential renovation) -----------------------------
+
+* Previous stock and new construction within current time step t go into flow of
+* building shell renovation
+
+q_stockBal1(q,state,vin,subs,ttot)$(    vinExists(ttot,vin)
+                                    and t(ttot))..
+  v_stock(q,state,vin,subs,ttot-1)$vinExists(ttot-1,vin)
+  + v_construction(q,state,subs,ttot) * p_dtVin(ttot,vin)
+  =e=
+  sum(renAllowedBS(state,bsr),
+      v_renovationBS(q,state,bsr,vin,subs,ttot)
+  ) * p_dt(ttot)
+;
+
+
+* Flow of building shell renovation goes into flow of heating system replacement
+
+q_stockBal2(q,bs,hs,vin,subs,t)$vinExists(t,vin)..
+  sum(renAllowedBS(bs2,hs,bsr)$(   sameas(bs,bsr)
+                                or (sameas(bs,bs2) and sameas(bsr,"0"))),
+    v_renovationBS(q,bs2,hs,bsr,vin,subs,t)
+  )
+  =e=
+  sum(renAllowedHS(bs,hs,hsr),
+    v_renovationHS(q,bs,hs,hsr,vin,subs,t)
+  )
+;
+
+
+* Flow of heating system replacement either goes into stock of next time step or
+* demolition
+
+q_stockBal3(q,bs,hs,vin,subs,t)$vinExists(t,vin)..
+  sum(renAllowedHS(bs,hs2,hsr)$(   sameas(hs,hsr)
+                                or (sameas(hs,hs2) and sameas(hsr,"0"))),
+    v_renovationHS(q,bs,hs2,hsr,vin,subs,t)
+  ) * p_dt(t)
+  =e=
+  v_stock(q,bs,hs,vin,subs,t)
+  + v_demolition(q,bs,hs,vin,subs,t) * p_dt(t)
+;
+
 
 
 *** floor space demand ---------------------------------------------------------
@@ -332,8 +415,8 @@ $endif.earlydemolition
 * renovation) until t requires.
 
 * building shell
-q_buildingShellLifeTime(q,bs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot,vin)
-                                                              and t(ttot))..
+q_lifeTimeBS(q,bs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot,vin)
+                                                   and t(ttot))..
   sum(hs,
     sum(ttot2$(    ttot2.val le ttot.val
                !!and p_shareRenBS(reg,ttot2 + 1,ttot) < 1
@@ -341,9 +424,8 @@ q_buildingShellLifeTime(q,bs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot
       p_dt(ttot2)
       * (
         v_demolition(q,bs,hs,vin,subs,ttot2)
-        + sum(stateFull(bsr,hsr)$(    renAllowed(bs,hs,stateFull)
-                                  and not sameas(bsr,"0")),
-            v_renovation(q,bs,hs,stateFull,vin,subs,ttot2)
+        + sum(renAllowedBS(bs,hs,bsr)$(not sameas(bsr,"0")),
+            v_renovationBS(q,bs,hs,bsr,vin,subs,ttot2)
           )
         )
     )
@@ -357,11 +439,14 @@ q_buildingShellLifeTime(q,bs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot
                and vinExists(ttot2,vin)),
       p_shareRenBS(reg,ttot2,ttot)
       * (
-        sum(hs(hsr), v_construction(q,bs,hs,subs,ttot2)) * p_dtVin(ttot2,vin)
-        + sum(state$renAllowed(state,bs,hsr),
-            v_renovation(q,state,bs,hsr,vin,subs,ttot2) * p_dt(ttot2)
-          )
+        sum(hs(hsr),
+          v_construction(q,bs,hs,subs,ttot2)
+        ) * p_dtVin(ttot2,vin)
+        + 
+        sum(renAllowedBS(state,bs),
+          v_renovationBS(q,state,bs,vin,subs,ttot2) * p_dt(ttot2)
         )
+      )
       +
       p_shareRenBSinit(reg,ttot2,ttot)
       * sum(hs(hsr), v_stock(q,bs,hs,vin,subs,ttot2)$(tinit(ttot2)))
@@ -371,8 +456,8 @@ q_buildingShellLifeTime(q,bs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot
 
 
 * heating system
-q_heatingSystemLifeTime(q,hs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot,vin)
-                                                            and t(ttot))..
+q_lifeTimeHS(q,hs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot,vin)
+                                                   and t(ttot))..
   sum(bs,
     sum(ttot2$(    ttot2.val le ttot.val
                !!and p_shareRenHS(hs,reg,typ,ttot2 + 1,ttot) < 1
@@ -380,9 +465,8 @@ q_heatingSystemLifeTime(q,hs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot
       p_dt(ttot2)
       * (
         v_demolition(q,bs,hs,vin,subs,ttot2)
-        + sum(stateFull(bsr,hsr)$(    renAllowed(bs,hs,stateFull)
-                                  and not sameas(hsr,"0")),
-            v_renovation(q,bs,hs,bsr,hsr,vin,subs,ttot2)
+        + sum(renAllowedHS(bs,hs,hsr)$(not sameas(hsr,"0")),
+          v_renovationHS(q,bs,hs,hsr,vin,subs,ttot2)
         )
       )
     )
@@ -397,11 +481,13 @@ q_heatingSystemLifeTime(q,hs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot
       p_shareRenHS(hs,reg,typ,ttot2,ttot)
       * (
         sum(bs(bsr),
-            v_construction(q,bs,hs,subs,ttot2))
+          v_construction(q,bs,hs,subs,ttot2)
+        )
         * p_dtVin(ttot2,vin)
         +
-        sum(state$renAllowed(state,bsr,hs),
-            v_renovation(q,state,bsr,hs,vin,subs,ttot2))
+        sum(renAllowedHS(state,hs),
+          v_renovationHS(q,state,hs,vin,subs,ttot2)
+        )
         * p_dt(ttot2)
       )
       +
@@ -507,11 +593,26 @@ q_dwelSizeConstruction(subs,ttot)..
   * sum(state, v_construction("num",state,subs,ttot))
 ;
 
-q_dwelSizeRenovation(vin,subs,ttot)$vinExists(ttot,vin)..
-  sum(ren(renAllowed), v_renovation("area",ren,vin,subs,ttot))
+q_dwelSizeRenovationBS(vin,subs,ttot)$vinExists(ttot,vin)..
+  sum(renAllowedBS(state,bsr)$(not sameas(bsr,"0")), 
+    v_renovationBS("area",renAllowedBS,vin,subs,ttot)
+  )
   =e=
-  v_dwelSizeRenovation(vin,subs,ttot)
-  * sum(ren(renAllowed), v_renovation("num",ren,vin,subs,ttot))
+  v_dwelSizeRenovationBS(vin,subs,ttot)
+  sum(renAllowedBS(state,bsr)$(not sameas(bsr,"0")), 
+    v_renovationBS("area",renAllowedBS,vin,subs,ttot)
+  )
+;
+
+q_dwelSizeRenovationHS(vin,subs,ttot)$vinExists(ttot,vin)..
+  sum(renAllowedHS(state,hsr)$(not sameas(hsr,"0")), 
+    v_renovationHS("area",renAllowedHS,vin,subs,ttot)
+  )
+  =e=
+  v_dwelSizeRenovationHS(vin,subs,ttot)
+  sum(renAllowedHS(state,hsr)$(not sameas(hsr,"0")), 
+    v_renovationHS("area",renAllowedHS,vin,subs,ttot)
+  )
 ;
 
 q_dwelSizeDemolition(vin,subs,ttot)$vinExists(ttot,vin)..
@@ -577,6 +678,22 @@ q_flowVariationRen(q,ren,subs,t)$(    (ord(t) lt card(t))
   =e=
   (  sum(vinExists(t,vin),   v_renovation(q,ren,vin,subs,t))
    - sum(vinExists(t+1,vin), v_renovation(q,ren,vin,subs,t+1)))
+  / p_dt(t+1)
+;
+
+q_flowVariationRenBS(q,renAllowedBS,subs,t)$(ord(t) lt card(t))..
+  v_flowVariationRenBS(q,renAllowedBS,subs,t)
+  =e=
+  (  sum(vinExists(t,vin),   v_renovationBS(q,renAllowedBS,vin,subs,t))
+   - sum(vinExists(t+1,vin), v_renovationBS(q,renAllowedBS,vin,subs,t+1)))
+  / p_dt(t+1)
+;
+
+q_flowVariationRenHS(q,renAllowedHS,subs,t)$(ord(t) lt card(t))..
+  v_flowVariationRenBS(q,renAllowedHS,subs,t)
+  =e=
+  (  sum(vinExists(t,vin),   v_renovationHS(q,renAllowedHS,vin,subs,t))
+   - sum(vinExists(t+1,vin), v_renovationHS(q,renAllowedHS,vin,subs,t+1)))
   / p_dt(t+1)
 ;
 
@@ -731,10 +848,9 @@ q_dwelSize_Odyssee(refVar,reg,t)$refVarExists("Odyssee_dwelSize",refVar,reg,t)..
 * assume this value for all periods here
 q_renRate_EuropeanCommissionRenovation(refVar,reg,t)$refVarExists("EuropeanCommissionRenovation",refVar,reg,t)..
   sum(refMap_EuropeanCommissionRenovation(refVar,typ),
-    sum((ren,vin,loc,inc)$(    renEffective(ren)
-                           and renAllowed(ren)
-                           and vinExists(t,vin)),
-      v_renovation("area",ren,vin,reg,loc,typ,inc,t) !! EuropeanCommissionRenovation references dwellings, temporary change
+    sum((state,bsr,vin,loc,inc)$(    vinExists(t,vin)
+                                 and not sameas(bsr,"0")),
+      v_renovationBS("area",state,bsr,vin,reg,loc,typ,inc,t) !! EuropeanCommissionRenovation references dwellings, temporary change
     )
   )
   =e=
@@ -762,6 +878,20 @@ q_testRen(q,ren,vin,subs)$renAllowed(ren)..
   sum(tinit, v_renovation(q,ren,vin,subs,tinit))
   =l=
   sum(tinit, v_renovation(q,ren,vin,subs,tinit+1))
+;
+
+equation q_testRenBS(qty,bs,hs,bsr,vin,region,loc,typ,inc);
+q_testRenBS(q,renAllowedBS,vin,subs)..
+  sum(tinit, v_renovationBS(q,renAllowedBS,vin,subs,tinit))
+  =l=
+  sum(tinit, v_renovationBS(q,renAllowedBS,vin,subs,tinit+1))
+;
+
+equation q_testRenHS(qty,bs,hs,hsr,vin,region,loc,typ,inc);
+q_testRenBS(q,renAllowedHS,vin,subs)..
+  sum(tinit, v_renovationHS(q,renAllowedHS,vin,subs,tinit))
+  =l=
+  sum(tinit, v_renovationHS(q,renAllowedHS,vin,subs,tinit+1))
 ;
 
 $endif.matching

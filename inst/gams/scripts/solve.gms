@@ -9,14 +9,22 @@ model fullSysLP "full system linear optimisation"
   q_RenCost
   q_OpeCost
   q_DemCost
+$ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
+  q_stockBal1
+  q_stockBal2
+  q_stockBal3
+$else.sequentialRen
   q_stockBalNext
   q_stockBalPrev
+  q_renovationBS
+  q_renovationHS
+$endif.sequentialRen
   q_housingDemand
   q_buildingLifeTime
 $ifthenE.shell (not(sameas("%ignoreShell%","TRUE")))
-  q_buildingShellLifeTime
+  q_lifeTimeBS
 $endif.shell
-  q_heatingSystemLifeTime
+  q_lifeTimeHS
   q_SysHeteroPref
   q_zeroHeteroPrefCon
   q_zeroHeteroPrefRen
@@ -38,14 +46,24 @@ model fullSysNLP "full system linear optimisation"
   q_RenCost
   q_OpeCost
   q_DemCost
+$ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
+  q_stockBal1
+  q_stockBal2
+  q_stockBal3
+$else.sequentialRen
   q_stockBalNext
   q_stockBalPrev
+  q_renovationBS
+  q_renovationHS
+$endif.sequentialRen
   q_housingDemand
   q_buildingLifeTime
 $ifthenE.shell (not(sameas("%ignoreShell%","TRUE")))
-  q_buildingShellLifeTime
+  q_lifeTimeBS
 $endif.shell
-  q_heatingSystemLifeTime
+  q_lifeTimeHS
+  q_EntropyRenBS
+  q_EntropyRenHS
   q_SysHeteroPref
   q_statusQuoPref
   q_HeteroPrefCon
@@ -63,14 +81,28 @@ model matching "find stock and flows that best match reference sources"
   q_refDeviation
   q_refVals
   q_refValsBasic
+$ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
+  q_stockBal1
+  q_stockBal2
+  q_stockBal3
+  q_flowVariationRenBS
+  q_flowVariationRenHS
+  q_testRenBS
+  q_testRenHS
+$else.sequentialRen
   q_stockBalNext
   q_stockBalPrev
+  q_renovationBS
+  q_renovationHS
+  q_flowVariationRen
+  q_testRen
+$endif.sequentialRen
   q_housingDemand
   q_buildingLifeTime !! TODO: make this a matching target, not a hard constraint
 $ifthenE.shell (not(sameas("%ignoreShell%","TRUE")))
-  q_buildingShellLifeTime
+  q_lifeTimeBS
 $endif.shell
-  q_heatingSystemLifeTime
+  q_lifeTimeHS
 *  q_dwelSizeStock
 *  q_dwelSizeConstruction
 *  q_dwelSize_Odyssee
@@ -79,11 +111,10 @@ $endif.shell
   q_flowVariation
   q_flowVariationTot
   q_flowVariationCon
-  q_flowVariationRen
   q_flowVariationDem
 *  q_test
   q_testCon
-  q_testRen
+  
   /
 ;
 $endif.matching
