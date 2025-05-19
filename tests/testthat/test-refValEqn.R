@@ -1,17 +1,4 @@
-findSameas <- function(code, ref) {
-  pattern <- paste0("\\$sameas\\(ref,\"", ref, "\"\\)")
-  any(grepl(pattern, code, ignore.case = TRUE))
-}
-
-
-usesAnotherRefMap <- function(code, ref) {
-  removePattern <- paste0(.refMapName(ref), "\\(")
-  codeWithoutRefMap <- gsub(removePattern, "", code)
-  any(grepl(.refMapName(""), codeWithoutRefMap, ignore.case = TRUE))
-}
-
-
-test_that("All .gms scripts in inst/gams/matching comply with rules", {
+test_that(".gms scripts in inst/gams/matching are independent", {
 
   folder <- piamutils::getSystemFile("gams", "matching", package = "brick")
   scripts <- list.files(folder, pattern = "\\.gms$")
@@ -21,7 +8,11 @@ test_that("All .gms scripts in inst/gams/matching comply with rules", {
     ref <- sub("^(.+)\\.gms$", "\\1", script)
     code <- readLines(file, warn = FALSE)
 
-    expect_true(findSameas(code, !!ref))
-    expect_false(usesAnotherRefMap(code, !!ref))
+    sameasPattern <- paste0("\\$sameas\\(ref,\"", ref, "\"\\)")
+    refMapPattern <- paste0(.refMapName(ref), "\\(")
+    codeWithoutRefMap <- gsub(refMapPattern, "", code)
+
+    expect_match(code, sameasPattern, all = FALSE, ignore.case = TRUE)
+    expect_no_match(codeWithoutRefMap, .refMapName(""), ignore.case = TRUE)
   }
 })

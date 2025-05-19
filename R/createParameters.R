@@ -275,10 +275,25 @@ createParameters <- function(m, config, inputDir) {
     description = "probability of a building having reached its end of life"
   )
 
+  # share of stock from previous time step that has to be demolished as it
+  # reaches its end of life
   p_shareDem <- expandSets("vin", "region", "typ", "ttot", .m = m) %>%
+    left_join(vintages, by = "vin") %>%
+    inner_join(vinExists,
+               by = c("vin", "ttot")) %>%
+    left_join(lt, by = c("region", "typ"), relationship = "many-to-many") %>%
+    pivot_wider(names_from = "variable") %>%
+    mutate(tcon = (.data$from + pmin(.data$ttot, .data$to)) / 2,
+           p = (1 - config[["ltEternalShare"]]) *
+             pweibull(.data$ttot - .data$tcon,
+                      .data$shape,
+                      .data$scale * config[["ltFactor"]])) %>%
     left_join(readSymbol(p_dt) %>%
                 rename(dt = "value"),
               by = "ttot") %>%
+    group_by(across(all_of(c("vin", "region", "typ")))) %>%
+    arrange(.data$ttot) %>%
+    mutate(value = c(0, diff(.data$p)) / (1 - lag(.data$p, default = 0)) / .data$dt) %>%
     select("vin", "region", "typ", "ttot", "value")
   p_shareDem <- m$addParameter(
     name = "p_shareDem",

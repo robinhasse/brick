@@ -198,7 +198,7 @@ priceSens:
 switches:
 
   ### type of model run ###
-  # Some gams runs during calibration can be declared `scenario`. The switch 
+  # Some gams runs during calibration can be declared `scenario`. The switch
   #  CALIBRATIONMETHOD is the definite identification of calibration runs.
     # scenario:    run of future scenario
     # calibration: calibration to historic stock or flows

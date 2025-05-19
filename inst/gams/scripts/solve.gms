@@ -65,6 +65,7 @@ model matching "find stock and flows that best match reference sources"
   q_refValsBasic
   q_stockBalNext
   q_stockBalPrev
+  q_housingDemand
   q_buildingLifeTime !! TODO: make this a matching target, not a hard constraint
 $ifthenE.shell (not(sameas("%ignoreShell%","TRUE")))
   q_buildingShellLifeTime
