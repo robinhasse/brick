@@ -48,4 +48,3 @@ getDimMap <- function(dim, granularity = NULL) {
   m <- lapply(mapping, madrat::toolGetMapping, type = "sectoral", where = "brick")
   if (is.null(names(mapping)) && length(mapping) == 1) m[[1]] else m
 }
-

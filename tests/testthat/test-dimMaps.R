@@ -18,12 +18,12 @@ test_that("dimension aggregation mappings are consistent with dimension mappings
 })
 
 test_that("there are consistent dimension aggregation mappings for the granularity mapping", {
-  granularity.csv <- .getMapping("granularity.csv")
+  granularityMap <- .getMapping("granularity.csv")
   aggMaps <- .getMapping("agg")
-  dims <- setdiff(names(granularity.csv), "granularity")
+  dims <- setdiff(names(granularityMap), "granularity")
   dimsWithAggMap <- names(aggMaps)
   for (dim in dims) {
     expect_in(!!dim, dimsWithAggMap)
-    expect_in(granularity.csv[[!!dim]], c(NA, aggMaps[[!!dim]][["dimGranularity"]]))
+    expect_in(granularityMap[[!!dim]], c(NA, aggMaps[[!!dim]][["dimGranularity"]]))
   }
 })

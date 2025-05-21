@@ -32,7 +32,8 @@ makeHandle <- function(lst, type = c("gams", "model")) {
     paste(
       paste0(
         handleSign,
-        pmap(list(transf(names(lst)), lst[]), paste, sep = "=")),
+        pmap(list(transf(names(lst)), lst[]), paste, sep = "=")
+      ),
       collapse = " "
     )
   } else {
