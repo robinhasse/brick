@@ -1,7 +1,7 @@
 ---
 title: matching
 reportingTemplate:
-inputRevision: "0.8.3com2"
+granularity: lowGran
 # scope and resolution
 endyear: 2023
 periods: [1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
@@ -10,8 +10,6 @@ periods: [1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
 startyear: 2000
 regionmapping: [regionmappingEUplus.csv, mredgebuildings]
 # EU27
-# regions: "DEU"
-# regions: ["DEU", "ESP", "FRA", "ITA", "NLD", "POL"]
 regions: ["AUT", "BEL", "BGR", "CYP", "CZE", "DEU", "DNK", "ESP", "EST", "FIN",
           "FRA", "GRC", "HRV", "HUN", "IRL", "ITA", "LTU", "LUX", "LVA", "MLT",
           "NLD", "POL", "PRT", "ROU", "SVK", "SVN", "SWE"]

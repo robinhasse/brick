@@ -36,7 +36,7 @@ createParameters <- function(m, config, inputDir) {
     description = "length of time step in yr"
   )
 
-  vintages <- getBrickMapping("vintage.csv")
+  vintages <- getDimMap("vin", config[["granularity"]])
   p_dtVin <- expandSets("ttot", "vin", .m = m) %>%
     left_join(vintages, by = "vin") %>%
     left_join(dt, by = "ttot") %>%
@@ -279,8 +279,6 @@ createParameters <- function(m, config, inputDir) {
   # reaches its end of life
   p_shareDem <- expandSets("vin", "region", "typ", "ttot", .m = m) %>%
     left_join(vintages, by = "vin") %>%
-    inner_join(vinExists,
-               by = c("vin", "ttot")) %>%
     left_join(lt, by = c("region", "typ"), relationship = "many-to-many") %>%
     pivot_wider(names_from = "variable") %>%
     mutate(tcon = (.data$from + pmin(.data$ttot, .data$to)) / 2,
@@ -293,7 +291,8 @@ createParameters <- function(m, config, inputDir) {
               by = "ttot") %>%
     group_by(across(all_of(c("vin", "region", "typ")))) %>%
     arrange(.data$ttot) %>%
-    mutate(value = c(0, diff(.data$p)) / (1 - lag(.data$p, default = 0)) / .data$dt) %>%
+    mutate(value = (.data$p - lag(.data$p)) / (1 - lag(.data$p)) / .data$dt) %>%
+    inner_join(vinExists, by = c("vin", "ttot")) %>%
     select("vin", "region", "typ", "ttot", "value")
   p_shareDem <- m$addParameter(
     name = "p_shareDem",

@@ -28,6 +28,7 @@ Depends:
     madrat,
     magclass
 Imports:
+    digest,
     dplyr,
     ggplot2,
     gamstransfer (>= 3.0.1),

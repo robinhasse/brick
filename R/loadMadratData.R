@@ -35,10 +35,18 @@ loadMadratData <- function(config) {
     madratOld <- "noData"
   }
 
+  regionmapHash <- paste0(regionscode(regionmapping), "_")
+  granularityHash <- if (is.null(config[["granularity"]])) {
+    NULL
+  } else {
+    .argsHash(list(granularity = config[["granularity"]]), TRUE)
+  }
+
   # where to get new files from
   madratNew <- paste0("rev",
                       config[["inputRevision"]], "_",
-                      regionscode(regionmapping), "_",
+                      regionmapHash,
+                      granularityHash,
                       "brick.tgz")
 
   if (!setequal(madratNew, madratOld) || isTRUE(config[["forceDownload"]])) {
@@ -102,4 +110,36 @@ loadMadratData <- function(config) {
   }
 
   toolGetMapping(name, "regional", where)
+}
+
+
+
+
+
+#' Get hash for further arguments
+#'
+#' This is copied code from madrat to create the hash for additional arguments
+#' to `madrat::retrieveData` besides the regionmapping. This way, we can
+#' recreate the file name of the tgz file with the input data.
+#'
+#' Ideally, this should be an exported function of madrat rather than copied
+#' code.
+#'
+#' @param formals named list with arguments
+#' @param useLabels, logical, should be \code{TRUE} for now
+#' @returns character with hash
+#'
+#' @author Robin Hasse
+
+.argsHash <- function(formals, useLabels) {
+  if (length(formals) > 0) {
+    hashs <- digest::digest(formals, algo = getConfig("hash"))
+    if (useLabels) {
+      hashs <- toolCodeLabels(hashs)
+    }
+    argsHash <- paste0(hashs, "_")
+  } else {
+    argsHash <- NULL
+  }
+  return(argsHash)
 }

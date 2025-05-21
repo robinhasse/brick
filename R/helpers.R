@@ -121,3 +121,19 @@
 .isTRUE <- function(x) {
   unlist(lapply(x, isTRUE))
 }
+
+
+
+#' Pick lines from data.frame by indentifiers
+#'
+#' @param x data.frame
+#' @param ... <column> = <selectionElement>
+#' @returns data.frame with filtered rows without identifier columns
+
+.pick <- function(x, ...) {
+  lst <- list(...)
+  for (col in names(lst)) {
+    x <- x[x[[col]] %in% lst[[col]], setdiff(names(x), col), drop = FALSE]
+  }
+  return(x)
+}
