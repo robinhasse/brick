@@ -275,8 +275,37 @@ createParameters <- function(m, config, inputDir) {
     description = "probability of a building having reached its end of life"
   )
 
-  # share of stock from previous time step that has to be demolished as it
-  # reaches its end of life
+  # share of stock that has to be demolished as it reaches its end of life
+  .probDem <- function(ttot, from, to, shape, scale) {
+
+    if (ttot < from) return(0)
+
+    wb <- function(t) {
+      pweibull(t, shape, scale)
+    }
+    f1 <- function(t) {
+      lt <- t - (from - 1)
+      ifelse(lt > 0, wb(lt) / lt, 0)
+    }
+    f2 <- function(t) {
+      (wb(t - (from - 1)) - wb(t - to)) / (to - (from - 1))
+    }
+    p <- 0
+    p <- stats::integrate(f1, from, min(ttot, to))$value
+    p <- p + if (ttot > to) stats::integrate(f2, to, ttot)$value else 0
+    p
+  }
+
+  .pweibull <- function(lower, upper, shape, scale) {
+    if (upper == lower) return(0)
+    f <- function(x) pweibull(x, shape, scale)
+    stats::integrate(f, lower, upper)$value / (upper - lower)
+  }
+
+
+
+
+
   p_shareDem <- expandSets("vin", "region", "typ", "ttot", .m = m) %>%
     left_join(vintages, by = "vin") %>%
     left_join(lt, by = c("region", "typ"), relationship = "many-to-many") %>%
@@ -285,7 +314,21 @@ createParameters <- function(m, config, inputDir) {
            p = (1 - config[["ltEternalShare"]]) *
              pweibull(.data$ttot - .data$tcon,
                       .data$shape,
-                      .data$scale * config[["ltFactor"]])) %>%
+                      .data$scale * config[["ltFactor"]]),
+          #  p = (1 - config[["ltEternalShare"]]) *
+          #    unlist(Map(.pweibull,
+          #               lower = pmax(0, .data$ttot - .data$to),
+          #               upper = .data$ttot - .data$from + 1,
+          #               shape = .data$shape,
+          #               scale = .data$scale * config[["ltFactor"]])),
+           # p = (1 - config[["ltEternalShare"]]) *
+           #   unlist(Map(.probDem,
+               #          ttot = .data$ttot,
+               #          from = .data$from,
+               #          to = .data$to,
+               #          shape = .data$shape,
+               #          scale = .data$scale * config[["ltFactor"]])),
+           NULL) %>%
     left_join(readSymbol(p_dt) %>%
                 rename(dt = "value"),
               by = "ttot") %>%
