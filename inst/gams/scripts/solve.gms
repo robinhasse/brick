@@ -92,13 +92,6 @@ $endif.matching
 
 *** prepare solving ------------------------------------------------------------
 
-* filter subs
-$ifthen.filtersubs %FILTERSUBS% == "TRUE"
-subs(all_subs) = no;
-subs("DEU","rural","SFH","all") = yes;
-$endif.filtersubs
-
-
 * solvers
 option lp  = %solverLP%;
 option nlp = %solverNLP%;

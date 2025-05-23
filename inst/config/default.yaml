@@ -23,6 +23,12 @@ endyear: 2100
 # time steps on which to conduct the calibration
 calibperiods: NULL
 
+### granularity ###
+# name of the BRICK granularity setting
+  # NULL: full granularity according to inst/extdata/sectoral/dim_*.csv
+  # name: granularity setting, defined in inst/extdata/sectoral/granularity.csv
+granularity: onlyRes
+
 ### region mapping ###
 # file that maps countries to modelled regions
   # []: country-level resolution
@@ -91,7 +97,7 @@ tasks32: FALSE
 # data -------------------------------------------------------------------------
 
 ### input data revision ###
-inputRevision: "0.8.3"
+inputRevision: "0.8.4"
 
 ### force download ###
 # force the model to download new input data even though it seems unchanged
@@ -124,17 +130,15 @@ solverQCP: cplex
 
 ### population scenario ###
   # SSP1 - SSP5
-  # SSP2EU
   # SDP_EI, SDP_MC, SDP_RC
-popScenario: SSP2EU
+popScenario: SSP2
 
 ### floor space scenario ###
 # scenario for the floor space per capita
 # currently taken from EDGE-B
   # SSP1 - SSP5
-  # SSP2EU
   # SDP_EI, SDP_MC, SDP_RC
-fsScenario: SSP2EU
+fsScenario: SSP2
 
 ### ban heating systems ###
 # named list with last period of allowed installation
@@ -230,13 +234,6 @@ switches:
     # TRUE
     # FALSE
   EARLYDEMOLITION: FALSE
-
-  ### Filter Stock subsets ###
-  # select specific stock subset
-  # reduced problem
-    # FALSE: no filtering, consider all subsets
-    # e.g.: DEU.urban.MFH.all
-  FILTERSUBS: FALSE
 
   ### Calibration type ###
   # Calibration on which quantity?

@@ -67,15 +67,15 @@ startModel <- function(path, runReporting = TRUE) {
 
   checkGamsSuccess(path)
 
-  if (isTRUE(runReporting)) {
-    try(reportMif(path))
-  }
-
   plotSummary(path, NULL)
 
   if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
     plotRefDeviation(path)
     plotSummary(path, c("loc", "typ"))
+  }
+
+  if (isTRUE(runReporting)) {
+    try(reportMif(path))
   }
 
 }

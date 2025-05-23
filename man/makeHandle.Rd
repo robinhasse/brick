@@ -9,7 +9,7 @@ makeHandle(lst, type = c("gams", "model"))
 \arguments{
 \item{lst}{named list of flags}
 
-\item{type}{character, type of flags (either `"gams"` or `"model`)}
+\item{type}{character, type of flags (either `"gams"` or `"model"`)}
 }
 \value{
 character of flags

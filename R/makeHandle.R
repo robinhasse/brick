@@ -7,7 +7,7 @@
 #' are upper case flags and follow two minuses `--`.
 #'
 #' @param lst named list of flags
-#' @param type character, type of flags (either `"gams"` or `"model`)
+#' @param type character, type of flags (either `"gams"` or `"model"`)
 #' @returns character of flags
 #'
 #' @author Robin Hasse
@@ -21,6 +21,8 @@ makeHandle <- function(lst, type = c("gams", "model")) {
   handleSign <- switch(type, gams = "-", model = "--")
   transf <- switch(type, gams = tolower, model = toupper)
 
+  lst <- lst[!unlist(lapply(lst, is.null))]
+
   if (is.null(lst)) {
     return("")
   } else if (is.list(lst)) {
@@ -30,7 +32,8 @@ makeHandle <- function(lst, type = c("gams", "model")) {
     paste(
       paste0(
         handleSign,
-        pmap(list(transf(names(lst)), lst[]), paste, sep = "=")),
+        pmap(list(transf(names(lst)), lst[]), paste, sep = "=")
+      ),
       collapse = " "
     )
   } else {

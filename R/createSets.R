@@ -76,7 +76,7 @@ createSets <- function(m, config) {
 
   # Vintages -------------------------------------------------------------------
 
-  vintages <- getBrickMapping("vintage.csv")
+  vintages <- getDimMap("vin", config[["granularity"]])
 
   vin <- m$addSet(
     name = "vin",
@@ -101,7 +101,7 @@ createSets <- function(m, config) {
 
   ## building shell ====
 
-  bs <- getBrickMapping("buildingShell.csv") %>%
+  bs <- getBrickMapping("dim_bs.csv") %>%
     getElement("bs") %>%
     unique()
   if (config[["ignoreShell"]]) bs <- head(bs, 1)
@@ -120,7 +120,7 @@ createSets <- function(m, config) {
 
   ## heating system ====
 
-  hsMap <- getBrickMapping("heatingSystem.csv", "sectoral")
+  hsMap <- getBrickMapping("dim_hs.csv", "sectoral")
 
   hs <- hsMap %>%
     getElement("hs") %>%
@@ -164,7 +164,7 @@ createSets <- function(m, config) {
     description = "region"
   )
 
-  loc <- getBrickMapping("location.csv") %>%
+  loc <- getDimMap("loc", config[["granularity"]]) %>%
     getElement("loc") %>%
     unique()
   loc <- m$addSet(
@@ -173,13 +173,7 @@ createSets <- function(m, config) {
     description = "location of building (rural, urban)"
   )
 
-  typMap <- getBrickMapping("buildingType.csv")
-  # TODO: remove once dim maps are dynamic
-  if (config[["switches"]][["RUNTYPE"]] == "matching") {
-    typMap <- typMap %>%
-      rbind(data.frame(typ = "Com", subsector = "Com"))
-  }
-
+  typMap <- getDimMap("typ", config[["granularity"]])
   typ <- typMap %>%
     getElement("typ") %>%
     unique()
@@ -189,7 +183,7 @@ createSets <- function(m, config) {
     description = "type of residential building (SFH, MFH)"
   )
 
-  inc <- getBrickMapping("incomeQuantile.csv") %>%
+  inc <- getBrickMapping("dim_inc.csv") %>%
     getElement("inc") %>%
     unique()
   inc <- m$addSet(
@@ -241,9 +235,9 @@ createSets <- function(m, config) {
   ## Allowed renovations ====
 
   # no decline on energy ladder
-  ladderHs <- getBrickMapping("heatingSystem.csv") %>%
+  ladderHs <- getBrickMapping("dim_hs.csv") %>%
     select("hs", ladderHs = "energyLadder")
-  ladderBs <- getBrickMapping("buildingShell.csv") %>%
+  ladderBs <- getBrickMapping("dim_bs.csv") %>%
     select("bs", ladderBs = "energyLadder")
   renAllowed <- expandSets(bs, hs, bsr, hsr) %>%
     left_join(ladderHs, by = "hs") %>%

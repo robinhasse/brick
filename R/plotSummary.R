@@ -73,6 +73,10 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
   data <- lapply(vars, function(v) {
     var <- readSymbol(m, v)
 
+    if (!is.null(config[["startyear"]])) {
+      var <- var[var$ttot >= config[["startyear"]], ]
+    }
+
     if (showHistStock && v == "v_stock") {
       var[["historic"]] <- FALSE
       var <- readSymbol(m, "p_stockHist") %>%
@@ -129,7 +133,7 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
 
   ### heating system ####
 
-  hsMap <- getBrickMapping("heatingSystem.csv")
+  hsMap <- getBrickMapping("dim_hs.csv")
 
   fillColours[["hs"]] <- as.character(hsMap[["colour"]])
   fillLabels[["hs"]]  <- as.character(hsMap[["label"]])
@@ -140,13 +144,13 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
 
   ### vintage ####
 
-  vinMap <- getBrickMapping("vintage.csv")
+  vinMap <- getDimMap("vin", config[["granularity"]])
   fillColours[["vin"]] <- as.character(vinMap[["colour"]])
   fillLabels[["vin"]]  <- as.character(vinMap[["label"]])
   names(fillColours[["vin"]]) <- names(fillLabels[["vin"]]) <- as.character(vinMap[["vin"]])
 
   # rescale vintage map
-  vins <- getBrickMapping("vintage.csv") %>%
+  vins <- vinMap %>%
     filter(.data[["from"]] <= endyear) %>%
     getElement("vin")
   fillColours[["vin"]] <- fillColours[["vin"]][vins]
