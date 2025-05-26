@@ -276,21 +276,12 @@ $endif.nlp
 
 $elseIfE.fullSys (sameas("%RUNTYPE%","calibration"))and(sameas("%CALIBRATIONMETHOD%","optimization"))
 
-$macro extrapolateIntangCon sum(tcalib, \
-  p_specCostCalibCon(state, subs, tcalib)) / card(tcalib);
-
-$macro extrapolateIntangRen sum(tcalib, \
-  p_specCostCalibRen(state, stateFull, vin, subs, tcalib)) / card(tcalib);
-
-$macro extrapolateIntangRenVin sum((vinCalib, tcalib)$(ord(vinCalib) = card(vinCalib)), \
-  p_specCostCalibRen(state, stateFull, vinCalib, subs, tcalib)) / card(tcalib);
-
 *********************************************************************************
 *** Preparation of the calibration
 *********************************************************************************
 
 * measure stocks and flows in floor area
-q("dwel") = no;
+q("num") = no;
 q("area") = yes;
 
 $ifthenE.lp (sameas("%SOLVEPROBLEM%","lp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
