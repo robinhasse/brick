@@ -1,8 +1,10 @@
 #' Plot heat map of reference deviation
 #'
 #' @param path character, directory of output folder
-#' @param dropZeroWeightRefs boolean, if TRUE, references with zero weight are
+#' @param dropZeroWeightRefs logical, if TRUE, references with zero weight are
 #'   not shown
+#' @param dropUnmappedRefVars logical, if TRUE, reference variables that are not
+#'   mapped to BRICK variables are not shown
 #'
 #' @author Robin Hasse
 #'
@@ -13,7 +15,9 @@
 #'   scale_fill_brewer element_text ggtitle geom_vline
 #' @export
 
-plotRefDeviation <- function(path, dropZeroWeightRefs = TRUE) {
+plotRefDeviation <- function(path,
+                             dropZeroWeightRefs = TRUE,
+                             dropUnmappedRefVars = TRUE) {
 
   linebreak <- function(string, sep = "_") {
     sub(sep, "\n", string)
@@ -41,6 +45,7 @@ plotRefDeviation <- function(path, dropZeroWeightRefs = TRUE) {
   refDeviation <- readSymbol(m, "v_refDeviation")
   refWeight <- readSymbol(m, "p_refWeight")
 
+  # drop refs without weight
   if (isTRUE(dropZeroWeightRefs)) {
     refWithWeight <- refWeight %>%
       filter(.data$value != 0) %>%
@@ -48,18 +53,32 @@ plotRefDeviation <- function(path, dropZeroWeightRefs = TRUE) {
     refs <- intersect(refs, refWithWeight)
   }
 
+  refVars <- if (isTRUE(dropUnmappedRefVars)) {
+    # only mapped refVars
+    do.call(rbind, lapply(refs, function(ref) {
+      readSymbol(m, paste0("refMap_", ref)) %>%
+        mutate(reference = ref) %>%
+        select("reference", "refVar")
+    }))
+  } else {
+    # all refVars
+    readSymbol(m, "refVarRef") %>%
+      filter(.data$reference %in% refs)
+  }
+
+
   refDeviationVar <- readSymbol(m, "v_refDeviationVar")
   refVals <- readSymbol(m, "p_refVals")
   refValsBasic <- readSymbol(m, "v_refValsBasic")
   refVarBasic <- readSymbol(m, "refVarBasic")
 
   refDeviationVarRel <- refDeviationVar %>%
+    inner_join(refVars, by = c("reference", "refVar")) %>%
     left_join(refVals, by = c("reference", "refVar", "region", "ttot"),
               suffix = c("", ".ref")) %>%
     left_join(refVarBasic, by = c("reference", "refVar")) %>%
     left_join(refValsBasic, by = c("reference", "refVarGroup", "region", ttot = "t"),
               suffix = c("", ".basic")) %>%
-    filter(.data[["reference"]] %in% refs) %>%
     mutate(value.basic = replace_na(.data[["value.basic"]], 1),
            value = ifelse(abs(.data[["value"]]) < 1E-4 & .data[["value.ref"]] == 0,
                           0,

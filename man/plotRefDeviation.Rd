@@ -4,13 +4,16 @@
 \alias{plotRefDeviation}
 \title{Plot heat map of reference deviation}
 \usage{
-plotRefDeviation(path, dropZeroWeightRefs = TRUE)
+plotRefDeviation(path, dropZeroWeightRefs = TRUE, dropUnmappedRefVars = TRUE)
 }
 \arguments{
 \item{path}{character, directory of output folder}
 
-\item{dropZeroWeightRefs}{boolean, if TRUE, references with zero weight are
+\item{dropZeroWeightRefs}{logical, if TRUE, references with zero weight are
 not shown}
+
+\item{dropUnmappedRefVars}{logical, if TRUE, reference variables that are not
+mapped to BRICK variables are not shown}
 }
 \description{
 Plot heat map of reference deviation
