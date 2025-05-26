@@ -95,8 +95,8 @@ initModel <- function(config = NULL,
     }
     if (isTRUE(restart)) {
       message("No restart options were specified. ",
-              "Default options are applied: Copy Gams files, recreate input data,",
-              "recreate/reaggregate matching if applicable, and use output gdx as starting point if existent.")
+              "Default options are applied: Copy Gams files, recreate input data, ",
+              "recreate matching if applicable, and use output gdx as starting point if existent.")
       restart <- c("copyGams", "createInput", "createMatching", "useAsStart")
     }
     write.csv2(data.frame(restart = restart), file.path(path, "config", "restartOptions.csv"))

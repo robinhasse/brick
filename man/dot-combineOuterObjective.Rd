@@ -11,7 +11,8 @@ by combining resuls from construction and renovation.}
   p_constructionCalibTarget,
   p_renovationCalibTarget,
   tcalib,
-  varName = "f"
+  varName = "f",
+  agg = NULL
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ by combining resuls from construction and renovation.}
 
 \item{varName}{character, column name in \code{outerObjective} to write the result to.
 Should be one of 'f', 'fA', 'fMin'.}
+
+\item{agg}{character, dimension(s) to aggregate the data over}
 }
 \description{
 Read in brick results and compute the total outer objective function

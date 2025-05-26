@@ -65,10 +65,11 @@ createSets <- function(m, config) {
     description = "historic time steps"
   ))
 
-  if (grepl("calibration", config[["switches"]][["RUNTYPE"]], fixed = TRUE)) {
+  if (config[["switches"]][["RUNTYPE"]] == "calibration") {
+    tcalib <- periodFromConfig(config, "tcalib")
     invisible(m$addSet(
       "tcalib",
-      records = periodFromConfig(config, "tcalib"),
+      records = tcalib,
       description = "time steps considered by the calibration when minimising deviation from target trajectories"
     ))
   }
@@ -78,22 +79,63 @@ createSets <- function(m, config) {
 
   vintages <- getDimMap("vin", config[["granularity"]])
 
-  vin <- m$addSet(
-    name = "vin",
-    records = unique(getElement(vintages, "vin")),
-    description = "construction vintage cohort"
-  )
+  if (config[["switches"]][["AGGREGATEDIM"]] == "vin"
+      && config[["switches"]][["CALIBRATIONMETHOD"]] == "optimization") {
 
-  vinExists <- expandSets(ttot, vin) %>%
-    left_join(vintages, by = "vin") %>%
-    filter(.data[["ttot"]] > .data[["from"]] - 1) %>%
-    select("ttot", "vin")
+    vin <- m$addSet(
+      name = "vin",
+      records = c(unique(getElement(vintages, "vin")), "all"),
+      description = "construction vintage cohort"
+    )
+
+    vinExists <- expandSets(ttot, vin) %>%
+      filter(.data$vin != "all") %>%
+      left_join(vintages, by = "vin") %>%
+      filter(.data[["ttot"]] > .data[["from"]] - 1) %>%
+      select("ttot", "vin")
+
+    if (config[["switches"]][["RUNTYPE"]] == "calibration") {
+      vinCalib <- vinExists %>%
+        filter(.data$ttot %in% tcalib) %>%
+        mutate(vin = "all") %>%
+        unique()
+    }
+
+  } else {
+
+    vin <- m$addSet(
+      name = "vin",
+      records = unique(getElement(vintages, "vin")),
+      description = "construction vintage cohort"
+    )
+
+    vinExists <- expandSets(ttot, vin) %>%
+      left_join(vintages, by = "vin") %>%
+      filter(.data[["ttot"]] > .data[["from"]] - 1) %>%
+      select("ttot", "vin")
+
+    if (config[["switches"]][["RUNTYPE"]] == "calibration") {
+      vinCalib <- vinExists %>%
+        filter(ttot %in% tcalib)
+    }
+
+  }
+
   vinExists <- m$addSet(
     name = "vinExists",
     domain = c(ttot, vin),
     records = vinExists,
     description = "Can this vintage cohort exist i.e. ttot cannot be before cohort starts"
   )
+
+  if (config[["switches"]][["RUNTYPE"]] == "calibration") {
+    vinCalib <- m$addSet(
+      name = "vinCalib",
+      domain = c(ttot, vin),
+      records = vinCalib,
+      description = "vintage cohort to calibrate on"
+    )
+  }
 
 
 

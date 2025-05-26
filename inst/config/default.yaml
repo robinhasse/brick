@@ -253,6 +253,12 @@ switches:
   # TODO: Temporary! (As corresponding if clauses in GAMS code)
   CALIBRATIONLOWOP: FALSE
 
+  ### Aggregation dimension ###
+  # Dimension to aggregate during calibration
+    # FALSE
+    # vin
+  AGGREGATEDIM: FALSE
+
 
 # gams parameters --------------------------------------------------------------
 # passed to gams
@@ -283,4 +289,6 @@ calibrationParameters:
   iterationsArmijo: 50
   sensitivityArmijo: 0.01
   stepReduction: 0.5
+  deltaDiffQuotient: 0.1
+  modifyData: FALSE
 ...

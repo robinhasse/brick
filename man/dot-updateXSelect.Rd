@@ -4,14 +4,7 @@
 \alias{.updateXSelect}
 \title{Update the optimization variable 'x' for selected combinations only}
 \usage{
-.updateXSelect(
-  totalStep,
-  optimVar,
-  deviation,
-  stepSizeParams,
-  dims,
-  nameTo = "x"
-)
+.updateXSelect(totalStep, optimVar, deviation, stepSizeParams, dims)
 }
 \arguments{
 \item{totalStep}{data frame with combinations to perform the adjustment of 'x' on}
@@ -23,9 +16,6 @@
 \item{stepSizeParams}{data frame with the parameters of the step size adaptatation procedure}
 
 \item{dims}{character, dimensions of the optimization variable}
-
-\item{nameTo}{character, column name to write the updated optimization variable to.
-Should be one of 'x', 'xA', 'xMin'.}
 }
 \description{
 Update the optimization variable 'x' for selected combinations only

@@ -12,6 +12,8 @@
   xinitCon,
   xinitRen,
   tcalib,
+  vinExists,
+  vinCalib,
   varName = "x"
 )
 }
@@ -29,6 +31,10 @@
 \item{xinitRen}{data frame with initial specific intangible costs of renovation}
 
 \item{tcalib}{numeric, calibration time steps}
+
+\item{vinExists}{data frame of vintages that exist for each time period}
+
+\item{vinCalib}{data frame with vintages that exist in calibration periods}
 
 \item{varName}{character, optimization variable to calculate specific costs from.
 Needs to be a column of optimVarCon and optimVarRen, should be one of 'x', 'xA' or 'xMin'.}
