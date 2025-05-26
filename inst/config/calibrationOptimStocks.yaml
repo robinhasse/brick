@@ -2,15 +2,14 @@
 title: "calibration-stocks"
 basedOn: "default.yaml"
 # scope and resolution
-periods: [2000, 2010, 2020]
+periods: [2005, 2010, 2015]
 startyear: 2010
 calibperiods: 2010
 regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
 regions: EUR
 ignoreShell: TRUE
 reportingTemplate: ignoreShell_onlyRes
-ltFactor: 1.5
-ltEternalShare: 0.15
+ltEternalShare: 0.05
 # switches
 switches:
   RUNTYPE: calibration
@@ -21,9 +20,8 @@ switches:
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 1
-  iterations: 3
+  iterations: 5
   iterationsArmijo: 20
   sensitivityArmijo: 0.04
-  deltaDiffQuotient: 0.1
-  modifyData: TRUE
+  modifyData: FALSE
 ...

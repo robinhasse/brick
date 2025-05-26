@@ -131,38 +131,38 @@ $ifthen.optimCalibration "%CALIBRATIONMETHOD%" == "optimization"
 $ifThen.aggregateDim "%AGGREGATEDIM%" == "FALSE"
 $ifThen.targetFunc "%TARGETFUNCTION%" == "minsquare"
 $ifThen.calibTarget "%CALIBRATIONTYPE%" == "flows"
-$macro func sum(state3$(p_constructionCalibTarget("area", state3, subs, tcalib)), \
-  power(p_constructionCalibTarget("area", state3, subs, tcalib) - v_construction.l("area", state3, subs, tcalib), 2)) \
-  + sum((vin3, state3, stateFull3)$(renAllowed(state3, stateFull3) and p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib) ne NA), \
-  power(p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib) - v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib), 2));
+$macro func sum(state3$(p_constructionCalibTarget("area", state3, subs, tcalib2)), \
+  power(p_constructionCalibTarget("area", state3, subs, tcalib2) - v_construction.l("area", state3, subs, tcalib2), 2)) \
+  + sum((vin3, state3, stateFull3)$(renAllowed(state3, stateFull3) and p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2) ne NA), \
+  power(p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2) - v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib2), 2));
 
 $elseIf.calibTarget "%CALIBRATIONTYPE%" == "stocks"
 $macro func sum((vin3, state3), \
-  power(p_stockCalibTarget("area", state3, vin3, subs, tcalib) - v_stock.l("area", state3, vin3, subs, tcalib), 2));
+  power(p_stockCalibTarget("area", state3, vin3, subs, tcalib2) - v_stock.l("area", state3, vin3, subs, tcalib2), 2));
 
 $elseIf.calibTarget "%CALIBRATIONTYPE%" == "stockszero"
 $macro func sum((vin3, state3), \
-  power(p_stockCalibTarget("area", state3, vin3, subs, tcalib) - v_stock.l("area", state3, vin3, subs, tcalib), 2)) \
+  power(p_stockCalibTarget("area", state3, vin3, subs, tcalib2) - v_stock.l("area", state3, vin3, subs, tcalib2), 2)) \
   + sum((vin3, state3, stateFull3)$zeroFlow(state3, stateFull3), \
-  power(p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib) - v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib), 2));
+  power(p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2) - v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib2), 2));
 $endIf.calibTarget
 
 $elseIf.targetFunc "%TARGETFUNCTION%" == "maxlikely"
 $ifThen.calibTarget "%CALIBRATIONTYPE%" == "flows"
 $macro func - sum(state3, \
-  p_constructionCalibTarget("area", state3, subs, tcalib) \
-  * log(v_construction.l("area", state3, subs, tcalib) \
+  p_constructionCalibTarget("area", state3, subs, tcalib2) \
+  * log(v_construction.l("area", state3, subs, tcalib2) \
     / (sum(state4, \
-      v_construction.l("area", state4, subs, tcalib) \
+      v_construction.l("area", state4, subs, tcalib2) \
       ) \
       + epsilonSmall) \
     + epsilonSmall) \
   ) \
   - sum((vin3, state3, stateFull3)$renAllowed(state3, stateFull3), \
-  p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib) \
-  * log(v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib) \
+  p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2) \
+  * log(v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib2) \
     / (sum((state4, stateFull4), \
-      v_renovation.l("area", state4, stateFull4, vin3, subs, tcalib) \
+      v_renovation.l("area", state4, stateFull4, vin3, subs, tcalib2) \
       ) \
       + epsilonSmall) \
     + epsilonSmall) \
@@ -170,18 +170,18 @@ $macro func - sum(state3, \
 
 $elseIf.calibTarget "%CALIBRATIONTYPE%" == "stocks"
 $macro func - sum((vin3, state3), \
-  p_stockCalibTarget("area", state3, vin3, subs, tcalib) \
-  * log(v_stock.l("area", state3, vin3, subs, tcalib) \
+  p_stockCalibTarget("area", state3, vin3, subs, tcalib2) \
+  * log(v_stock.l("area", state3, vin3, subs, tcalib2) \
     / (sum((state4), \
-      v_stock.l("area", state4, vin3, subs, tcalib) \
+      v_stock.l("area", state4, vin3, subs, tcalib2) \
     ) \
     + epsilonSmall) \
   + epsilonSmall)) \
   - sum((vin3, state3, stateFull3)$zeroFlow(state3, stateFull3), \
-  p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib) \
-  * log(v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib) \
+  p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2) \
+  * log(v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib2) \
     / (sum((state4, stateFull4), \
-      v_renovation.l("area", state4, stateFull4, vin3, subs, tcalib) \
+      v_renovation.l("area", state4, stateFull4, vin3, subs, tcalib2) \
       ) \
       + epsilonSmall) \
     + epsilonSmall) \
@@ -189,10 +189,10 @@ $macro func - sum((vin3, state3), \
 
 $elseIf.calibTarget "%CALIBRATIONTYPE%" == "stockszero"
 $macro func - sum((vin3, state3), \
-  p_stockCalibTarget("area", state3, vin3, subs, tcalib) \
-  * log(v_stock.l("area", state3, vin3, subs, tcalib) \
+  p_stockCalibTarget("area", state3, vin3, subs, tcalib2) \
+  * log(v_stock.l("area", state3, vin3, subs, tcalib2) \
     / (sum((state4), \
-      v_stock.l("area", state4, vin3, subs, tcalib) \
+      v_stock.l("area", state4, vin3, subs, tcalib2) \
     ) \
     + epsilonSmall) \
   + epsilonSmall));
@@ -204,20 +204,20 @@ $elseIf.aggregateDim "%AGGREGATEDIM%" == "vin"
 
 $ifThen.targetFunc "%TARGETFUNCTION%" == "minsquare"
 $ifThen.calibTarget "%CALIBRATIONTYPE%" == "flows"
-$macro func sum(state3$(p_constructionCalibTarget("area", state3, subs, tcalib)), \
-  power(p_constructionCalibTarget("area", state3, subs, tcalib) - v_construction.l("area", state3, subs, tcalib), 2)) \
-  + sum((state3, stateFull3)$(renAllowed(state3, stateFull3) and sum(vin3, p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib)) ne NA), \
-  power(sum(vin3, p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib)) - sum(vin3, v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib)), 2));
+$macro func sum(state3$(p_constructionCalibTarget("area", state3, subs, tcalib2)), \
+  power(p_constructionCalibTarget("area", state3, subs, tcalib2) - v_construction.l("area", state3, subs, tcalib2), 2)) \
+  + sum((state3, stateFull3)$(renAllowed(state3, stateFull3) and sum(vin3, p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2)) ne NA), \
+  power(sum(vin3, p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2)) - sum(vin3, v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib2)), 2));
 
 $elseIf.calibTarget "%CALIBRATIONTYPE%" == "stocks"
 $macro func sum(state3, \
-  power(sum(vin3, p_stockCalibTarget("area", state3, vin3, subs, tcalib)) - sum(vin3, v_stock.l("area", state3, vin3, subs, tcalib)), 2));
+  power(sum(vin3, p_stockCalibTarget("area", state3, vin3, subs, tcalib2)) - sum(vin3, v_stock.l("area", state3, vin3, subs, tcalib2)), 2));
 
 $elseIf.calibTarget "%CALIBRATIONTYPE%" == "stockszero"
 $macro func sum(state3, \
-  power(sum(vin3, p_stockCalibTarget("area", state3, vin3, subs, tcalib)) - sum(vin3, v_stock.l("area", state3, vin3, subs, tcalib)), 2)) \
+  power(sum(vin3, p_stockCalibTarget("area", state3, vin3, subs, tcalib2)) - sum(vin3, v_stock.l("area", state3, vin3, subs, tcalib2)), 2)) \
   + sum((state3, stateFull3)$zeroFlow(state3, stateFull3), \
-  power(sum(vin3, p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib)) - sum(vin3, v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib)), 2));
+  power(sum(vin3, p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2)) - sum(vin3, v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib2)), 2));
 $endIf.calibTarget
 
 $endIf.targetFunc
@@ -265,7 +265,7 @@ $endif.parallel
 
 $ifthen.calibrationOptimization "%CALIBRATIONMETHOD%" == "optimization"
 
-p_f(subs, tcalib) = func
+p_f(subs, tcalib2) = func
 
 $endif.calibrationOptimization
 
@@ -301,7 +301,7 @@ solveParallel
 $endif.nlp
 
 *** Compute the functional value
-p_f(subs, tcalib) = func
+p_f(subs, tcalib2) = func
 
 *** Store renovation and construction values
 p_construction("area", state, subs, t) = v_construction.l("area", state, subs, t);
@@ -349,7 +349,7 @@ $ifthenE.nlp (sameas("%SOLVEPROBLEM%","nlp"))or(sameas("%SOLVEPROBLEM%","lpnlp")
 
 $endif.nlp
 
-  p_fDiffCon(bs3, hs3, subs, tcalib) = func
+  p_fDiffCon(bs3, hs3, subs, tcalib2) = func
 );
 
 loop(gradientVarsRen(renType2, bsr3, hsr3, vin2, tcalib2),
@@ -394,7 +394,7 @@ $ifthenE.nlp (sameas("%SOLVEPROBLEM%","nlp"))or(sameas("%SOLVEPROBLEM%","lpnlp")
 
 $endif.nlp
 
-  p_fDiffRen(renType2, bsr3, hsr3, vin2, subs, tcalib) = func
+  p_fDiffRen(renType2, bsr3, hsr3, vin2, subs, tcalib2) = func
 );
 
 $endif.fullSys
