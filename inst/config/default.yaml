@@ -181,6 +181,13 @@ carrierPrices: central
   # high:    emission intensities remain at current levels
 carrierEmi: high
 
+### identical vintage characteristics ###
+# Should all vintage have the same characteristics (i.e. floor-space specific
+#  useful energy demand)?
+  # TRUE
+  # FALSE
+identVinCharact: FALSE
+
 ### Price sensitivity ###
 # price sensitivity during renovation and construction for the
 #  choice of building shell (bs) and heating system (hs)

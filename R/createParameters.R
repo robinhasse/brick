@@ -112,6 +112,9 @@ createParameters <- function(m, config, inputDir) {
     filter(.data[["cost"]] == "tangible") %>%
     left_join(p_specCostRenTang,
               by = c("ttot", "region", "bs", "hs", "bsr", "hsr", "typ", "vin"))
+  if (isTRUE(config[["identVinCharact"]])) {
+    p_specCostRenTang <- .makeIdentVin(p_specCostRenTang)
+  }
   p_specCostRenIntang <- p_specCostRen %>%
     filter(.data[["cost"]] == "intangible") %>%
     addAssump(intangCostFiles[["ren"]])
@@ -182,6 +185,9 @@ createParameters <- function(m, config, inputDir) {
                           inputDir) %>%
     select("bs", "vin", "region", "typ", "value") %>%
     toModelResolution(m)
+  if (isTRUE(config[["identVinCharact"]])) {
+    p_ueDemand <- .makeIdentVin(p_ueDemand)
+  }
   p_ueDemand <- m$addParameter(
     name = "p_ueDemand",
     domain = c("bs", "vin", "region", "typ"),
@@ -570,4 +576,22 @@ createParameters <- function(m, config, inputDir) {
   }
 
   df[df[[lvlCol]] == lvl, setdiff(colnames(df), lvlCol)]
+}
+
+
+
+#' Make vintage characteristic identical
+#'
+#' fill value column with average across vintages
+#'
+#' @param x data.frame with brick parameter, requires vin and value columns
+#' @returns data.frame with identical structure but averaged values
+#'
+#' @importFrom dplyr %>% group_by all_of mutate .data ungroup
+
+.makeIdentVin <- function(x) {
+  x %>%
+    group_by(across(-all_of(c("vin", "value")))) %>%
+    mutate(value = mean(.data$value, na.rm = TRUE)) %>%
+    ungroup()
 }
