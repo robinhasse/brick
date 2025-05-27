@@ -20,7 +20,7 @@ sec "buildings subsector"
 region "all regions"
 reg(region) "regions"
 loc "location of building (rural, urban)"
-typ "type of residential building (SFH, MFH)"
+typ "type of building (SFH, MFH, Com)"
 inc "income quantile"
 
 *** temporal sets

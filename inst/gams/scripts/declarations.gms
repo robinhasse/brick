@@ -37,7 +37,7 @@ p_shareRenHS(hs,region,typ,ttot,ttot)     "minimum share of renovation from the 
 p_shareRenBSinit(region,ttot,ttot)        "minimum share of renovation from the building shell of initial stock reaching end of life"
 p_shareRenHSinit(hs,region,typ,ttot,ttot) "minimum share of renovation from the heating system of initial stock reaching end of life"
 
-p_interestRate(typ,ttot) "interest rate (incl. implicit) w.r.t. t0 in 1/yr"
+p_discountRate(typ,ttot) "discount rate (incl. implicit discount) in 1/yr"
 p_discountFac(typ,ttot)  "discount factor w.r.t. t0"
 
 p_runtime(region,loc,typ,inc)                  "model runtime"
