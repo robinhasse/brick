@@ -242,6 +242,13 @@ switches:
     # FALSE
   EARLYDEMOLITION: FALSE
 
+  ### Fixed buildings ###
+  # force construction and demolition to zero and turn off building stock turnover
+  # buildings can still be renovated
+    # TRUE
+    # FALSE
+  FIXEDBUILDINGS: FALSE
+
   ### Calibration type ###
   # Calibration on which quantity?
     # stocks

@@ -199,7 +199,7 @@ $load tcalib
 $gdxin
 
 ***Determine sets of flows which are included in the stock calibration
-$ifthenE.shell (sameas("%ignoreShell%","TRUE"))
+$ifthen.shell "%ignoreShell%" == "TRUE"
 zeroFlow(bs,hs,bsr,hsr)$(renAllowed(bs,hs, bsr, hsr) and sameas(hsr,"0")) = YES;
 $else.shell
 zeroFlow(bs,hs,bsr,hsr)$(renAllowed(bs,hs, bsr, hsr) and (sameas(bsr, "0") or sameas(hsr,"0"))) = YES;
