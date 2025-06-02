@@ -97,7 +97,7 @@ tasks32: FALSE
 # data -------------------------------------------------------------------------
 
 ### input data revision ###
-inputRevision: "0.8.4"
+inputRevision: "0.8.6"
 
 ### force download ###
 # force the model to download new input data even though it seems unchanged
@@ -181,6 +181,13 @@ carrierPrices: central
   # high:    emission intensities remain at current levels
 carrierEmi: high
 
+### identical vintage characteristics ###
+# Should all vintage have the same characteristics (i.e. floor-space specific
+#  useful energy demand)?
+  # TRUE
+  # FALSE
+identVinCharact: FALSE
+
 ### Price sensitivity ###
 # price sensitivity during renovation and construction for the
 #  choice of building shell (bs) and heating system (hs)
@@ -234,6 +241,13 @@ switches:
     # TRUE
     # FALSE
   EARLYDEMOLITION: FALSE
+
+  ### Fixed buildings ###
+  # force construction and demolition to zero and turn off building stock turnover
+  # buildings can still be renovated
+    # TRUE
+    # FALSE
+  FIXEDBUILDINGS: FALSE
 
   ### Calibration type ###
   # Calibration on which quantity?

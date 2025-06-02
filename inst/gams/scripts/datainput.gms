@@ -5,7 +5,7 @@ $load p_dt p_dtVin t0
 $load p_specCostCon p_specCostRen p_specCostDem
 $load priceSensBS priceSensHS p_statusQuoPref
 $load p_carbonPrice p_carrierPrice p_carrierEmi p_ueDemand p_eff p_renDepth
-$load p_interestRate
+$load p_discountRate
 $load p_population
 $load p_stockHist
 $load p_shareDem p_shareRenBS p_shareRenHS p_shareRenBSinit p_shareRenHSinit
@@ -61,7 +61,7 @@ execute_loadpoint "history",
   p_carrierPrice
   p_eff
   p_floorPerCap
-  p_interestRate
+  p_discountRate
   p_population
   p_probDem
   p_shareDem
@@ -94,7 +94,7 @@ $endIf.lowop
 
 * discount factor
 p_discountFac(typ,ttot) =
-  1 / (1 + p_interestRate(typ,ttot))**(ttot.val - p_dt(ttot) / 2 - t0)
+  1 / (1 + p_discountRate(typ,ttot))**(ttot.val - p_dt(ttot) / 2 - t0)
 ;
 
 * LCC of housing related to a construction decision under various assumptions:

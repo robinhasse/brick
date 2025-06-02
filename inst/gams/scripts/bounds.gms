@@ -37,6 +37,12 @@ v_construction.fx(qty,bs,hs,region,loc,typ,inc,t)$hsBan("construction",region,t,
 v_stock.fx(qty,bs,hs,vin,region,loc,typ,inc,t)$(hsBan("stock",region,t,hs) and vinExists(t,vin)) = 0;
 
 
+*** fixed buildings
+
+$ifthen.fixedBuildings "%FIXEDBUILDINGS%" == "TRUE"
+v_construction.fx(qty,bs,hs,region,loc,typ,inc,t) = 0;
+v_demolition.fx(qty,bs,hs,vin,region,loc,typ,inc,t) = 0;
+$endif.fixedBuildings
 
 *** temp
 

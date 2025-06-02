@@ -13,9 +13,11 @@ model fullSysLP "full system linear optimisation"
   q_DemCost
   q_stockBalNext
   q_stockBalPrev
+$ifthen.notFixedBuildings not "%FIXEDBUILDINGS%" == "TRUE"
   q_housingDemand
   q_buildingLifeTime
-$ifthenE.shell (not(sameas("%ignoreShell%","TRUE")))
+$endif.notFixedBuildings
+$ifthen.shell not "%ignoreShell%" == "TRUE"
   q_buildingShellLifeTime
 $endif.shell
   q_heatingSystemLifeTime
@@ -42,9 +44,11 @@ model fullSysNLP "full system linear optimisation"
   q_DemCost
   q_stockBalNext
   q_stockBalPrev
+$ifthen.notFixedBuildings not "%FIXEDBUILDINGS%" == "TRUE"
   q_housingDemand
   q_buildingLifeTime
-$ifthenE.shell (not(sameas("%ignoreShell%","TRUE")))
+$endif.notFixedBuildings
+$ifthen.shell not "%ignoreShell%" == "TRUE"
   q_buildingShellLifeTime
 $endif.shell
   q_heatingSystemLifeTime
@@ -67,9 +71,11 @@ model matching "find stock and flows that best match reference sources"
   q_refValsBasic
   q_stockBalNext
   q_stockBalPrev
+$ifthen.notFixedBuildings not "%FIXEDBUILDINGS%" == "TRUE"
   q_housingDemand
   q_buildingLifeTime !! TODO: make this a matching target, not a hard constraint
-$ifthenE.shell (not(sameas("%ignoreShell%","TRUE")))
+$endif.notFixedBuildings
+$ifthen.shell not "%ignoreShell%" == "TRUE"
   q_buildingShellLifeTime
 $endif.shell
   q_heatingSystemLifeTime

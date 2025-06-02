@@ -79,8 +79,8 @@ createSets <- function(m, config) {
 
   vintages <- getDimMap("vin", config[["granularity"]])
 
-  if (config[["switches"]][["AGGREGATEDIM"]] == "vin"
-      && config[["switches"]][["CALIBRATIONMETHOD"]] == "optimization") {
+  if (identical(config[["switches"]][["AGGREGATEDIM"]], "vin")
+      && identical(config[["switches"]][["CALIBRATIONMETHOD"]], "optimization")) {
 
     vin <- m$addSet(
       name = "vin",
@@ -222,7 +222,7 @@ createSets <- function(m, config) {
   typ <- m$addSet(
     name = "typ",
     records = typ,
-    description = "type of residential building (SFH, MFH)"
+    description = "type of building (SFH, MFH, Com)"
   )
 
   inc <- getBrickMapping("dim_inc.csv") %>%

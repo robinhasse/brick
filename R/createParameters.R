@@ -112,6 +112,9 @@ createParameters <- function(m, config, inputDir) {
     filter(.data[["cost"]] == "tangible") %>%
     left_join(p_specCostRenTang,
               by = c("ttot", "region", "bs", "hs", "bsr", "hsr", "typ", "vin"))
+  if (isTRUE(config[["identVinCharact"]])) {
+    p_specCostRenTang <- .makeIdentVin(p_specCostRenTang)
+  }
   p_specCostRenIntang <- p_specCostRen %>%
     filter(.data[["cost"]] == "intangible") %>%
     addAssump(intangCostFiles[["ren"]])
@@ -182,6 +185,9 @@ createParameters <- function(m, config, inputDir) {
                           inputDir) %>%
     select("bs", "vin", "region", "typ", "value") %>%
     toModelResolution(m)
+  if (isTRUE(config[["identVinCharact"]])) {
+    p_ueDemand <- .makeIdentVin(p_ueDemand)
+  }
   p_ueDemand <- m$addParameter(
     name = "p_ueDemand",
     domain = c("bs", "vin", "region", "typ"),
@@ -373,15 +379,16 @@ createParameters <- function(m, config, inputDir) {
   # Other ----------------------------------------------------------------------
 
 
-  ## discount factor ====
+  ## discount rate ====
 
-  p_interestRate <- expandSets("typ", "ttot", .m = m) %>%
-    mutate(value = c(SFH = 0.21, MFH = 0.25)[.data[["typ"]]]) # Giraudet et al. 2012
-  p_interestRate <- m$addParameter(
-    name = "p_interestRate",
+  p_discountRate <- readInput("f_discountRate.cs4r", "typ")
+  p_discountRate <- expandSets("typ", "ttot", .m = m) %>%
+    left_join(p_discountRate, by = "typ")
+  m$addParameter(
+    name = "p_discountRate",
     domain = c("typ", "ttot"),
-    records = p_interestRate,
-    description = "interest rate (incl. implicit) w.r.t. t0 in 1/yr"
+    records = p_discountRate,
+    description = "discount rate (incl. implicit discount) in 1/yr"
   )
 
 
@@ -412,7 +419,7 @@ createParameters <- function(m, config, inputDir) {
 
   ## Delta t for difference quotient in optimization calibration
 
-  if (config[["switches"]][["CALIBRATIONMETHOD"]] == "optimization") {
+  if (identical(config[["switches"]][["CALIBRATIONMETHOD"]], "optimization")) {
     invisible(m$addParameter(
       name = "p_diff",
       records = config[["calibrationParameters"]][["deltaDiffQuotient"]],
@@ -569,4 +576,22 @@ createParameters <- function(m, config, inputDir) {
   }
 
   df[df[[lvlCol]] == lvl, setdiff(colnames(df), lvlCol)]
+}
+
+
+
+#' Make vintage characteristic identical
+#'
+#' fill value column with average across vintages
+#'
+#' @param x data.frame with brick parameter, requires vin and value columns
+#' @returns data.frame with identical structure but averaged values
+#'
+#' @importFrom dplyr %>% group_by all_of mutate .data ungroup
+
+.makeIdentVin <- function(x) {
+  x %>%
+    group_by(across(-all_of(c("vin", "value")))) %>%
+    mutate(value = mean(.data$value, na.rm = TRUE)) %>%
+    ungroup()
 }
