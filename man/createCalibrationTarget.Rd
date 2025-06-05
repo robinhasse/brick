@@ -4,12 +4,14 @@
 \alias{createCalibrationTarget}
 \title{Create calibration targets}
 \usage{
-createCalibrationTarget(path, outDir)
+createCalibrationTarget(path, outDir, digits = 4)
 }
 \arguments{
 \item{path}{character, directory of matching folder}
 
 \item{outDir}{character, directory to save files in}
+
+\item{digits}{integer indicating the number of decimal places}
 }
 \description{
 read results from matching run and aggregate them spatially and temporally

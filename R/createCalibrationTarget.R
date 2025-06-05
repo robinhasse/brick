@@ -21,6 +21,7 @@
 #'
 #' @param path character, directory of matching folder
 #' @param outDir character, directory to save files in
+#' @param digits integer indicating the number of decimal places
 #'
 #' @importFrom gamstransfer Container
 #' @importFrom utils write.table
@@ -29,7 +30,7 @@
 #' @importFrom tidyr replace_na
 #' @export
 
-createCalibrationTarget <- function(path, outDir) {
+createCalibrationTarget <- function(path, outDir, digits = 4) {
 
   # CONFIG ---------------------------------------------------------------------
 
@@ -46,6 +47,13 @@ createCalibrationTarget <- function(path, outDir) {
 
   # FUNCTIONS ------------------------------------------------------------------
 
+  relSSE <- function(x, y) {
+    if (all(x == y)) {
+      return(0)
+    }
+    sum((x - y)^2) / sum(x^2)
+  }
+
   joinVar <- function(x, v, var, by = NULL, valueSuffix = NULL) {
     dataVar <- v[[var]]
     names(dataVar)[names(dataVar) == "value"] <- paste0(var, valueSuffix)
@@ -57,7 +65,11 @@ createCalibrationTarget <- function(path, outDir) {
 
   # find renovation transition closest to average renovation while satisfying
   # stock balances
-  correctRenovation <- function(x, key) {
+  correctRenovation <- function(x, key, maxAttempts = 5, maxDeviation = 1E-4) {
+
+    keyMsg <- paste(names(key), lapply(key[1, ], as.character),
+                    sep = " = ", collapse = ", ")
+
     identityMatrix <- diag(nrow(x))
 
     stockBal <- c("Prev", "Next")
@@ -74,16 +86,49 @@ createCalibrationTarget <- function(path, outDir) {
       setNames(rhs[[2]], paste0("state", constraint, rhs[[1]]))
     }))
 
-    # remove one constraint as it is linearly dependent on the others
-    constraints <- names(constraintRhs)[-which.max(constraintRhs)]
-    constraintRhs <- constraintRhs[constraints]
-    constraintMatrix <- constraintMatrix[, constraints]
+    attempt <- 0
+    errors <- c()
 
-    r <- quadprog::solve.QP(Dmat = identityMatrix,
-                            dvec = x$estimate,
-                            Amat = cbind(constraintMatrix, identityMatrix),
-                            bvec = c(constraintRhs, rep(0, nrow(x))),
-                            meq = length(constraintRhs))
+    for (i in order(constraintRhs, decreasing = TRUE)) {
+
+      attempt <- attempt + 1
+
+      # remove one constraint such that remaining constraints are independent
+      constraintsIndep <- names(constraintRhs)[-i]
+      constraintRhsIndep <- constraintRhs[constraintsIndep]
+      constraintMatrixIndep <- constraintMatrix[, constraintsIndep]
+
+      # solve
+      r <- tryCatch(
+        quadprog::solve.QP(Dmat = identityMatrix,
+                           dvec = x$estimate,
+                           Amat = cbind(constraintMatrixIndep, identityMatrix),
+                           bvec = c(constraintRhsIndep, rep(0, nrow(x))),
+                           meq = length(constraintRhsIndep)),
+        error = conditionMessage
+      )
+
+      if (length(r) == 1) {
+        errors <- c(errors, r)
+        if (attempt >= maxAttempts) {
+          stop("Unable to solve optimisation after ", attempt,
+               " attempts for this stock subset:\n  ", keyMsg, "\n",
+               "Solving errors:\n  ", paste(errors, collapse = "\n  "),
+               call. = FALSE)
+
+        }
+      } else {
+        break
+      }
+    }
+
+    # check how far the optimisation result is from the estimate
+    deviation <- relSSE(x$estimate, r$solution)
+    if (deviation > maxDeviation) {
+      warning("Optimisation result is far away from estimate ",
+              "for this stock subset:\n  ", keyMsg, "\n",
+              "Deviation: ", signif(deviation, 2), "\n")
+    }
 
     x$value <- pmax(0, r$solution)
     x
@@ -153,7 +198,7 @@ createCalibrationTarget <- function(path, outDir) {
     replace_na(list(stockPrev = 0)) %>%
     mutate(rhsPrev = .data$stockPrev / .data$dt + .data$construction * .data$dtVin / .data$dt,
            rhsNext = .data$stockNext / .data$dt + .data$demolition) %>%
-    group_by(across(all_of(setdiff(names(v$renovation), "value")))) %>%
+    group_by(across(all_of(setdiff(names(v$renovation), c("hsr", "value"))))) %>%
     mutate(estimate = ifelse(.data$untouched,
                              .data$rhsPrev - sum(.data$renovation[!.data$untouched]),
                              .data$renovation)) %>%
@@ -162,13 +207,12 @@ createCalibrationTarget <- function(path, outDir) {
     ungroup() %>%
     select(all_of(names(v$renovation)))
 
-
   ## spatial ====
 
   v <- lapply(v, function(x) {
     x %>%
       group_by(across(-all_of(c("region", "value")))) %>%
-      summarise(value = signif(sum(.data$value), 4)) %>%
+      summarise(value = round(sum(.data$value), digits)) %>%
       mutate(region = "EUR", .before = "loc")
   })
 
@@ -187,6 +231,8 @@ createCalibrationTarget <- function(path, outDir) {
     write.table(v[[var]], outFile, append = TRUE, quote = FALSE, sep = ",",
                 row.names = FALSE, col.names = FALSE)
   })
+
+  message("Calibration targets written to ", outDir, ".\n")
 
   return(invisible(v))
 }
