@@ -7,7 +7,7 @@
 .makeIdentVin(x)
 }
 \arguments{
-\item{x}{data.frame with brick parameter, requires vin and value column}
+\item{x}{data.frame with brick parameter, requires vin and value columns}
 }
 \value{
 data.frame with identical structure but averaged values
