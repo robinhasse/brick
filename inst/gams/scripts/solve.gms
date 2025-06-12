@@ -1,5 +1,7 @@
 $offOrder
-
+$onecho > cplex.opt
+iis 1
+$offecho
 *** models ---------------------------------------------------------------------
 
 model fullSysLP "full system linear optimisation"
@@ -273,6 +275,7 @@ $ifthen.fullSys "%RUNTYPE%" == "scenario"
 q("num") = no;
 q("area") = yes;
 
+fullSysLP.optfile = 1;
 
 $ifthenE.lp (sameas("%SOLVEPROBLEM%","lp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
 solve fullSysLP minimizing v_totObj using lp;
