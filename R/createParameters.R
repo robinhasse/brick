@@ -242,21 +242,33 @@ createParameters <- function(m, config, inputDir) {
 
   # Calculate share of buildings that need to be renovated or demolished between
   # given time steps assuming a Weibull distribution of the technology life time.
-  # Optionally pass the prior standing life time; adjust the share to subtract
-  # demolitions during the prior standing life time.
-  shareRen <- function(ttot2, params, standingLifeTime = 0) {
+  # When passing the standing life time, the share of the initial stock standing
+  # in ttot2 that has to be demolished or renovated until given time step is
+  # calculated
+  shareRen <- function(ttot2, params, standingLifeTime = NULL) {
 
-    expandSets(ttot2 = "ttot", "ttot", .m = m) %>%
+    share <- expandSets(ttot2 = "ttot", "ttot", .m = m) %>%
       filter(.data$ttot2 <= .data$ttot) %>%
       left_join(readSymbol(p_dt) %>%
                   rename(dt = "value"),
                 by = c(ttot2 = "ttot")) %>%
       cross_join(params) %>%
-      pivot_wider(names_from = "variable") %>%
-      # pweibull(0) = 0, so for standingLifeTime = 0 we have value = pweibull(lt)
-      mutate(lt = .data$ttot - .data$ttot2 + .data$dt / 2 + standingLifeTime,
-             p  = pweibull(.data$lt,         .data$shape, .data$scale),
-             p0 = pweibull(standingLifeTime, .data$shape, .data$scale),
+      pivot_wider(names_from = "variable")
+
+    share <- if (is.null(standingLifeTime)) {
+      # average past flow activity happened dt/2 before nominal time step ttot2
+      share %>%
+        mutate(lt = .data$ttot - (.data$ttot2 - .data$dt / 2),
+               p0 = 0)
+    } else {
+      # standing life time considers stock not flows -> no consideration of dt
+      share %>%
+        mutate(lt = .data$ttot - .data$ttot2 + standingLifeTime,
+               p0 = pweibull(standingLifeTime, .data$shape, .data$scale))
+    }
+
+    share %>%
+      mutate(p  = pweibull(.data$lt, .data$shape, .data$scale),
              value = (.data$p - .data$p0) / (1 - .data$p0),
              value = ifelse(.data$value > cutOffShare, 1, .data$value)) %>%
       select(-"shape", -"scale", -"dt", -"lt", -"p", -"p0")
