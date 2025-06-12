@@ -65,7 +65,7 @@ createCalibrationTarget <- function(path, outDir, digits = 4) {
 
   # find renovation transition closest to average renovation while satisfying
   # stock balances
-  correctRenovation <- function(x, key, maxAttempts = 5, maxDeviation = 1E-4) {
+  correctRenovation <- function(x, key, maxAttempts = 5, maxDeviation = 1E-4, tol = 1E-8) {
 
     keyMsg <- paste(names(key), lapply(key[1, ], as.character),
                     sep = " = ", collapse = ", ")
@@ -99,11 +99,12 @@ createCalibrationTarget <- function(path, outDir, digits = 4) {
       constraintMatrixIndep <- constraintMatrix[, constraintsIndep]
 
       # solve
+      lb <- if (attempt < maxAttempts / 2) 0 else -tol
       r <- tryCatch(
         quadprog::solve.QP(Dmat = identityMatrix,
                            dvec = x$estimate,
                            Amat = cbind(constraintMatrixIndep, identityMatrix),
-                           bvec = c(constraintRhsIndep, rep(0, nrow(x))),
+                           bvec = c(constraintRhsIndep, rep(lb, nrow(x))),
                            meq = length(constraintRhsIndep)),
         error = conditionMessage
       )
