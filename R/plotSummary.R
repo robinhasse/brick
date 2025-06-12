@@ -27,6 +27,7 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
 
   config <- readConfig(file.path(path, "config", "config_COMPILED.yaml"), readDirect = TRUE)
   endyear <- config[["endyear"]]
+  seqRen <- isTRUE(config[["switches"]][["SEQUENTIALREN"]])
 
 
 
@@ -66,9 +67,16 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
   vars <- c(
     Stock = "v_stock",
     Construction = "v_construction",
-    Demolition = "v_demolition",
-    Renovation = "v_renovation"
+    Demolition = "v_demolition"
   )
+  vars <- if (seqRen) {
+    c(vars,
+      RenovationBS = "v_renovationBS",
+      RenovationHS = "v_renovationHS")
+  } else {
+    c(vars,
+      Renovation = "v_renovation")
+  }
 
   data <- lapply(vars, function(v) {
     var <- readSymbol(m, v)
@@ -90,30 +98,38 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
       var <- unite(var, "facet", all_of(facet), sep = " | ")
     }
 
-    if (all(c("bsr", "hsr") %in% colnames(var))) {
 
-      # mark identical replacement of heating systems and building shell
-      var <- var %>%
-        mutate(transparent = paste0(
-          ifelse(as.character(.data[["hs"]]) == as.character(.data[["hsr"]]),
-                 "hs", ""),
-          ifelse(as.character(.data[["bs"]]) == as.character(.data[["bsr"]]),
-                 "bs", "")
-        ))
-      if (!splitRen) {
-        var[["transparent"]] <- ""
+    renDims <- intersect(colnames(var), c("bsr", "hsr"))
+
+    if (length(renDims) > 0) {
+
+      # remove entirely untouched buildings
+      var <- if (seqRen) {
+        filter(var, .data[[renDims]] != "0")
+      } else {
+        filter(var, !(.data[["bsr"]] == "0" & .data[["hsr"]] == "0"))
       }
 
-      var <- rbind(
+      # mark identical replacement of heating systems and building shell
+      var$transparent <- ""
+      for (to in renDims) {
+        from <- switch(to, bsr = "bs", hsr = "hsr")
+
+        if (splitRen) {
+          var$transparent <- paste0(var$transparent,
+                                    ifelse(.data[[from]] == .data[[to]], from, ""))
+        }
+      }
+
+      # make origin negative and target state positive
+      var <- bind_rows(
         var %>%
-          filter(!(.data[["bsr"]] == "0" & .data[["hsr"]] == "0")) %>%
-          select(-"hs", -"bs") %>%
-          rename(hs = "hsr", bs = "bsr") %>%
+          select(-any_of(c("bs", "hs"))) %>%
+          rename(any_of(c(hs = "hsr", bs = "bsr"))) %>%
           mutate(renovation = "to"),
         var %>%
-          filter(!(.data[["bsr"]] == "0" & .data[["hsr"]] == "0")) %>%
-          select(-"hsr", -"bsr") %>%
-          mutate(value = -.data[["value"]],
+          select(-any_of(c("hsr", "bsr"))) %>%
+          mutate(value = -.data$value,
                  renovation = "from")
       )
     }
@@ -192,6 +208,10 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
 
       if (!"vin" %in% colnames(d)) {
         d <- left_join(d, t2vin, by = "ttot")
+      }
+
+      if ((fillDim == "bs" && v == "RenovationHS") || (fillDim == "hs" && v == "RenovationBS")) {
+        return(NULL)
       }
 
       if ("transparent" %in% colnames(d)) {

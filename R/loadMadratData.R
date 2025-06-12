@@ -36,11 +36,7 @@ loadMadratData <- function(config) {
   }
 
   regionmapHash <- paste0(regionscode(regionmapping), "_")
-  granularityHash <- if (is.null(config[["granularity"]])) {
-    NULL
-  } else {
-    .argsHash(list(granularity = config[["granularity"]]), TRUE)
-  }
+  granularityHash <- .argsHash(list(granularity = config[["granularity"]]), TRUE)
 
   # where to get new files from
   madratNew <- paste0("rev",

@@ -1,0 +1,4 @@
+title: sequentialRen
+basedOn: minimal
+switch:
+  SEQUENTIALREN: TRUE
