@@ -2,6 +2,8 @@
 #'
 #' @param df data.frame for the cost of construction or renovation
 #' @param assumpFile character, file path to assumption file
+#' @param key character, renovation asset, either \code{"BS"} (building
+#'   shell) or  \code{"HS"} heating system.
 #' @returns data frame with added intangible cost
 #'
 #' @author Robin Hasse
@@ -10,14 +12,33 @@
 #' @importFrom utils read.csv2
 #' @importFrom dplyr %>% .data mutate left_join select
 
-addAssump <- function(df, assumpFile) {
+addAssump <- function(df, assumpFile, key = NULL) {
 
   if (!file.exists(assumpFile)) {
     stop("This assumption file doesn't exist: ", assumpFile)
   }
 
+  if (is.list(assumpFile)) {
+    if (is.null(key)) {
+      stop("If 'assumpFile' is a list, you need to provide a key indicating ",
+           "which list element to consider.")
+    }
+    assumpFile <- assumpFile[[key]]
+  }
+
   assump <- read.csv(assumpFile, stringsAsFactors = TRUE, na.strings = "", comment.char = "#")
   assump[["value"]] <- as.numeric(as.character(assump[["value"]]))
+
+  if (!is.null(key)) {
+    dropDim <- switch(key, BS = "hsr", HS = "bsr", stop("Unknown key"))
+    if (dropDim %in% names(assump)) {
+      warning("The assumption file ", assumpFile, " has the column '", dropDim,
+              "' which will be removed by averaging across it.")
+      assump <- assump %>%
+        group_by(across(-all_of(c(dropDim, "value")))) %>%
+        summarise(value = mean(.data$value), .groups = "drop")
+    }
+  }
 
   if (!".chunk" %in% colnames(assump)) {
     # If the data contains no chunk column: Assume that this is the full data
@@ -57,5 +78,6 @@ addAssump <- function(df, assumpFile) {
         select(-"value.x", -"value.y")
     }
   }
+
   return(df)
 }

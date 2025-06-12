@@ -4,13 +4,23 @@ $ifthen.notMatching not "%RUNTYPE%" == "matching"
 
 v_stock.fx(qty,state,vin,subs,thist)$vinExists(thist,vin) = p_stockHist(qty,state,vin,subs,thist);
 v_construction.fx(qty,state,subs,thist)                                  = 0;
-v_renovation.fx(qty,state,stateFull,vin,subs,thist)$vinExists(thist,vin) = 0;
 v_demolition.fx(qty,state,vin,subs,thist)$vinExists(thist,vin)           = 0;
+$ifthen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+v_renovationBS.fx(qty,state,bsr,vin,subs,thist)$vinExists(thist,vin) = 0;
+v_renovationHS.fx(qty,state,hsr,vin,subs,thist)$vinExists(thist,vin) = 0;
+$else.sequentialRen
+v_renovation.fx(qty,renAllowed,vin,subs,thist)$vinExists(thist,vin) = 0;
+$endif.sequentialRen
 
 $ifthen.history exist "history.gdx"
 v_construction.fx(qty,state,subs,thist)                                  = p_constructionHist(qty,state,subs,thist);
-v_renovation.fx(qty,state,stateFull,vin,subs,thist)$vinExists(thist,vin) = p_renovationHist(qty,state,stateFull,vin,subs,thist);
 v_demolition.fx(qty,state,vin,subs,thist)$vinExists(thist,vin)           = p_demolitionHist(qty,state,vin,subs,thist);
+$ifthen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+v_renovationBS.fx(qty,renAllowedBS,vin,subs,thist)$vinExists(thist,vin) = p_renovationBSHist(qty,renAllowedBS,vin,subs,thist);
+v_renovationHS.fx(qty,renAllowedHS,vin,subs,thist)$vinExists(thist,vin) = p_renovationHSHist(qty,renAllowedHS,vin,subs,thist);
+$else.sequentialRen
+v_renovation.fx(qty,renAllowed,vin,subs,thist)$vinExists(thist,vin) = p_renovationHist(qty,renAllowed,vin,subs,thist);
+$endif.sequentialRen
 $endif.history
 
 $endif.notMatching

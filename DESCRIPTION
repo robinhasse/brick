@@ -34,6 +34,7 @@ Imports:
     gamstransfer (>= 3.0.1),
     gms (>= 0.26.0),
     grDevices,
+    mip,
     piamutils (>= 0.0.10),
     pkgload,
     purrr,

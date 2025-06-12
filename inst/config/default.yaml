@@ -63,6 +63,7 @@ statusQuoPreference: 20
 #  and renovation.
   # []: default files stored internally in inst/assump/
   # {con: 'path/to/file1.csv', ren: 'path/to/file2.csv'}
+  # {con: 'path/to/file1.csv', ren: {BS: 'path/to/file2.csv', HS: 'path/to/file3.csv'}}
 intangCostFiles: []
 
 ### reporting template ###
@@ -97,7 +98,7 @@ tasks32: FALSE
 # data -------------------------------------------------------------------------
 
 ### input data revision ###
-inputRevision: "0.8.6"
+inputRevision: "0.8.7"
 
 ### force download ###
 # force the model to download new input data even though it seems unchanged
@@ -207,6 +208,14 @@ priceSens:
 # passed to gams
 
 switches:
+
+  ### sequential renovation ###
+  # During renovation, we either assume a hierarchical choice, where building
+  #  shell and heating system change at the same time or a sequential choice
+  #  where the building shell is changed first and then the heating system.
+    # TRUE: building shell is changed before the heating system
+    # FALSE: building shell and heating system are changed at the same time
+  SEQUENTIALREN: FALSE
 
   ### type of model run ###
   # Some gams runs during calibration can be declared `scenario`. The switch

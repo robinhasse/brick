@@ -276,31 +276,37 @@ createSets <- function(m, config) {
   ## Allowed renovations ====
 
   # no decline on energy ladder
-  ladderHs <- getBrickMapping("dim_hs.csv") %>%
-    select("hs", ladderHs = "energyLadder")
-  ladderBs <- getBrickMapping("dim_bs.csv") %>%
-    select("bs", ladderBs = "energyLadder")
-  renAllowed <- expandSets(bs, hs, bsr, hsr) %>%
-    left_join(ladderHs, by = "hs") %>%
-    left_join(ladderBs, by = "bs") %>%
-    left_join(ladderHs, by = c(hsr = "hs")) %>%
-    left_join(ladderBs, by = c(bsr = "bs")) %>%
-    mutate(stepHs = replace_na(.data[["ladderHs.x"]] - .data[["ladderHs.y"]], 0),
-           stepBs = replace_na(.data[["ladderBs.x"]] - .data[["ladderBs.y"]], 0)) %>%
-    filter(.data[["stepBs"]] >= 0, .data[["stepHs"]] >= 0) %>%
-    select("bs", "hs", "bsr", "hsr")
+  renAllowed <- lapply(setNames(nm = c("bs", "hs")), function(dim) {
+    dimr <- paste0(dim, "r")
+    ladder <- getBrickMapping(paste0("dim_", dim, ".csv")) %>%
+      select(all_of(c(dim, "energyLadder")))
+    expandSets("bs", "hs", dimr, .m = m) %>%
+      left_join(ladder, by = dim) %>%
+      left_join(ladder, by = setNames(dim, dimr), suffix = c("Before", "After")) %>%
+      mutate(step = replace_na(.data$energyLadderBefore - .data$energyLadderAfter, 0)) %>%
+      filter(.data$step >= 0) %>%
+      select(all_of(c("bs", "hs", dimr)))
+  })
+
 
   if (config[["ignoreShell"]]) {
-    renAllowed <- renAllowed %>%
-      filter(.data[["bsr"]] == "0")
+    renAllowed$bs <- renAllowed$bs %>%
+      filter(.data$bsr == "0")
   }
 
-  renAllowed <- m$addSet(
-    name = "renAllowed",
-    domain = c(bs, hs, bsr, hsr),
-    records = renAllowed,
-    description = "Is this renovation transition allowed"
-  )
+  invisible(m$addSet(
+    name = "renAllowedBS",
+    domain = c(bs, hs, bsr),
+    records = renAllowed$bs,
+    description = "allowed building shell retrofits"
+  ))
+
+  invisible(m$addSet(
+    name = "renAllowedHS",
+    domain = c(bs, hs, hsr),
+    records = renAllowed$hs,
+    description = "allowed heating system replacements"
+  ))
 
 
   ## Buildings subsectors ====
