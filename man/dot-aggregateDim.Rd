@@ -4,7 +4,7 @@
 \alias{.aggregateDim}
 \title{Aggregate data across given dimensions by a given function}
 \usage{
-.aggregateDim(df, agg, func = sum, valueNames = "value", keepRows = FALSE)
+.aggregateDim(df, agg, func = sum, valueNames = "value")
 }
 \arguments{
 \item{df}{data frame with data to be aggregated}
@@ -14,8 +14,6 @@
 \item{func}{function to be used for aggregation}
 
 \item{valueNames}{character, names of the columns containing the values to aggregate}
-
-\item{keepRows}{logical, whether to keep all rows in the data frame}
 }
 \description{
 Aggregate data across given dimensions by a given function

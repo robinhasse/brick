@@ -699,22 +699,15 @@ runCalibrationOptim <- function(path,
 #' @param agg character, columns with the dimensions to be aggregated
 #' @param func function to be used for aggregation
 #' @param valueNames character, names of the columns containing the values to aggregate
-#' @param keepRows logical, whether to keep all rows in the data frame
 #'
 #' @importFrom dplyr %>% .data across any_of group_by rename_with summarise
 #'
-.aggregateDim <- function(df, agg, func = sum, valueNames = "value", keepRows = FALSE) {
+.aggregateDim <- function(df, agg, func = sum, valueNames = "value") {
   if (any(agg %in% colnames(df))) {
     df <- df %>%
-      group_by(across(-any_of(c(agg, valueNames))))
-    if (isTRUE(keepRows)) {
-      df <- df %>%
-        mutate(across(valueNames, func)) %>%
-        ungroup()
-    } else {
-      df <- df %>%
-        summarise(across(valueNames, func), .groups = "drop")
-    }
+      group_by(across(-any_of(c(agg, valueNames)))) %>%
+      mutate(across(valueNames, func)) %>%
+      ungroup()
   }
   return(df)
 }
@@ -761,7 +754,7 @@ runCalibrationOptim <- function(path,
         .data$hs == .data$hsr ~ "identRepl",
         .default = "newSys"
       )) %>%
-      .aggregateDim("hs", func = sum, valueNames = c("value", "target"), keepRows = TRUE)
+      .aggregateDim("hs", func = sum, valueNames = c("value", "target"))
   }
   deviation <- deviation %>%
     left_join(cost, by = setdiff(dims, agg)) %>%

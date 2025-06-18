@@ -1,5 +1,5 @@
 ---
-title: "calibration-mtch-12-06-start2000-to2050"
+title: "calibration"
 basedOn: "default.yaml"
 # scope and resolution
 granularity: lowGran
@@ -17,7 +17,6 @@ switches:
   CALIBRATIONMETHOD: logit
   FIXEDBUILDINGS: TRUE
   # CALIBRESOLUTION: identRepl
-  # AGGREGATEDIM: vin
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 80
