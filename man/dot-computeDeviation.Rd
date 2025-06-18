@@ -13,7 +13,8 @@ Then compute the adjustment term for the calibration \code{d}}
   flow = c("construction", "renovation"),
   renAllowed = NULL,
   vinExists = NULL,
-  agg = NULL
+  agg = NULL,
+  calibResolution = "full"
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ Then compute the adjustment term for the calibration \code{d}}
 \item{vinExists}{data frame with existing vintages for each time period}
 
 \item{agg}{character, dimensions to aggregate Brick results and target data over}
+
+\item{calibResolution}{character, resolution of the calibration for renovation flows}
 }
 \description{
 Compute the deviation between historic data and Brick results.

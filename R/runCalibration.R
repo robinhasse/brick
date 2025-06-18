@@ -165,7 +165,7 @@ runCalibrationLogit <- function(path,
 
     deviationRen <- .computeDeviation(m, p_renovationCalibTarget, dims$renovation, tcalib,
                                       flow = "renovation", renAllowed = renAllowed, vinExists = vinExists,
-                                      agg = switches[["AGGREGATEDIM"]])
+                                      agg = switches[["AGGREGATEDIM"]], calibResolution = switches[["CALIBRESOLUTION"]])
 
     # Compute parameters delta and phi-derivative of the step size adaptation
     stepSizeParams <- .combineStepSizeParams(.computeStepSizeParams(deviationCon),
@@ -324,8 +324,10 @@ runCalibrationLogit <- function(path,
 
   # WRITE INTANGIBLE COSTS TO FILE -------------------------------------------------------------
 
-  .writeCostIntang(file.path(path, "costIntangCon.csv"), optimVarCon, xinitCon, dims$construction, tcalib)
-  .writeCostIntang(file.path(path, "costIntangRen.csv"), optimVarRen, xinitRen, dims$renovation, tcalib)
+  .writeCostIntang(file.path(path, "costIntangCon.csv"), optimVarCon, xinitCon, dims$construction, tcalib,
+                   flow = "construction")
+  .writeCostIntang(file.path(path, "costIntangRen.csv"), optimVarRen, xinitRen, dims$renovation, tcalib,
+                   flow = "renovation", vinExists = vinExists, vinCalib = vinCalib)
 
   diagnosticsAll <- c(diagnostics, diagnosticsDetail)
   lapply(names(diagnosticsAll), function(nm) {
@@ -697,14 +699,22 @@ runCalibrationOptim <- function(path,
 #' @param agg character, columns with the dimensions to be aggregated
 #' @param func function to be used for aggregation
 #' @param valueNames character, names of the columns containing the values to aggregate
+#' @param keepRows logical, whether to keep all rows in the data frame
 #'
 #' @importFrom dplyr %>% .data across any_of group_by rename_with summarise
 #'
-.aggregateDim <- function(df, agg, func = sum, valueNames = "value") {
+.aggregateDim <- function(df, agg, func = sum, valueNames = "value", keepRows = FALSE) {
   if (any(agg %in% colnames(df))) {
     df <- df %>%
-      group_by(across(-any_of(c(agg, valueNames)))) %>%
-      summarise(across(valueNames, func))
+      group_by(across(-any_of(c(agg, valueNames))))
+    if (isTRUE(keepRows)) {
+      df <- df %>%
+        mutate(across(valueNames, func)) %>%
+        ungroup()
+    } else {
+      df <- df %>%
+        summarise(across(valueNames, func), .groups = "drop")
+    }
   }
   return(df)
 }
@@ -720,12 +730,13 @@ runCalibrationOptim <- function(path,
 #' @param renAllowed data frame with allowed renovation transitions
 #' @param vinExists data frame with existing vintages for each time period
 #' @param agg character, dimensions to aggregate Brick results and target data over
+#' @param calibResolution character, resolution of the calibration for renovation flows
 #'
 #' @importFrom dplyr %>% .data case_match case_when filter left_join mutate select
 #' @importFrom tidyr pivot_wider replace_na
 #'
 .computeDeviation <- function(m, target, dims, tcalib, flow = c("construction", "renovation"),
-                              renAllowed = NULL, vinExists = NULL, agg = NULL) {
+                              renAllowed = NULL, vinExists = NULL, agg = NULL, calibResolution = "full") {
 
   flow <- match.arg(flow)
 
@@ -742,7 +753,17 @@ runCalibrationOptim <- function(path,
     left_join(gamsVar, by = dims) %>%
     left_join(target, by = dims) %>%
     replace_na(list(value = 0, target = 0)) %>%
-    .aggregateDim(agg = agg, func = sum, valueNames = c("value", "target")) %>%
+    .aggregateDim(agg = agg, func = sum, valueNames = c("value", "target"))
+  if (identical(calibResolution, "identRepl") && identical(flow, "renovation")) {
+    deviation <- deviation %>%
+      mutate(renType = case_when(
+        .data$hsr == "0" ~ "0",
+        .data$hs == .data$hsr ~ "identRepl",
+        .default = "newSys"
+      )) %>%
+      .aggregateDim("hs", func = sum, valueNames = c("value", "target"), keepRows = TRUE)
+  }
+  deviation <- deviation %>%
     left_join(cost, by = setdiff(dims, agg)) %>%
     filter(.data[["ttot"]] %in% tcalib)
   if (flow == "renovation") {
@@ -932,7 +953,8 @@ runCalibrationOptim <- function(path,
              .data[["ttot"]] %in% tcalib,
              .data[["value"]] + .data[[varName]],
              .data[["value"]] + .data[["xProj"]]
-           ))
+           )) %>%
+    ungroup()
   if (flow == "renovation") {
     if (all(grepl("all", vinCalib$vin))) {
       vinCalib <- vinCalib %>%
@@ -955,7 +977,6 @@ runCalibrationOptim <- function(path,
       ungroup()
   }
   specCost %>%
-    ungroup() %>%
     select(-"xProj", -any_of(c("x", "xMin", "xA")))
 }
 
@@ -1229,11 +1250,18 @@ runCalibrationOptim <- function(path,
 #' @param xinit data frame with initial intangible specific costs
 #' @param dims character, dimensions of the optimization variable
 #' @param tcalib numeric, calibration time steps
+#' @param flow character, specifies flow considered. Must be cosntruction or renovation
+#' @param vinExists data frame with existing vintage and time step combinations
+#' @param vinCalib data frame with vintage and time step combinations that exist during calibration
 #'
 #' @importFrom utils write.csv
 #'
-.writeCostIntang <- function(file, optimVar, xinit, dims, tcalib) {
-  specCostIntang <- .determineSpecCost(optimVar, xinit, dims, tcalib)
+.writeCostIntang <- function(file, optimVar, xinit, dims, tcalib,
+                             flow = c("construction", "renovation"), vinExists = NULL, vinCalib = NULL) {
+  flow <- match.arg(flow)
+
+  specCostIntang <- .determineSpecCost(optimVar, xinit, dims, tcalib, flow = flow,
+                                       vinExists = vinExists, vinCalib = vinCalib)
 
   write.csv(specCostIntang, file = file, row.names = FALSE)
 }

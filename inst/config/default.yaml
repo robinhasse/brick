@@ -222,6 +222,8 @@ switches:
     # optimization: calibration through outer optimization around BRICK
   CALIBRATIONMETHOD: NULL
 
+  CALIBRESOLUTION: full
+
   ### optimisation problems to solve ###
   # solving an LP first can help to start from a good initial point
     # lp:    linear problem (incomplete)

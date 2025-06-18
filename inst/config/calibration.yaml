@@ -1,13 +1,13 @@
 ---
-title: "calibration"
+title: "calibration-mtch-12-06-start2000-to2050"
 basedOn: "default.yaml"
 # scope and resolution
-periods: [2000, 2010, 2020]
-startyear: 2010
-calibperiods: 2010
+granularity: lowGran
+periods: [2000, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050]
+startyear: 2005
+calibperiods: 2005
 regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
 regions: EUR
-inputRevision: 0.8.3
 ignoreShell: TRUE
 reportingTemplate: ignoreShell_onlyRes
 ltEternalShare: 0.05
@@ -15,12 +15,14 @@ ltEternalShare: 0.05
 switches:
   RUNTYPE: calibration
   CALIBRATIONMETHOD: logit
-  AGGREGATEDIM: vin
+  FIXEDBUILDINGS: TRUE
+  # CALIBRESOLUTION: identRepl
+  # AGGREGATEDIM: vin
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 80
-  iterations: 2
+  iterations: 10
   iterationsArmijo: 20
-  sensitivityArmijo: 0.01
-  modifyData: TRUE
+  sensitivityArmijo: 0.04
+  modifyData: FALSE
 ...
