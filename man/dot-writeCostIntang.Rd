@@ -4,7 +4,16 @@
 \alias{.writeCostIntang}
 \title{Write the intangible costs to a .csv file}
 \usage{
-.writeCostIntang(file, optimVar, xinit, dims, tcalib)
+.writeCostIntang(
+  file,
+  optimVar,
+  xinit,
+  dims,
+  tcalib,
+  flow = c("construction", "renovation"),
+  vinExists = NULL,
+  vinCalib = NULL
+)
 }
 \arguments{
 \item{file}{character, path to file to which results should be written}
@@ -16,6 +25,12 @@
 \item{dims}{character, dimensions of the optimization variable}
 
 \item{tcalib}{numeric, calibration time steps}
+
+\item{flow}{character, specifies flow considered. Must be cosntruction or renovation}
+
+\item{vinExists}{data frame with existing vintage and time step combinations}
+
+\item{vinCalib}{data frame with vintage and time step combinations that exist during calibration}
 }
 \description{
 Write the intangible costs to a .csv file
