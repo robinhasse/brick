@@ -1,9 +1,9 @@
 ---
-title: "calibration"
+title: "calibration-mtch-12-06-shift"
 basedOn: "default.yaml"
 # scope and resolution
 granularity: lowGran
-periods: [2000, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050]
+periods: [2000, 2005, 2010]
 startyear: 2005
 calibperiods: 2005
 regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
@@ -20,7 +20,7 @@ switches:
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 80
-  iterations: 10
+  iterations: 15
   iterationsArmijo: 20
   sensitivityArmijo: 0.04
   modifyData: FALSE

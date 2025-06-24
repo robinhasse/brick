@@ -936,6 +936,8 @@ runCalibrationOptim <- function(path,
 
   flow <- match.arg(flow)
 
+  finalHs <- if (flow == "construction") "hs" else "hsr"
+
   specCost <- xinit %>%
     .filter(vinExists) %>%
     replace_na(list(value = 0)) %>% # replace missing initial values with 0
@@ -947,7 +949,8 @@ runCalibrationOptim <- function(path,
              .data[["value"]] + .data[[varName]],
              .data[["value"]] + .data[["xProj"]]
            )) %>%
-    ungroup()
+    ungroup() %>%
+    select(-"xProj", -any_of(c("x", "xMin", "xA")))
   if (flow == "renovation") {
     if (all(grepl("all", vinCalib$vin))) {
       vinCalib <- vinCalib %>%
@@ -961,16 +964,21 @@ runCalibrationOptim <- function(path,
       unique()
 
     specCost <- specCost %>%
-      group_by(across(-any_of(c("vin", "x", "xA", "xMin", "xProj", "value")))) %>%
+      group_by(across(-all_of(c("vin", "value")))) %>%
       mutate(value = ifelse(
         vinCalibMax == "all" | .data[["vin"]] %in% vinCalib$vin,
         .data[["value"]],
         .data[["value"]][.data[["vin"]] == vinCalibMax]
-      )) %>%
-      ungroup()
+      ))
   }
   specCost %>%
-    select(-"xProj", -any_of(c("x", "xMin", "xA")))
+    group_by(across(-all_of(c(finalHs, "value")))) %>%
+    mutate(value = ifelse(
+      is.na(.data$value),
+      NA,
+      .data$value - pmin(min(.data$value, na.rm = TRUE), 0)
+    )) %>%
+    ungroup()
 }
 
 #' Write the specific costs to the input.gdx
