@@ -23,5 +23,4 @@ calibrationParameters:
   iterations: 5
   iterationsArmijo: 20
   sensitivityArmijo: 0.04
-  modifyData: FALSE
 ...

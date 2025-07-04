@@ -12,7 +12,8 @@
   flow = c("construction", "renovation"),
   varName = "x",
   vinExists = NULL,
-  vinCalib = NULL
+  vinCalib = NULL,
+  shiftIntang = TRUE
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ Should be one of 'x', 'xA' or 'xMin'.}
 \item{vinExists}{data frame of vintages that exist for each time period}
 
 \item{vinCalib}{data frame with vintages that exist in calibration periods}
+
+\item{shiftIntang}{logical indicating whether intangible costs should be shifted to positive range}
 }
 \description{
 Assemble specific costs from initial specific costs and the optimization variable

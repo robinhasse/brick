@@ -1,5 +1,5 @@
 ---
-title: "calibration-mtch-12-06-shift"
+title: "calibration"
 basedOn: "default.yaml"
 # scope and resolution
 granularity: lowGran
@@ -9,6 +9,7 @@ calibperiods: 2005
 regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
 regions: EUR
 ignoreShell: TRUE
+statusQuoPreference: 0
 reportingTemplate: ignoreShell_onlyRes
 ltEternalShare: 0.05
 # switches
@@ -20,8 +21,7 @@ switches:
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 80
-  iterations: 15
+  iterations: 5
   iterationsArmijo: 20
   sensitivityArmijo: 0.04
-  modifyData: FALSE
 ...

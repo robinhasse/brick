@@ -2,12 +2,14 @@
 title: "calibration-flows"
 basedOn: "default.yaml"
 # scope and resolution
-periods: [2005, 2010, 2015]
-startyear: 2010
-calibperiods: 2010
+granularity: lowGran
+periods: [2000, 2005, 2010]
+startyear: 2005
+calibperiods: 2005
 regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
 regions: EUR
 ignoreShell: TRUE
+statusQuoPreference: 0
 reportingTemplate: ignoreShell_onlyRes
 ltEternalShare: 0.05
 # switches
@@ -16,12 +18,12 @@ switches:
   CALIBRATIONMETHOD: optimization
   TARGETFUNCTION: minsquare
   CALIBRATIONTYPE: flows
-  AGGREGATEDIM: vin
+  # AGGREGATEDIM: vin
+  FIXEDBUILDINGS: TRUE
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 10
-  iterations: 2
+  iterations: 5
   iterationsArmijo: 20
   sensitivityArmijo: 0.04
-  modifyData: FALSE
 ...

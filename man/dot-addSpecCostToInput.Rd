@@ -14,7 +14,8 @@
   tcalib,
   vinExists,
   vinCalib,
-  varName = "x"
+  varName = "x",
+  shiftIntang = TRUE
 )
 }
 \arguments{
@@ -38,6 +39,8 @@
 
 \item{varName}{character, optimization variable to calculate specific costs from.
 Needs to be a column of optimVarCon and optimVarRen, should be one of 'x', 'xA' or 'xMin'.}
+
+\item{shiftIntang}{logical indicating whether intangible costs should be shifted to positive range}
 }
 \description{
 Write the specific costs to the input.gdx
