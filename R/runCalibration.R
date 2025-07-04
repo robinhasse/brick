@@ -137,12 +137,8 @@ runCalibrationLogit <- function(path,
 
   .addTargetsToInput(mInput, path, calibTarget)
 
-  p_constructionCalibTarget <- calibTarget[["construction"]] %>%
-    filter(.data$qty == "area") %>%
-    select(-"qty")
-  p_renovationCalibTarget <- calibTarget[["renovation"]] %>%
-    filter(.data$qty == "area") %>%
-    select(-"qty")
+  p_constructionCalibTarget <- .pick(calibTarget[["construction"]], qty = "area")
+  p_renovationCalibTarget <- .pick(calibTarget[["renovation"]], qty = "area")
 
   # Initial Brick run
   runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
@@ -922,6 +918,7 @@ runCalibrationOptim <- function(path,
 
   flow <- match.arg(flow)
 
+  finalBs <- if (flow == "construction") "bs" else "bsr"
   finalHs <- if (flow == "construction") "hs" else "hsr"
 
   specCost <- xinit %>%
@@ -959,11 +956,11 @@ runCalibrationOptim <- function(path,
   }
   if (isTRUE(shiftIntang)) {
     specCost <- specCost %>%
-      group_by(across(-all_of(c(finalHs, "value")))) %>%
+      group_by(across(-all_of(c(finalBs, finalHs, "value")))) %>%
       mutate(value = ifelse(
         is.na(.data$value),
         NA,
-        .data$value - pmin(min(.data$value, na.rm = TRUE), 0)
+        .data$value - min(.data$value, na.rm = TRUE) + 1E-5
       )) %>%
       ungroup()
   }
