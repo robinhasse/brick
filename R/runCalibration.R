@@ -57,7 +57,7 @@ runCalibration <- function(path,
     path,
     parameters,
     tcalib,
-    calibTarget = .readCalibTarget(tcalib, modifyData = parameters[["modifyData"]]),
+    calibTarget = .readCalibTarget(tcalib),
     gamsOptions = gamsOptions,
     switches = switches,
     fileName = fileName,
@@ -137,8 +137,8 @@ runCalibrationLogit <- function(path,
 
   .addTargetsToInput(mInput, path, calibTarget)
 
-  p_constructionCalibTarget <- select(calibTarget[["construction"]], -"qty")
-  p_renovationCalibTarget <- select(calibTarget[["renovation"]], -"qty")
+  p_constructionCalibTarget <- .pick(calibTarget[["construction"]], qty = "area")
+  p_renovationCalibTarget <- .pick(calibTarget[["renovation"]], qty = "area")
 
   # Initial Brick run
   runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
@@ -190,7 +190,7 @@ runCalibrationLogit <- function(path,
                             nameTo = "xMin", factorMin = 0.0001)
 
     .addSpecCostToInput(mInput, path, optimVarCon, optimVarRen, xinitCon, xinitRen, tcalib, varName = "xMin",
-                        vinExists = vinExists, vinCalib = vinCalib)
+                        vinExists = vinExists, vinCalib = vinCalib, shiftIntang = switches[["SHIFTINTANG"]])
 
     runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
 
@@ -227,7 +227,7 @@ runCalibrationLogit <- function(path,
                                     stepSizeParams, dims$renovation)
 
       .addSpecCostToInput(mInput, path, optimVarCon, optimVarRen, xinitCon, xinitRen, tcalib, varName = "xA",
-                          vinExists = vinExists, vinCalib = vinCalib)
+                          vinExists = vinExists, vinCalib = vinCalib, shiftIntang = switches[["SHIFTINTANG"]])
 
       ## Evaluate outer objective of Brick results ====
 
@@ -281,7 +281,7 @@ runCalibrationLogit <- function(path,
       optimVarRen <- .updateXSelect(totalStep, optimVarRen, deviationRen, stepSizeParams, dims$renovation)
 
       .addSpecCostToInput(mInput, path, optimVarCon, optimVarRen, xinitCon, xinitRen, tcalib, varName = "xA",
-                          vinExists = vinExists, vinCalib = vinCalib)
+                          vinExists = vinExists, vinCalib = vinCalib, shiftIntang = switches[["SHIFTINTANG"]])
 
       ## Re-evaluate outer objective of Brick results ====
 
@@ -461,7 +461,7 @@ runCalibrationOptim <- function(path,
                                     stepSizeParams, dims$renovationDeviation)
 
       .addSpecCostToInput(mInput, path, optimVarCon, optimVarRen, xinitCon, xinitRen, tcalib, varName = "xA",
-                          vinExists = vinExists, vinCalib = vinCalib)
+                          vinExists = vinExists, vinCalib = vinCalib, shiftIntang = switches[["SHIFTINTANG"]])
 
       ## Evaluate outer objective of Brick results ====
 
@@ -524,7 +524,7 @@ runCalibrationOptim <- function(path,
     optimVarRen <- mutate(optimVarRen, x = .data[["xA"]], xA = NULL, xMin = NULL)
 
     .addSpecCostToInput(mInput, path, optimVarCon, optimVarRen, xinitCon, xinitRen, tcalib,
-                        vinExists = vinExists, vinCalib = vinCalib)
+                        vinExists = vinExists, vinCalib = vinCalib, shiftIntang = switches[["SHIFTINTANG"]])
 
     runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
 
@@ -570,11 +570,10 @@ runCalibrationOptim <- function(path,
 #' Read calibration targets from input folder
 #'
 #' @param tcalib numeric, calibration time periods
-#' @param modifyData logical, switch to control whether to alter data read from matching
 #'
 #' @importFrom dplyr %>% .data filter mutate
 #'
-.readCalibTarget <- function(tcalib, modifyData = FALSE) {
+.readCalibTarget <- function(tcalib) {
   dims <- list(
     stock        = c("qty", "bs", "hs", "vin", "region", "loc", "typ", "inc", "ttot"),
     construction = c("qty", "bs", "hs", "region", "loc", "typ", "inc", "ttot"),
@@ -582,26 +581,8 @@ runCalibrationOptim <- function(path,
   )
   lapply(setNames(nm = names(dims)), function(var) {
     file <- paste0("f_", var, "CalibTarget.cs4r")
-    dfTarget <- readInput(file, c(dims[[var]], "target")) %>%
+    readInput(file, c(dims[[var]], "target")) %>%
       mutate(across(-all_of(c("target", "ttot")), as.character))
-    if (isTRUE(modifyData)) {
-      dfTarget <- dfTarget %>%
-        mutate(target = ifelse(
-          .data$loc == "rural",
-          .data$target / 2,
-          .data$target
-        ))
-      if (var == "renovation") {
-        dfTarget <- dfTarget %>%
-          filter(.data$ttot %in% tcalib) %>%
-          mutate(target = ifelse(
-            .data$hsr == "0",
-            .data$target / 5,
-            .data$target
-          ))
-      }
-    }
-    return(dfTarget)
   })
 }
 
@@ -927,14 +908,18 @@ runCalibrationOptim <- function(path,
 #'   Should be one of 'x', 'xA' or 'xMin'.
 #' @param vinExists data frame of vintages that exist for each time period
 #' @param vinCalib data frame with vintages that exist in calibration periods
+#' @param shiftIntang logical indicating whether intangible costs should be shifted to positive range
 #'
 #' @importFrom dplyr %>% .data across any_of group_by mutate select ungroup
 #'
 # TODO: Maybe handle case of zero values differently
 .determineSpecCost <- function(optimVar, xinit, dims, tcalib, flow = c("construction", "renovation"),
-                               varName = "x", vinExists = NULL, vinCalib = NULL) {
+                               varName = "x", vinExists = NULL, vinCalib = NULL, shiftIntang = TRUE) {
 
   flow <- match.arg(flow)
+
+  finalBs <- if (flow == "construction") "bs" else "bsr"
+  finalHs <- if (flow == "construction") "hs" else "hsr"
 
   specCost <- xinit %>%
     .filter(vinExists) %>%
@@ -947,7 +932,8 @@ runCalibrationOptim <- function(path,
              .data[["value"]] + .data[[varName]],
              .data[["value"]] + .data[["xProj"]]
            )) %>%
-    ungroup()
+    ungroup() %>%
+    select(-"xProj", -any_of(c("x", "xMin", "xA")))
   if (flow == "renovation") {
     if (all(grepl("all", vinCalib$vin))) {
       vinCalib <- vinCalib %>%
@@ -961,16 +947,24 @@ runCalibrationOptim <- function(path,
       unique()
 
     specCost <- specCost %>%
-      group_by(across(-any_of(c("vin", "x", "xA", "xMin", "xProj", "value")))) %>%
+      group_by(across(-all_of(c("vin", "value")))) %>%
       mutate(value = ifelse(
         vinCalibMax == "all" | .data[["vin"]] %in% vinCalib$vin,
         .data[["value"]],
         .data[["value"]][.data[["vin"]] == vinCalibMax]
+      ))
+  }
+  if (isTRUE(shiftIntang)) {
+    specCost <- specCost %>%
+      group_by(across(-all_of(c(finalBs, finalHs, "value")))) %>%
+      mutate(value = ifelse(
+        is.na(.data$value),
+        NA,
+        .data$value - min(.data$value, na.rm = TRUE) + 1E-5
       )) %>%
       ungroup()
   }
-  specCost %>%
-    select(-"xProj", -any_of(c("x", "xMin", "xA")))
+  specCost
 }
 
 #' Write the specific costs to the input.gdx
@@ -986,12 +980,13 @@ runCalibrationOptim <- function(path,
 #' @param vinCalib data frame with vintages that exist in calibration periods
 #' @param varName character, optimization variable to calculate specific costs from.
 #'   Needs to be a column of optimVarCon and optimVarRen, should be one of 'x', 'xA' or 'xMin'.
+#' @param shiftIntang logical indicating whether intangible costs should be shifted to positive range
 #'
 #' @importFrom dplyr filter
 #'
 .addSpecCostToInput <- function(m, path,
                                 optimVarCon, optimVarRen, xinitCon, xinitRen, tcalib, vinExists, vinCalib,
-                                varName = "x") {
+                                varName = "x", shiftIntang = TRUE) {
 
   p_specCostCon <- m$getSymbols("p_specCostCon")[[1]]
   p_specCostRen <- m$getSymbols("p_specCostRen")[[1]]
@@ -1004,12 +999,14 @@ runCalibrationOptim <- function(path,
 
   p_specCostConData <- rbind(
     p_specCostConTang,
-    .determineSpecCost(optimVarCon, xinitCon, dimsCon, tcalib, flow = "construction", varName = varName)
+    .determineSpecCost(optimVarCon, xinitCon, dimsCon, tcalib,
+                       flow = "construction", varName = varName, shiftIntang = shiftIntang)
   )
   p_specCostRenData <- rbind(
     p_specCostRenTang,
     .determineSpecCost(optimVarRen, xinitRen, dimsRen, tcalib, flow = "renovation",
-                       varName = varName, vinExists = vinExists, vinCalib = vinCalib)
+                       varName = varName, vinExists = vinExists, vinCalib = vinCalib,
+                       shiftIntang = shiftIntang)
   )
 
   p_specCostCon$setRecords(p_specCostConData)

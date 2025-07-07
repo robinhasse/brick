@@ -275,6 +275,12 @@ switches:
     # vin
   AGGREGATEDIM: FALSE
 
+  ### Shift intangible costs ###
+  # Should intangible costs be shifted to the positive range?
+    # TRUE
+    # FALSE
+  SHIFTINTANG: TRUE
+
 
 # gams parameters --------------------------------------------------------------
 # passed to gams
@@ -306,5 +312,4 @@ calibrationParameters:
   sensitivityArmijo: 0.01
   stepReduction: 0.5
   deltaDiffQuotient: 0.1
-  modifyData: FALSE
 ...

@@ -5,10 +5,11 @@ basedOn: "default.yaml"
 granularity: lowGran
 periods: [2000, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050]
 startyear: 2005
-calibperiods: 2005
+calibperiods: [2005, 2010]
 regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
 regions: EUR
 ignoreShell: TRUE
+statusQuoPreference: 0
 reportingTemplate: ignoreShell_onlyRes
 ltEternalShare: 0.05
 # switches
@@ -20,8 +21,7 @@ switches:
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 80
-  iterations: 10
+  iterations: 20
   iterationsArmijo: 20
   sensitivityArmijo: 0.04
-  modifyData: FALSE
 ...
