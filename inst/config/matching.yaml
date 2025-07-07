@@ -1,6 +1,6 @@
 ---
 title: matching
-reportingTemplate:
+reportingTemplate: lowGran_ignoreShell
 granularity: lowGran
 # scope and resolution
 endyear: 2023
@@ -20,4 +20,5 @@ ignoreShell: TRUE
 
 switches:
   RUNTYPE: matching
+  FIXEDBUILDINGS: TRUE
 ...

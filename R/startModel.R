@@ -11,6 +11,7 @@
 #' @param runReporting logical, whether to run the reporting, i.e. write the mif
 #'
 #' @importFrom utils read.csv2
+#' @importFrom reportbrick showSankey
 #' @export
 #'
 startModel <- function(path, runReporting = TRUE) {
@@ -68,6 +69,12 @@ startModel <- function(path, runReporting = TRUE) {
   checkGamsSuccess(path)
 
   plotSummary(path, NULL)
+
+  # sankey plots
+  try(showSankey(path, "hs", maxPeriodsInRow = 5))
+  if (!isTRUE(cfg[["ignoreShell"]])) {
+    try(showSankey(path, "bs", maxPeriodsInRow = 5))
+  }
 
   if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
     plotRefDeviation(path)
