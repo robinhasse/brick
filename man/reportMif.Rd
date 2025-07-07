@@ -14,7 +14,7 @@ in run folder will be used. If \code{FALSE}, no file is written and the mif
 data is returned instead.}
 
 \item{tmpl}{character, BRICK reporting template. There has to be a brickSets
-mapping named with the same suffix: \code{brickSets_<tmpl>.yaml}. If NNULL,
+mapping named with the same suffix: \code{brickSets_<tmpl>.yaml}. If NULL,
 the config setting is used.}
 }
 \description{
