@@ -5,12 +5,12 @@ $offOrder
 model fullSysLP "full system linear optimisation"
   /
   q_totObj
-  q_Obj
-  q_SysCost
-  q_ConCost
-  q_RenCost
-  q_OpeCost
-  q_DemCost
+  q_obj
+  q_sysCost
+  q_conCost
+  q_renCost
+  q_opeCost
+  q_demCost
 $ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
   q_stockBal1
   q_stockBal2
@@ -29,7 +29,7 @@ $ifthen.shell not "%ignoreShell%" == "TRUE"
   q_lifeTimeBS
 $endif.shell
   q_lifeTimeHS
-  q_SysHeteroPref
+  q_sysHeteroPref
   q_zeroHeteroPrefCon
   q_zeroHeteroPrefRen
   q_statusQuoPref
@@ -44,12 +44,12 @@ $endif.shell
 model fullSysNLP "full system linear optimisation"
   /
   q_totObj
-  q_Obj
-  q_SysCost
-  q_ConCost
-  q_RenCost
-  q_OpeCost
-  q_DemCost
+  q_obj
+  q_sysCost
+  q_conCost
+  q_renCost
+  q_opeCost
+  q_demCost
 $ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
   q_stockBal1
   q_stockBal2
@@ -69,14 +69,14 @@ $ifthen.shell not "%ignoreShell%" == "TRUE"
   q_lifeTimeBS
 $endif.shell
   q_lifeTimeHS
-  q_SysHeteroPref
   q_entropyRenToBS
   q_entropyRenToHS
   q_entropyRenFromBS
   q_entropyRenFromHS
+  q_sysHeteroPref
   q_statusQuoPref
-  q_HeteroPrefCon
-  q_HeteroPrefRen
+  q_heteroPrefCon
+  q_heteroPrefRen
 *  q_maxRenRate
   /
 ;

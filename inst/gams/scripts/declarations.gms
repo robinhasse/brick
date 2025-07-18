@@ -22,8 +22,8 @@ p_renDepth(bs,bsr)                    "renovation depth"
 
 p_lccCon(cost,var,bs,hs,region,loc,typ,inc,ttot) "Estimate of life cycle cost of constructed housing in USD/m2"
 p_probDem(region,typ,ttot2,ttot)                 "probability of a building having reached its end of life"
-p_LifeTimeBS(region)                             "life time of building shell system yr"
-p_LifeTimeHS(hs,region,typ)                      "life time of heating system in yr"
+p_lifeTimeBS(region)                             "life time of building shell system in yr"
+p_lifeTimeHS(hs,region,typ)                      "life time of heating system in yr"
 
 p_population(region,loc,typ,inc,ttot)          "number of people in million"
 p_floorPerCap(region,loc,typ,inc,ttot)         "floor space per capita in m2"
@@ -72,17 +72,17 @@ epsilon "offset to avoid log(0)" /1E-5/
 
 variables
 v_totObj                  "total objective value"
-v_Obj(region,loc,typ,inc) "objective value: discounted system cost + heterogeneity preference"
+v_obj(region,loc,typ,inc) "objective value: discounted system cost + heterogeneity preference"
 
-v_SysHeteroPref(region,loc,typ,inc,ttot)            "system-wide heterogeneity preference"
-v_HeteroPrefCon(region,loc,typ,inc,ttot)            "diversity preference for construction"
-v_HeteroPrefRen(region,loc,typ,inc,ttot)            "diversity preference for renovation"
-v_entropyRenToBS(bs,hs,vin,region,loc,typ,inc,ttot) "diversity in building shell retrofit"
-v_entropyRenToHS(bs,hs,vin,region,loc,typ,inc,ttot) "diversity in heating system replacement"
-v_entropyRenFromBS(vin,region,loc,typ,inc,t)        "diversity in state before building shell retrofit"
-v_entropyRenFromHS(vin,region,loc,typ,inc,t)        "diversity in state before heating system replacement"
-v_entropyRenFrom(vin,region,loc,typ,inc,t)          "diversity in state before renovation"
-v_statusQuoPref(region,loc,typ,inc,ttot)            "status quo preference when replacing heating systems"
+v_sysHeteroPref(region,loc,typ,inc,ttot)              "system-wide heterogeneity preference"
+v_heteroPrefCon(region,loc,typ,inc,ttot)              "diversity preference for construction"
+v_heteroPrefRen(region,loc,typ,inc,ttot)              "diversity preference for renovation"
+v_entropyRenToBS(bs,hs,vin,region,loc,typ,inc,ttot)   "diversity in building shell retrofit"
+v_entropyRenToHS(bs,hs,vin,region,loc,typ,inc,ttot)   "diversity in heating system replacement"
+v_entropyRenFromBS(vin,region,loc,typ,inc,t)          "diversity in state before building shell retrofit"
+v_entropyRenFromHS(vin,region,loc,typ,inc,t)          "diversity in state before heating system replacement"
+v_entropyRenFrom(vin,region,loc,typ,inc,t)            "diversity in state before renovation"
+v_statusQuoPref(region,loc,typ,inc,ttot)              "status quo preference when replacing heating systems"
 
 v_slackRenBS(bs,vin,region,loc,typ,inc,ttot) "difference between actual and min required building shell replacement"
 v_slackRenHS(hs,vin,region,loc,typ,inc,ttot) "difference between actual and min required heating system replacement"
@@ -104,14 +104,14 @@ v_flowVariationRen(qty,bs,hs,bsr,hsr,region,loc,typ,inc,t) "temporal variation o
 v_flowVariationDem(qty,bs,hs,region,loc,typ,inc,t)         "temporal variation of demolition flow [million m2/yr/yr]"
 $endif.matching
 
-v_SysCost(region,loc,typ,inc,ttot) "system cost cost cash flow in USD/yr"
-v_ConCost(region,loc,typ,inc,ttot) "construction cost cash flow in USD/yr"
-v_RenCost(region,loc,typ,inc,ttot) "renovation cost cash flow in USD/yr"
+v_sysCost(region,loc,typ,inc,ttot) "system cost cost cash flow in USD/yr"
+v_conCost(region,loc,typ,inc,ttot) "construction cost cash flow in USD/yr"
+v_renCost(region,loc,typ,inc,ttot) "renovation cost cash flow in USD/yr"
 ;
 
 positive variables
-v_OpeCost(region,loc,typ,inc,ttot) "operational cost cash flow in USD/yr"
-v_DemCost(region,loc,typ,inc,ttot) "demolition cost cash flow in USD/yr"
+v_opeCost(region,loc,typ,inc,ttot) "operational cost cash flow in USD/yr"
+v_demCost(region,loc,typ,inc,ttot) "demolition cost cash flow in USD/yr"
 
 v_stock(qty,bs,hs,vin,region,loc,typ,inc,ttot)              "stock of buildings in [million m2/yr]"
 v_construction(qty,bs,hs,region,loc,typ,inc,ttot)           "flow of new buildings in [million m2/yr]"
@@ -135,28 +135,28 @@ $endif.matching
 equations
 
 q_totObj                  "total objective"
-q_Obj(region,loc,typ,inc) "objective: discounted system cost + heterogeneity preference"
+q_obj(region,loc,typ,inc) "objective: discounted system cost + heterogeneity preference"
 
-q_SysCost(region,loc,typ,inc,ttot) "system cost (con + ren + ope + dem)"
-q_ConCost(region,loc,typ,inc,ttot) "construction cost"
-q_RenCost(region,loc,typ,inc,ttot) "renovation cost"
-q_OpeCost(region,loc,typ,inc,ttot) "operation cost"
-q_DemCost(region,loc,typ,inc,ttot) "demolition cost"
+q_sysCost(region,loc,typ,inc,ttot) "system cost (con + ren + ope + dem)"
+q_conCost(region,loc,typ,inc,ttot) "construction cost"
+q_renCost(region,loc,typ,inc,ttot) "renovation cost"
+q_opeCost(region,loc,typ,inc,ttot) "operation cost"
+q_demCost(region,loc,typ,inc,ttot) "demolition cost"
 
 q_renovationBS(qty,bs,hs,bsr,vin,region,loc,typ,inc,ttot) "aggregate renovation to building shell retrofit"
 q_renovationHS(qty,bs,hs,hsr,vin,region,loc,typ,inc,ttot) "aggregate renovation to heating system replacement"
 
-q_SysHeteroPref(region,loc,typ,inc,ttot)            "system-wide heterogeneity preference"
-q_HeteroPrefCon(region,loc,typ,inc,ttot)            "diversity preference for construction"
-q_HeteroPrefRen(region,loc,typ,inc,ttot)            "diversity preference for renovation"
-q_entropyRenToBS(bs,hs,vin,region,loc,typ,inc,ttot) "diversity in building shell retrofit"
-q_entropyRenToHS(bs,hs,vin,region,loc,typ,inc,ttot) "diversity in heating system replacement"
-q_entropyRenFromBS(vin,region,loc,typ,inc,t)        "diversity in state before building shell retrofit"
-q_entropyRenFromHS(vin,region,loc,typ,inc,t)        "diversity in state before heating system replacement"
-q_entropyRenFrom(vin,region,loc,typ,inc,t)          "diversity in state before renovation"
-q_statusQuoPref(region,loc,typ,inc,ttot)            "status quo preference"
-q_zeroHeteroPrefCon(region,loc,typ,inc,ttot)        "zero diversity preference for construction (lp)"
-q_zeroHeteroPrefRen(region,loc,typ,inc,ttot)        "zero diversity preference for renovation (lp)"
+q_sysHeteroPref(region,loc,typ,inc,ttot)              "system-wide heterogeneity preference"
+q_heteroPrefCon(region,loc,typ,inc,ttot)              "diversity preference for construction"
+q_heteroPrefRen(region,loc,typ,inc,ttot)              "diversity preference for renovation"
+q_entropyRenToBS(bs,hs,vin,region,loc,typ,inc,ttot)   "diversity in building shell retrofit"
+q_entropyRenToHS(bs,hs,vin,region,loc,typ,inc,ttot)   "diversity in heating system replacement"
+q_entropyRenFromBS(vin,region,loc,typ,inc,t)          "diversity in state before building shell retrofit"
+q_entropyRenFromHS(vin,region,loc,typ,inc,t)          "diversity in state before heating system replacement"
+q_entropyRenFrom(vin,region,loc,typ,inc,t)            "diversity in state before renovation"
+q_statusQuoPref(region,loc,typ,inc,ttot)              "status quo preference"
+q_zeroHeteroPrefCon(region,loc,typ,inc,ttot)          "zero diversity preference for construction (lp)"
+q_zeroHeteroPrefRen(region,loc,typ,inc,ttot)          "zero diversity preference for renovation (lp)"
 
 q_stockBalNext(qty,bs,hs,vin,region,loc,typ,inc,ttot)       "building stock balance: flows into next time step"
 q_stockBalPrev(qty,bs,hs,vin,region,loc,typ,inc,ttot)       "building stock balance: flows from previous time step"

@@ -10,7 +10,7 @@ $load p_population
 $load p_stockHist
 $load p_shareDem p_shareRenBS p_shareRenHS p_shareRenBSinit p_shareRenHSinit
 $load p_floorPerCap
-$load p_probDem p_LifeTimeBS p_LifeTimeHS
+$load p_probDem p_lifeTimeBS p_lifeTimeHS
 $gdxin
 
 $ifthen.matching "%RUNTYPE%" == "matching"
@@ -127,9 +127,9 @@ p_lccCon(cost,var,bs,hs,reg,loc,typ,inc,ttot) =
               p_specCostOpe(bs,hs,vin,reg,loc,typ,ttot)$(    sameas(var,"stock")
                                                        and sameas(cost,"tangible"))
             + p_specCostRen(cost,bs,hs,bs,"0",vin,reg,loc,typ,inc,ttot)$sameas(var,"renovation")
-              / p_LifeTimeBS(reg)
+              / p_lifeTimeBS(reg)
             + p_specCostRen(cost,bs,hs,"0",hs,vin,reg,loc,typ,inc,ttot)$sameas(var,"renovation")
-              / p_LifeTimeHS(hs,reg,typ)
+              / p_lifeTimeHS(hs,reg,typ)
           )
           * (1 - p_probDem(reg,typ,ttot2,ttot))
       ) * p_dt(ttot2)

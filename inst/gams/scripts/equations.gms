@@ -7,7 +7,7 @@ q_totObj..
   v_totObj
   =e=
   sum(subs,
-    v_Obj(subs)
+    v_obj(subs)
   )
 ;
 
@@ -17,32 +17,32 @@ q_totObj..
 * sum all cost components and benefit for heterogeneity in contruction and
 * renovation choices and discount them to t0 for each subset
 
-q_Obj(subs(reg,loc,typ,inc))..
-  v_Obj(subs)
+q_obj(subs(reg,loc,typ,inc))..
+  v_obj(subs)
   =e=
   sum(t,
     p_discountFac(typ,t)
     * p_dt(t)
-    * (  v_SysCost(subs,t)
-       + v_SysHeteroPref(subs,t)
+    * (  v_sysCost(subs,t)
+       + v_sysHeteroPref(subs,t)
        + v_statusQuoPref(subs,t))
   )
 ;
 
-q_SysCost(subs,t)..
-  v_SysCost(subs,t)
+q_sysCost(subs,t)..
+  v_sysCost(subs,t)
   =e=
-    v_ConCost(subs,t)
-  + v_RenCost(subs,t)
-  + v_OpeCost(subs,t)
-  + v_DemCost(subs,t)
+    v_conCost(subs,t)
+  + v_renCost(subs,t)
+  + v_opeCost(subs,t)
+  + v_demCost(subs,t)
 ;
 
-q_SysHeteroPref(subs,t)..
-  v_SysHeteroPref(subs,t)
+q_sysHeteroPref(subs,t)..
+  v_sysHeteroPref(subs,t)
   =e=
-    v_HeteroPrefCon(subs,t)
-  + v_HeteroPrefRen(subs,t)
+    v_heteroPrefCon(subs,t)
+  + v_heteroPrefRen(subs,t)
 ;
 
 
@@ -50,8 +50,8 @@ q_SysHeteroPref(subs,t)..
 
 * calculate cash flow of construction cost with area-specific cost
 
-q_ConCost(subs,t)..
-  v_ConCost(subs,t)
+q_conCost(subs,t)..
+  v_conCost(subs,t)
   =e=
   sum(state,
     v_construction("area",state,subs,t)
@@ -66,8 +66,8 @@ q_ConCost(subs,t)..
 
 * calculate cash flow of renovation cost with area-specific cost
 
-q_RenCost(subs,t)..
-  v_RenCost(subs,t)
+q_renCost(subs,t)..
+  v_renCost(subs,t)
   =e=
   sum(vin$vinExists(t,vin),
 $ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE" !! TODO: this might be generalisable
@@ -99,8 +99,8 @@ $endif.sequentialRen
 * we assume a linear transition from the previous to the current stock and
 * therefore take the average stock between the two for the operation cost
 
-q_OpeCost(subs(reg,loc,typ,inc),ttot)$(t(ttot))..
-  v_OpeCost(subs,ttot)
+q_opeCost(subs(reg,loc,typ,inc),ttot)$(t(ttot))..
+  v_opeCost(subs,ttot)
   =e=
   sum((state,vinExists(ttot,vin)),
     sum(ttot2$((sameas(ttot2,ttot) or sameas(ttot2,ttot-1)) and vinExists(ttot2,vin)),
@@ -115,8 +115,8 @@ q_OpeCost(subs(reg,loc,typ,inc),ttot)$(t(ttot))..
 
 * calculate cash flow of demolition cost with area-specific cost
 
-q_DemCost(subs,t)..
-  v_DemCost(subs,t)
+q_demCost(subs,t)..
+  v_demCost(subs,t)
   =e=
   sum(state, sum(vin$vinExists(t,vin),
     v_demolition("area",state,vin,subs,t)
@@ -131,8 +131,8 @@ q_DemCost(subs,t)..
 * (reaches maximum for a given total quantity with equal shares of alternatives)
 
 * construction
-q_HeteroPrefCon(subs,t)..
-  v_HeteroPrefCon(subs,t)
+q_heteroPrefCon(subs,t)..
+  v_heteroPrefCon(subs,t)
   =e=
   1 / priceSensBS("construction", subs)
   * sum(bs,
@@ -183,8 +183,8 @@ q_HeteroPrefCon(subs,t)..
 * summing renovation entropies for each initial state over those states would
 * also benefits heterogeneity in the initial state. To avoid this, we subtract
 * the heterogeneity in the inital state.
-q_HeteroPrefRen(subs,t)..
-  v_HeteroPrefRen(subs,t)
+q_heteroPrefRen(subs,t)..
+  v_heteroPrefRen(subs,t)
   =e=
   sum(vinExists(t,vin),
       (sum(state, v_entropyRenToBS(state,vin,subs,t)) - v_entropyRenFromBS(vin,subs,t)) / priceSensBS("renovation",subs)
@@ -327,13 +327,13 @@ q_renovationHS(q,state,hsr,vin,subs,ttot)$vinExists(ttot,vin)..
 
 * fix heterogeneity to zero for linear problem (lp)
 q_zeroHeteroPrefCon(subs,t)..
-  v_HeteroPrefCon(subs,t)
+  v_heteroPrefCon(subs,t)
   =e=
   0
 ;
 
 q_zeroHeteroPrefRen(subs,t)..
-  v_HeteroPrefRen(subs,t)
+  v_heteroPrefRen(subs,t)
   =e=
   0
 ;
