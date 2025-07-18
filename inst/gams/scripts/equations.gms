@@ -186,10 +186,9 @@ q_HeteroPrefCon(subs,t)..
 q_HeteroPrefRen(subs,t)..
   v_HeteroPrefRen(subs,t)
   =e=
-  sum((state,vinExists(t,vin)),
-      v_entropyRenToBS(state,vin,subs,t) / priceSensBS("renovation",subs)
-    + v_entropyRenToHS(state,vin,subs,t) / priceSensHS("renovation",subs)
-
+  sum(vinExists(t,vin),
+      (sum(state, v_entropyRenToBS(state,vin,subs,t)) - v_entropyRenFromBS(vin,subs,t)) / priceSensBS("renovation",subs)
+    + (sum(state, v_entropyRenToHS(state,vin,subs,t)) - v_entropyRenFromHS(vin,subs,t)) / priceSensHS("renovation",subs)
   )
 ;
 
@@ -236,10 +235,77 @@ $else.sequentialRen
     )
   )
   - 
-  v_entropyRenToBS(state,vin,subs,t)
+  v_entropyRenToBS(state,vin,subs,t) !! removes heterogeneity in bsr AND (when summed) state
 $endif.sequentialRen
 ;
 
+
+q_entropyRenFromBS(vin,subs,t)$vinExists(t,vin)..
+  v_entropyRenFromBS(vin,subs,t)
+  =e=
+$ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
+  sum(state,
+    sum(bsr$renAllowedBS(state,bsr),
+      v_renovationBS("area",state,bsr,vin,subs,t)
+    )
+    * (
+      log(
+        sum(bsr$renAllowedBS(state,bsr),
+          v_renovationBS("area",state,bsr,vin,subs,t)
+        )
+        + epsilon
+      )
+      - 1
+    )
+  )
+$else.sequentialRen
+  v_entropyRenFrom(vin,subs,t)
+$endif.sequentialRen
+;
+
+
+q_entropyRenFromHS(vin,subs,t)$vinExists(t,vin)..
+  v_entropyRenFromHS(vin,subs,t)
+  =e=
+$ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
+  sum(state,
+    sum(hsr$renAllowedHS(state,hsr),
+      v_renovationHS("area",state,hsr,vin,subs,t)
+    )
+    * (
+      log(
+        sum(hsr$renAllowedHS(state,hsr),
+          v_renovationHS("area",state,hsr,vin,subs,t)
+        )
+        + epsilon
+      )
+      - 1
+    )
+  )
+$else.sequentialRen
+  0 !! no extra correction for initial state needed as this is already done by subtracting BS entropy
+$endif.sequentialRen
+;
+
+
+q_entropyRenFrom(vin,subs,t)$vinExists(t,vin)..
+  v_entropyRenFrom(vin,subs,t)
+  =e=
+  sum(state,
+    sum(stateFull$renAllowed(state,stateFull),
+      v_renovation("area",state,stateFull,vin,subs,t)
+    )
+    * (
+      log(
+        sum(stateFull$renAllowed(state,stateFull),
+            v_renovation("area",state,stateFull,vin,subs,t)
+          )
+        + epsilon
+      )
+      - 1
+    )
+  )
+;
 
 q_renovationBS(q,state,bsr,vin,subs,ttot)$vinExists(ttot,vin)..
   v_renovationBS(q,state,bsr,vin,subs,ttot)

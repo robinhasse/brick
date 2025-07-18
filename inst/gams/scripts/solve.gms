@@ -59,6 +59,7 @@ $else.sequentialRen
   q_stockBalPrev
   q_renovationBS
   q_renovationHS
+  q_entropyRenFrom
 $endif.sequentialRen
 $ifthen.notFixedBuildings not "%FIXEDBUILDINGS%" == "TRUE"
   q_housingDemand
@@ -68,9 +69,11 @@ $ifthen.shell not "%ignoreShell%" == "TRUE"
   q_lifeTimeBS
 $endif.shell
   q_lifeTimeHS
+  q_SysHeteroPref
   q_entropyRenToBS
   q_entropyRenToHS
-  q_SysHeteroPref
+  q_entropyRenFromBS
+  q_entropyRenFromHS
   q_statusQuoPref
   q_HeteroPrefCon
   q_HeteroPrefRen
