@@ -2,5 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
+.vscode/*
 output/*
 brick.Rproj

@@ -80,7 +80,7 @@ alias(hsr,hsr2,hsr3);
 alias(bs,bs2,bs3);
 alias(hs,hs2,hs3);
 alias(vin,vin2,vin3);
-alias(ttot,ttot2);
+alias(ttot,ttot2,ttotIn,ttotOut);
 alias(t,t2);
 
 

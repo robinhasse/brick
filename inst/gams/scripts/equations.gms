@@ -335,15 +335,15 @@ $endif.earlydemolition
 q_buildingShellLifeTime(q,bs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot,vin)
                                                               and t(ttot))..
   sum(hs,
-    sum(ttot2$(    ttot2.val le ttot.val
-               !!and p_shareRenBS(reg,ttot2 + 1,ttot) < 1
-               and vinExists(ttot2,vin)),
-      p_dt(ttot2)
+    sum(ttotOut$(    ttotOut.val le ttot.val
+               !!and p_shareRenBS(reg,ttotOut + 1,ttot) < 1
+               and vinExists(ttotOut,vin)),
+      p_dt(ttotOut)
       * (
-        v_demolition(q,bs,hs,vin,subs,ttot2)
+        v_demolition(q,bs,hs,vin,subs,ttotOut)
         + sum(stateFull(bsr,hsr)$(    renAllowed(bs,hs,stateFull)
                                   and not sameas(bsr,"0")),
-            v_renovation(q,bs,hs,stateFull,vin,subs,ttot2)
+            v_renovation(q,bs,hs,stateFull,vin,subs,ttotOut)
           )
         )
     )
@@ -352,19 +352,19 @@ q_buildingShellLifeTime(q,bs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot
   v_slackRenBS(bs,vin,subs,ttot)
   +
   sum(hsr,
-    sum(ttot2$(    ttot2.val le ttot.val
-               !!and p_shareRenBS(reg,ttot2 + 1,ttot) < 1
-               and vinExists(ttot2,vin)),
-      p_shareRenBS(reg,ttot2,ttot)
+    sum(ttotIn$(    ttotIn.val le ttot.val
+               !!and p_shareRenBS(reg,ttotIn + 1,ttot) < 1
+               and vinExists(ttotIn,vin)),
+      p_shareRenBS(reg,ttotIn,ttot)
       * (
-        sum(hs(hsr), v_construction(q,bs,hs,subs,ttot2)) * p_dtVin(ttot2,vin)
+        sum(hs(hsr), v_construction(q,bs,hs,subs,ttotIn)) * p_dtVin(ttotIn,vin)
         + sum(state$renAllowed(state,bs,hsr),
-            v_renovation(q,state,bs,hsr,vin,subs,ttot2) * p_dt(ttot2)
+            v_renovation(q,state,bs,hsr,vin,subs,ttotIn) * p_dt(ttotIn)
           )
         )
       +
-      p_shareRenBSinit(reg,ttot2,ttot)
-      * sum(hs(hsr), v_stock(q,bs,hs,vin,subs,ttot2)$(tinit(ttot2)))
+      p_shareRenBSinit(reg,ttotIn,ttot)
+      * sum(hs(hsr), v_stock(q,bs,hs,vin,subs,ttotIn)$(tinit(ttotIn)))
     )
   )
 ;
@@ -374,15 +374,15 @@ q_buildingShellLifeTime(q,bs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot
 q_heatingSystemLifeTime(q,hs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot,vin)
                                                             and t(ttot))..
   sum(bs,
-    sum(ttot2$(    ttot2.val le ttot.val
-               !!and p_shareRenHS(hs,reg,typ,ttot2 + 1,ttot) < 1
-               and vinExists(ttot2,vin)),
-      p_dt(ttot2)
+    sum(ttotOut$(    ttotOut.val le ttot.val
+               !!and p_shareRenHS(hs,reg,typ,ttotOut + 1,ttot) < 1
+               and vinExists(ttotOut,vin)),
+      p_dt(ttotOut)
       * (
-        v_demolition(q,bs,hs,vin,subs,ttot2)
+        v_demolition(q,bs,hs,vin,subs,ttotOut)
         + sum(stateFull(bsr,hsr)$(    renAllowed(bs,hs,stateFull)
                                   and not sameas(hsr,"0")),
-            v_renovation(q,bs,hs,bsr,hsr,vin,subs,ttot2)
+            v_renovation(q,bs,hs,bsr,hsr,vin,subs,ttotOut)
         )
       )
     )
@@ -391,22 +391,22 @@ q_heatingSystemLifeTime(q,hs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot
   v_slackRenHS(hs,vin,subs,ttot)
   +
   sum(bsr,
-    sum(ttot2$(    ttot2.val le ttot.val
-               !!and p_shareRenHS(hs,reg,typ,ttot2 + 1,ttot) < 1
-               and vinExists(ttot2,vin)),
-      p_shareRenHS(hs,reg,typ,ttot2,ttot)
+    sum(ttotIn$(    ttotIn.val le ttot.val
+               !!and p_shareRenHS(hs,reg,typ,ttotIn + 1,ttot) < 1
+               and vinExists(ttotIn,vin)),
+      p_shareRenHS(hs,reg,typ,ttotIn,ttot)
       * (
         sum(bs(bsr),
-            v_construction(q,bs,hs,subs,ttot2))
-        * p_dtVin(ttot2,vin)
+            v_construction(q,bs,hs,subs,ttotIn))
+        * p_dtVin(ttotIn,vin)
         +
         sum(state$renAllowed(state,bsr,hs),
-            v_renovation(q,state,bsr,hs,vin,subs,ttot2))
-        * p_dt(ttot2)
+            v_renovation(q,state,bsr,hs,vin,subs,ttotIn))
+        * p_dt(ttotIn)
       )
       +
-      p_shareRenHSinit(hs,reg,typ,ttot2,ttot)
-      * sum(bs(bsr), v_stock(q,bs,hs,vin,subs,ttot2)$(tinit(ttot2)))
+      p_shareRenHSinit(hs,reg,typ,ttotIn,ttot)
+      * sum(bs(bsr), v_stock(q,bs,hs,vin,subs,ttotIn)$(tinit(ttotIn)))
     )
   )
 ;
