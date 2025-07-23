@@ -4,7 +4,7 @@
 \alias{toModelResolution}
 \title{interpolate and filter to get model resolution}
 \usage{
-toModelResolution(x, m, value = "value", ignoreDims = NULL)
+toModelResolution(x, m, value = "value", unfilteredDims = NULL)
 }
 \arguments{
 \item{x}{data.frame with temporal dimension}
@@ -13,7 +13,7 @@ toModelResolution(x, m, value = "value", ignoreDims = NULL)
 
 \item{value}{character, name of value column}
 
-\item{ignoreDims}{character, dimensions to be neither filtered nor extrapolated}
+\item{unfilteredDims}{character, dimensions to be neither filtered nor extrapolated}
 }
 \value{
 data.frame with temporal resolution according to model

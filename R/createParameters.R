@@ -243,8 +243,8 @@ createParameters <- function(m, config, inputDir) {
   # Calculate share of buildings that need to be renovated or demolished between
   # given time steps assuming a Weibull distribution of the technology life time.
   # When passing the standing life time, the share of the initial stock standing
-  # in ttotIn that has to be demolished or renovated until given time step is
-  # calculated
+  # in ttotIn that has to be demolished or renovated until the given time step ttot
+  # is calculated.
   shareRen <- function(params, standingLifeTime = NULL, timePeriods = NULL) {
 
     if (is.null(timePeriods)) {
@@ -273,8 +273,8 @@ createParameters <- function(m, config, inputDir) {
     }
 
     share %>%
-      mutate(p  = pweibull(.data$lt, .data$shape, .data$scale)) %>%
-      mutate(value = (.data$p - .data$p0) / (1 - .data$p0),
+      mutate(p  = pweibull(.data$lt, .data$shape, .data$scale),
+             value = (.data$p - .data$p0) / (1 - .data$p0),
              value = ifelse(.data$value > cutOffShare, 1, .data$value)) %>%
       select(-any_of(c("shape", "scale", "dt", "lt", "p", "p0")))
   }
@@ -283,7 +283,7 @@ createParameters <- function(m, config, inputDir) {
 
   # parameter for monitoring purposes
   p_probDem <- expandSets("region", "typ", ttotIn = "ttot", ttotOut = "ttot", .m = m) %>%
-    filter(.data[["ttotOut"]] >= .data[["ttotIn"]]) %>%
+    filter(.data$ttotOut >= .data$ttotIn) %>%
     left_join(lt, by = c("region", "typ"), relationship = "many-to-many") %>%
     pivot_wider(names_from = "variable") %>%
     mutate(value = (1 - config[["ltEternalShare"]]) *
@@ -339,7 +339,7 @@ createParameters <- function(m, config, inputDir) {
 
   p_shareRenBS <- shareRen(ltBs) %>%
     select("region", "ttotIn", "ttotOut", "value") %>%
-    toModelResolution(m, ignoreDims = c("ttotIn", "ttotOut"))
+    toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
   p_shareRenBS <- m$addParameter(
     name = "p_shareRenBS",
     domain = c("region", "ttotIn", "ttotOut"),
@@ -350,7 +350,7 @@ createParameters <- function(m, config, inputDir) {
   # assumption: average life time of initial stock of building shells: 12 years
   p_shareRenBSinit <- shareRen(ltBs, standingLifeTime = 12) %>%
     select("region", "ttotIn", "ttotOut", "value") %>%
-    toModelResolution(m, ignoreDims = c("ttotIn", "ttotOut"))
+    toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
   p_shareRenBSinit <- m$addParameter(
     name = "p_shareRenBSinit",
     domain = c("region", "ttotIn", "ttotOut"),
@@ -373,7 +373,7 @@ createParameters <- function(m, config, inputDir) {
 
   p_shareRenHS <- shareRen(ltHs) %>%
     select("hs", "region", "typ", "ttotIn", "ttotOut", "value") %>%
-    toModelResolution(m, ignoreDims = c("ttotIn", "ttotOut"))
+    toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
   p_shareRenHS <- m$addParameter(
     name = "p_shareRenHS",
     domain = c("hs", "region", "typ", "ttotIn", "ttotOut"),
@@ -385,7 +385,7 @@ createParameters <- function(m, config, inputDir) {
   standingLifeTimeHs <- 12
   p_shareRenHSinit <- shareRen(ltHs, standingLifeTime = standingLifeTimeHs) %>%
     select("hs", "region", "typ", "ttotIn", "ttotOut", "value") %>%
-    toModelResolution(m, ignoreDims = c("ttotIn", "ttotOut"))
+    toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
   p_shareRenHSinit <- m$addParameter(
     name = "p_shareRenHSinit",
     domain = c("hs", "region", "typ", "ttotIn", "ttotOut"),
@@ -401,7 +401,7 @@ createParameters <- function(m, config, inputDir) {
 
   p_shareRenHSfull <- shareRen(ltHs, timePeriods = timePeriodsFull) %>%
     select("hs", "region", "typ", "ttotIn", "ttotOut", "value") %>%
-    toModelResolution(m, ignoreDims = c("ttotIn", "ttotOut"))
+    toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
   p_shareRenHSfull <- m$addParameter(
     name = "p_shareRenHSfull",
     domain = c("hs", "region", "typ", "ttotIn", "ttotOut"),
@@ -417,13 +417,16 @@ createParameters <- function(m, config, inputDir) {
            ttotOut = .data$ttotIn + .data$lt,
            .keep = "none")
 
+  # Share of heating systems in the standing stock at time ttotIn = tinit - standingLifeTimeHs
+  # to be renovated by time ttotOut.
   p_shareRenHSfullInit <- shareRen(
     ltHs,
-    standingLifeTime = 0, # We already subtracted the standing lifetime, but still want the standing stock case
+    standingLifeTime = 0, # We already subtracted the standing lifetime,
+    # but want to ignore the time step length as we will compare this to the lifetimes of the standing stock.
     timePeriods = timePeriodsFullInit
   ) %>%
     select("hs", "region", "typ", "ttotIn", "ttotOut", "value") %>%
-    toModelResolution(m, ignoreDims = c("ttotIn", "ttotOut"))
+    toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
   p_shareRenHSfullInit <- m$addParameter(
     name = "p_shareRenHSfullInit",
     domain = c("hs", "region", "typ", "ttotIn", "ttotOut"),

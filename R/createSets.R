@@ -46,7 +46,6 @@ createSets <- function(m, config) {
     records = ttotNum,
     description = "all modelling time steps"
   )
-  invisible(m$addAlias("ttot2", ttot))
 
   invisible(m$addSet(
     name = "tinit",
