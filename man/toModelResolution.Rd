@@ -4,7 +4,7 @@
 \alias{toModelResolution}
 \title{interpolate and filter to get model resolution}
 \usage{
-toModelResolution(x, m, value = "value")
+toModelResolution(x, m, value = "value", unfilteredDims = NULL)
 }
 \arguments{
 \item{x}{data.frame with temporal dimension}
@@ -12,6 +12,8 @@ toModelResolution(x, m, value = "value")
 \item{m}{gams Container with sets as known dimensions}
 
 \item{value}{character, name of value column}
+
+\item{unfilteredDims}{character, dimensions to be neither filtered nor extrapolated}
 }
 \value{
 data.frame with temporal resolution according to model
@@ -19,7 +21,7 @@ data.frame with temporal resolution according to model
 \description{
 Missing periods are interpolated linearly and extrapolated constantly,
 additional periods are removed and all other dimensions are filtered to the
-elements dined in the model sets.
+elements defined in the model sets.
 }
 \author{
 Robin Hasse

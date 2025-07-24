@@ -3,6 +3,7 @@
 ^\.buildlibrary$
 ^\.pre-commit-config\.yaml$
 ^\.github$
+^\.vscode$
 ^Makefile$
 ^workflow$
 ^output$

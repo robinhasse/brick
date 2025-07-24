@@ -18,7 +18,7 @@ expandSets <- function(..., .m = NULL) {
   setNames <- as.character(lapply(lst, function(l) .getSet(l, .m)$name))
 
   # convert elements of temporal dims to numeric
-  temporalSets <- c("ttot", "ttot2", "t", "thist")
+  temporalSets <- c("ttot", "tall", "ttot2", "t", "thist", "tinit", "tcalib")
   for (i in which(setNames %in% temporalSets)) {
     setElements[[i]] <- as.numeric(setElements[[i]])
   }

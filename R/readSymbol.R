@@ -12,6 +12,8 @@
 readSymbol <- function(x, symbol = NULL, selectArea = TRUE,
                        stringAsFactor = TRUE) {
 
+  tDims <- c("ttot", "tall", "ttot2", "t", "thist", "tinit", "tcalib")
+
   # get gams Parameter, Variable or Set
   if (class(x)[1] == "Container") {
     if (length(symbol) != 1) {
@@ -45,6 +47,8 @@ readSymbol <- function(x, symbol = NULL, selectArea = TRUE,
       data[["element_text"]] <- NULL
       if (identical(colnames(data), "*")) {
         data <- getElement(data, "*")
+        # For one-dimensional time sets: Convert to numeric
+        if (symbol %in% tDims) data <- as.numeric(as.character(data))
       }
     }
   )
@@ -64,7 +68,10 @@ readSymbol <- function(x, symbol = NULL, selectArea = TRUE,
   }
 
   # make temporal dimensions numeric
-  tDims <- intersect(colnames(data), c("ttot", "tall", "ttot2", "t"))
+  tDims <- intersect(
+    colnames(data),
+    tDims
+  )
   for (tDim in tDims) {
     data[[tDim]] <- as.numeric(as.character(data[[tDim]]))
   }
