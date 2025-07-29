@@ -20,7 +20,6 @@ createParameters <- function(m, config, inputDir) {
   ttot <- readSymbol(m, "ttot")
   ttotNum <- as.numeric(as.character(ttot))
   vinExists <- readSymbol(m, "vinExists", stringAsFactor = FALSE)
-  stateR <- c("bsr", "hsr")
   state <- c("bs", "hs")
 
 
@@ -100,30 +99,58 @@ createParameters <- function(m, config, inputDir) {
 
   ## renovation ====
 
-  p_specCostRenTang <- readInput("f_costRenovation.cs4r",
-                                 c("ttot", "region", "bs", "hs", "bsr", "hsr",
-                                   "typ", "vin"),
-                                 inputDir) %>%
+  p_specCostRenBS_tang <- readInput("f_costRenovationBS.cs4r",
+                                    c("ttot", "region", "typ", "bs", "bsr", "vin"),
+                                    inputDir) %>%
     toModelResolution(m) %>%
     .explicitZero()
-  p_specCostRen <- expandSets("cost", "bs", "hs", "bsr", "hsr", "vin", "region",
-                              "loc", "typ", "inc", "ttot", .m = m)
-  p_specCostRenTang <- p_specCostRen %>%
-    filter(.data[["cost"]] == "tangible") %>%
-    left_join(p_specCostRenTang,
-              by = c("ttot", "region", "bs", "hs", "bsr", "hsr", "typ", "vin"))
+  p_specCostRenBS <- expandSets("cost", "bs", "hs", "bsr", "vin", "region",
+                                "loc", "typ", "inc", "ttot", .m = m) %>%
+    .filter(readSymbol(m, "renAllowedBS"))
+  p_specCostRenBS_tang <- p_specCostRenBS %>%
+    filter(.data$cost == "tangible") %>%
+    left_join(p_specCostRenBS_tang,
+              by = c("bs", "bsr", "vin", "region", "typ", "ttot"))
+
+  p_specCostRenHS_tang <- readInput("f_costRenovationHS.cs4r",
+                                    c("ttot", "region", "hs", "hsr", "bs", "typ", "vin"),
+                                    inputDir) %>%
+    toModelResolution(m) %>%
+    .explicitZero()
+  p_specCostRenHS <- expandSets("cost", "bs", "hs", "hsr", "vin", "region",
+                                "loc", "typ", "inc", "ttot", .m = m) %>%
+    .filter(readSymbol(m, "renAllowedHS"))
+  p_specCostRenHS_tang <- p_specCostRenHS %>%
+    filter(.data$cost == "tangible") %>%
+    left_join(p_specCostRenHS_tang,
+              by = c("bs", "hs", "hsr", "vin", "region", "typ", "ttot"))
+
   if (isTRUE(config[["identVinCharact"]])) {
-    p_specCostRenTang <- .makeIdentVin(p_specCostRenTang)
+    p_specCostRenBS_tang <- .makeIdentVin(p_specCostRenBS_tang)
+    p_specCostRenHS_tang <- .makeIdentVin(p_specCostRenHS_tang)
   }
-  p_specCostRenIntang <- p_specCostRen %>%
-    filter(.data[["cost"]] == "intangible") %>%
-    addAssump(intangCostFiles[["ren"]])
-  p_specCostRen <- rbind(p_specCostRenTang, p_specCostRenIntang)
-  p_specCostRen <- m$addParameter(
-    name = "p_specCostRen",
-    domain = c("cost", state, stateR, "vin", "region", "loc", "typ", "inc", "ttot"),
-    records = p_specCostRen,
-    description = "floor-space specific renovation cost in USD/m2"
+
+  p_specCostRenBS_intang <- p_specCostRenBS %>%
+    filter(.data$cost == "intangible") %>%
+    addAssump(intangCostFiles[["ren"]], key = "BS")
+  p_specCostRenHS_intang <- p_specCostRenHS %>%
+    filter(.data$cost == "intangible") %>%
+    addAssump(intangCostFiles[["ren"]], key = "HS")
+
+  p_specCostRenBS <- rbind(p_specCostRenBS_tang, p_specCostRenBS_intang)
+  p_specCostRenHS <- rbind(p_specCostRenHS_tang, p_specCostRenHS_intang)
+
+  p_specCostRenBS <- m$addParameter(
+    name = "p_specCostRenBS",
+    domain = c("cost", state, "bsr", "vin", "region", "loc", "typ", "inc", "ttot"),
+    records = p_specCostRenBS,
+    description = "floor-space specific building shell retrofit cost [USD/m2]"
+  )
+  p_specCostRenHS <- m$addParameter(
+    name = "p_specCostRenHS",
+    domain = c("cost", state, "hsr", "vin", "region", "loc", "typ", "inc", "ttot"),
+    records = p_specCostRenHS,
+    description = "floor-space specific heating system replacement cost [USD/m2]"
   )
 
 
@@ -348,7 +375,7 @@ createParameters <- function(m, config, inputDir) {
   )
 
   # assumption: average life time of initial stock of building shells: 12 years
-  p_shareRenBSinit <- shareRen(ltBs, standingLifeTime = 12) %>%
+  p_shareRenBSinit <- shareRen(ltBs, standingLifeTime = 27) %>%
     select("region", "ttotIn", "ttotOut", "value") %>%
     toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
   p_shareRenBSinit <- m$addParameter(

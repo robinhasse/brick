@@ -2,7 +2,7 @@
 
 $gdxin input.gdx
 $load p_dt p_dtVin t0
-$load p_specCostCon p_specCostRen p_specCostDem
+$load p_specCostCon p_specCostRenBS p_specCostRenHS p_specCostDem
 $load priceSensBS priceSensHS p_statusQuoPref
 $load p_carbonPrice p_carrierPrice p_carrierEmi p_ueDemand p_eff p_renDepth
 $load p_discountRate
@@ -10,7 +10,7 @@ $load p_population
 $load p_stockHist
 $load p_shareDem p_shareRenBS p_shareRenHS p_shareRenBSinit p_shareRenHSinit
 $load p_floorPerCap
-$load p_probDem p_LifeTimeBS p_LifeTimeHS
+$load p_probDem p_lifeTimeBS p_lifeTimeHS
 $gdxin
 
 $ifthen.matching "%RUNTYPE%" == "matching"
@@ -55,6 +55,8 @@ execute_loadpoint "history",
   p_stockHist        = v_stock.l
   p_constructionHist = v_construction.l
   p_renovationHist   = v_renovation.l
+  p_renovationBSHist = v_renovationBS.l
+  p_renovationHSHist = v_renovationHS.l
   p_demolitionHist   = v_demolition.l
   p_carbonPrice
   p_carrierEmi
@@ -78,6 +80,12 @@ $endif.history
 p_feDemand(hs,bs,vin,reg,typ,ttot) =
   p_ueDemand(bs,vin,reg,typ)
   / p_eff(hs,reg,typ,ttot)
+;
+
+* renovation cost (hierarchical renovation)
+p_specCostRen(cost,state,bsr,hsr,vin,subs,ttot) =
+    p_specCostRenBS(cost,state,bsr,vin,subs,ttot)
+  + p_specCostRenHS(cost,state,hsr,vin,subs,ttot)
 ;
 
 $ifThen.lowop "%CALIBRATIONLOWOP%" == "FALSE"
@@ -119,9 +127,9 @@ p_lccCon(cost,var,bs,hs,reg,loc,typ,inc,ttot) =
               p_specCostOpe(bs,hs,vin,reg,loc,typ,ttot)$(    sameas(var,"stock")
                                                        and sameas(cost,"tangible"))
             + p_specCostRen(cost,bs,hs,bs,"0",vin,reg,loc,typ,inc,ttot)$sameas(var,"renovation")
-              / p_LifeTimeBS(reg)
+              / p_lifeTimeBS(reg)
             + p_specCostRen(cost,bs,hs,"0",hs,vin,reg,loc,typ,inc,ttot)$sameas(var,"renovation")
-              / p_LifeTimeHS(hs,reg,typ)
+              / p_lifeTimeHS(hs,reg,typ)
           )
           * (1 - p_probDem(reg,typ,ttot2,ttot))
       ) * p_dt(ttot2)

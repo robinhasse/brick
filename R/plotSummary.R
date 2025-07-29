@@ -15,7 +15,7 @@
 #' @importFrom scales gradient_n_pal brewer_pal
 #' @importFrom gamstransfer Container
 #' @importFrom dplyr row_number n bind_rows any_of group_by across mutate filter
-#'   arrange select left_join rename .data %>% bind_rows summarise
+#'   arrange select left_join rename .data %>% bind_rows summarise pull
 #' @importFrom ggplot2 ggplot geom_col geom_area scale_x_continuous geom_point
 #'   scale_y_continuous theme_classic theme aes geom_line scale_alpha_manual
 #'   element_blank element_line scale_fill_manual labs geom_hline ggsave unit
@@ -27,6 +27,7 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
 
   config <- readConfig(file.path(path, "config", "config_COMPILED.yaml"), readDirect = TRUE)
   endyear <- config[["endyear"]]
+  seqRen <- isTRUE(config[["switches"]][["SEQUENTIALREN"]])
 
 
 
@@ -66,9 +67,16 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
   vars <- c(
     Stock = "v_stock",
     Construction = "v_construction",
-    Demolition = "v_demolition",
-    Renovation = "v_renovation"
+    Demolition = "v_demolition"
   )
+  vars <- if (seqRen) {
+    c(vars,
+      RenovationBS = "v_renovationBS",
+      RenovationHS = "v_renovationHS")
+  } else {
+    c(vars,
+      Renovation = "v_renovation")
+  }
 
   data <- lapply(vars, function(v) {
     var <- readSymbol(m, v)
@@ -90,30 +98,38 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
       var <- unite(var, "facet", all_of(facet), sep = " | ")
     }
 
-    if (all(c("bsr", "hsr") %in% colnames(var))) {
 
-      # mark identical replacement of heating systems and building shell
-      var <- var %>%
-        mutate(transparent = paste0(
-          ifelse(as.character(.data[["hs"]]) == as.character(.data[["hsr"]]),
-                 "hs", ""),
-          ifelse(as.character(.data[["bs"]]) == as.character(.data[["bsr"]]),
-                 "bs", "")
-        ))
-      if (!splitRen) {
-        var[["transparent"]] <- ""
+    renDims <- intersect(colnames(var), c("bsr", "hsr"))
+
+    if (length(renDims) > 0) {
+
+      # remove entirely untouched buildings
+      var <- if (seqRen) {
+        filter(var, .data[[renDims]] != "0")
+      } else {
+        filter(var, !(.data[["bsr"]] == "0" & .data[["hsr"]] == "0"))
       }
 
-      var <- rbind(
+      # mark identical replacement of heating systems and building shell
+      var$transparent <- ""
+      for (to in renDims) {
+        from <- switch(to, bsr = "bs", hsr = "hsr")
+
+        if (splitRen) {
+          var$transparent <- paste0(var$transparent,
+                                    ifelse(.data[[from]] == .data[[to]], from, ""))
+        }
+      }
+
+      # make origin negative and target state positive
+      var <- bind_rows(
         var %>%
-          filter(!(.data[["bsr"]] == "0" & .data[["hsr"]] == "0")) %>%
-          select(-"hs", -"bs") %>%
-          rename(hs = "hsr", bs = "bsr") %>%
+          select(-any_of(c("bs", "hs"))) %>%
+          rename(any_of(c(hs = "hsr", bs = "bsr"))) %>%
           mutate(renovation = "to"),
         var %>%
-          filter(!(.data[["bsr"]] == "0" & .data[["hsr"]] == "0")) %>%
-          select(-"hsr", -"bsr") %>%
-          mutate(value = -.data[["value"]],
+          select(-any_of(c("hsr", "bsr"))) %>%
+          mutate(value = -.data$value,
                  renovation = "from")
       )
     }
@@ -127,17 +143,24 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
 
   fillColours <- list()
   fillLabels  <- list()
-  fillTitle   <- list(hs = "Heating System", vin = "Construction cohort")
+  fillTitle   <- list(bs = "Building shell", hs = "Heating System", vin = "Construction cohort")
 
   ## scales and labels ====
+
+  ### building shell ####
+
+  bsMap <- getBrickMapping("dim_bs.csv")
+  fillLabels[["bs"]]  <- paste(c("Low", "Medium", "High"), "efficiency")
+  fillColours[["bs"]] <- mip::plotstyle(fillLabels[["bs"]])
+  names(fillLabels[["bs"]]) <- names(fillColours[["bs"]]) <- bsMap$bs
+  fillColours[["bs"]] <- c(`0` = "black", fillColours[["bs"]])
+  fillLabels[["bs"]]  <- c(`0` = "no change", fillLabels[["bs"]])
 
   ### heating system ####
 
   hsMap <- getBrickMapping("dim_hs.csv")
-
-  fillColours[["hs"]] <- as.character(hsMap[["colour"]])
-  fillLabels[["hs"]]  <- as.character(hsMap[["label"]])
-  names(fillColours[["hs"]]) <- names(fillLabels[["hs"]]) <- as.character(hsMap[["hs"]])
+  fillColours[["hs"]] <- pull(hsMap, "colour", "hs")
+  fillLabels[["hs"]]  <- pull(hsMap, "label", "hs")
   fillColours[["hs"]] <- c(`0` = "black", fillColours[["hs"]])
   fillLabels[["hs"]]  <- c(`0` = "no change", fillLabels[["hs"]])
 
@@ -184,7 +207,7 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
 
   # PLOT -----------------------------------------------------------------------
 
-  for (fillDim in c("hs", "vin")) {
+  for (fillDim in c("bs", "hs", "vin")) {
 
     pData <- do.call(bind_rows, lapply(names(data), function(v) {
       d <- data[[v]] %>%
@@ -192,6 +215,10 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
 
       if (!"vin" %in% colnames(d)) {
         d <- left_join(d, t2vin, by = "ttot")
+      }
+
+      if ((fillDim == "bs" && v == "RenovationHS") || (fillDim == "hs" && v == "RenovationBS")) {
+        return(NULL)
       }
 
       if ("transparent" %in% colnames(d)) {

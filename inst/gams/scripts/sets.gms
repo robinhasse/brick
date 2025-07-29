@@ -120,8 +120,10 @@ state(bs,hs)            "building state"
 ren(bs,hs,bsr,hsr)      "renovation alternatives"
 
 *** mappings to filter unwanted combinations
-vinExists(ttot,vin)                                "Can this vintage cohort exist i.e. ttot cannot be before cohort starts"
-renAllowed(bs,hs,bsr,hsr)                          "Is this renovation transition allowed"
+vinExists(ttot,vin)                                "existing vintage cohorts (i.e. ttot cannot be before cohort starts)"
+renAllowed(bs,hs,bsr,hsr)                          "allowed renovation transitions"
+renAllowedBS(bs,hs,bsr)                            "allowed building shell retrofits"
+renAllowedHS(bs,hs,hsr)                            "allowed heating system replacements"
 sameState(bs,hs,bsr,hsr)                           "Is the state after the renovation the same as before"
 renEffective(bs,hs,bsr,hsr)                        "Renovations without untouched buildings"
 refVarExists (reference,refVar,region,ttot)           "There is a value for this combination of reference, variable, region and period"
@@ -152,7 +154,7 @@ alias(renAllowed,renAllowed2);
 
 *** load fundamental sets
 $gdxin input.gdx
-$load renAllowed
+$load renAllowedBS renAllowedHS
 $load vinExists
 $load hsCarrier
 $load typInSec
@@ -173,6 +175,8 @@ subs(all_subs)               = yes;
 stateFull(bsr,hsr)           = yes;
 state(bs,hs)                 = yes;
 ren(state,stateFull)         = yes;
+renAllowed(state,bsr,hsr)$(    renAllowedBS(state,bsr)
+                           and renAllowedHS(state,hsr)) = yes;
 
 *** TODO: initialise mappings with loaded data
 sameState(bs,hs,bsr,hsr)$(    (sameas(bsr,bs) or sameas(bsr,"0"))

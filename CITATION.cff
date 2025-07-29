@@ -3,7 +3,7 @@ message: If you use this software, please cite it using the metadata from this f
 type: software
 title: 'brick: Building sector model with heterogeneous renovation and construction
   of the stock'
-version: 0.8.9
+version: 0.9.0
 date-released: '2025-07-23'
 abstract: This building stock model represents residential and commercial buildings
   at customisable regional and temporal resolution. The building stock is quantified
