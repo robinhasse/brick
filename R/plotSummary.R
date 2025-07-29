@@ -117,13 +117,15 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
       }
 
       # mark identical replacement of heating systems and building shell
-      var$transparent <- ""
+      var$transparent <- character(nrow(var))
       for (to in renDims) {
-        from <- switch(to, bsr = "bs", hsr = "hsr")
+        from <- switch(to, bsr = "bs", hsr = "hs")
 
         if (splitRen) {
-          var$transparent <- paste0(var$transparent,
-                                    ifelse(.data[[from]] == .data[[to]], from, ""))
+          var$transparent <- paste0(
+            var$transparent,
+            ifelse(as.character(var[[from]]) == as.character(var[[to]]), from, "")
+          )
         }
       }
 

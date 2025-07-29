@@ -758,7 +758,7 @@ q_flowVariationRenBS(q,renAllowedBS,subs,t)$(ord(t) lt card(t))..
 ;
 
 q_flowVariationRenHS(q,renAllowedHS,subs,t)$(ord(t) lt card(t))..
-  v_flowVariationRenBS(q,renAllowedHS,subs,t)
+  v_flowVariationRenHS(q,renAllowedHS,subs,t)
   =e=
   (  sum(vinExists(t,vin),   v_renovationHS(q,renAllowedHS,vin,subs,t))
    - sum(vinExists(t+1,vin), v_renovationHS(q,renAllowedHS,vin,subs,t+1)))
@@ -956,7 +956,7 @@ q_testRenBS(q,renAllowedBS,vin,subs)..
 ;
 
 equation q_testRenHS(qty,bs,hs,hsr,vin,region,loc,typ,inc);
-q_testRenBS(q,renAllowedHS,vin,subs)..
+q_testRenHS(q,renAllowedHS,vin,subs)..
   sum(tinit, v_renovationHS(q,renAllowedHS,vin,subs,tinit))
   =l=
   sum(tinit, v_renovationHS(q,renAllowedHS,vin,subs,tinit+1))

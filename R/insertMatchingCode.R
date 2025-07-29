@@ -1,3 +1,9 @@
+#' Insert reference-dependent code for matching into gams scripts
+#'
+#' @author Robin Hasse
+#'
+#' @param path character vector with folders to run the model in
+
 insertMatchingCode <- function(path) {
 
   # READ REFERENCES GDX --------------------------------------------------------
@@ -10,7 +16,7 @@ insertMatchingCode <- function(path) {
     stop("Can't find references.gdx in this path: ", path)
   }
 
-  m <- Container$new(refGdx)
+  m <- gamstransfer::Container$new(refGdx)
 
 
   ## read objects ====
