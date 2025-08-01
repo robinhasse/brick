@@ -28,6 +28,7 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
   config <- readConfig(file.path(path, "config", "config_COMPILED.yaml"), readDirect = TRUE)
   endyear <- config[["endyear"]]
   seqRen <- isTRUE(config[["switches"]][["SEQUENTIALREN"]])
+  ignoreShell <- isTRUE(config[["ignoreShell"]])
 
 
 
@@ -70,9 +71,14 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
     Demolition = "v_demolition"
   )
   vars <- if (seqRen) {
-    c(vars,
-      RenovationBS = "v_renovationBS",
-      RenovationHS = "v_renovationHS")
+    if (ignoreShell) {
+      c(vars,
+        RenovationHS = "v_renovationHS")
+    } else {
+      c(vars,
+        RenovationBS = "v_renovationBS",
+        RenovationHS = "v_renovationHS")
+    }
   } else {
     c(vars,
       Renovation = "v_renovation")
@@ -207,7 +213,10 @@ plotSummary <- function(path, facet = "typ", showHistStock = FALSE,
 
   # PLOT -----------------------------------------------------------------------
 
-  for (fillDim in c("bs", "hs", "vin")) {
+  # Don't create building shell plot if shell renovations are suppressed
+  fillDimensions <- if (ignoreShell) c("hs", "vin") else c("bs", "hs", "vin")
+
+  for (fillDim in fillDimensions) {
 
     pData <- do.call(bind_rows, lapply(names(data), function(v) {
       d <- data[[v]] %>%
