@@ -193,7 +193,12 @@ $ifthen.calibrationOptimization "%CALIBRATIONMETHOD%" == "optimization"
 sets
 tcalib(ttot) "time steps considered by the calibration when minimising deviation from target trajectories"
 *** Temporary: Store renovation combinations with at least one zero element
-zeroFlow(bs, hs, bsr, hsr)      "renovation combinations where either the building shell or the heating system are left untouched"
+$ifThen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
+zeroFlowBS(bs, hs, bsr)      "renovation combinations where the building shell is left untouched"
+zeroFlowHS(bs, hs, hsr)      "renovation combinations where the heating system is left untouched"
+$else.sequentialRen
+zeroFlow(bs,hs,bsr,hsr)      "renovation combinations where the building shell or the heating system are left untouched"
+$endIf.sequentialRen
 ;
 
 alias(tcalib, tcalib2);
@@ -203,18 +208,31 @@ $load tcalib
 $gdxin
 
 ***Determine sets of flows which are included in the stock calibration
+$ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+$ifthen.shell not "%ignoreShell%" == "TRUE"
+zeroFlowBS(bs,hs,bsr)$(renAllowedBS(bs,hs,bsr) and sameas(bsr,"0")) = YES;
+$endIf.shell
+zeroFlowHS(bs,hs,hsr)$(renAllowedHS(bs,hs,hsr) and sameas(hsr,"0")) = YES;
+
+$else.sequentialRen
 $ifthen.shell "%ignoreShell%" == "TRUE"
 zeroFlow(bs,hs,bsr,hsr)$(renAllowed(bs,hs, bsr, hsr) and sameas(hsr,"0")) = YES;
 $else.shell
 zeroFlow(bs,hs,bsr,hsr)$(renAllowed(bs,hs, bsr, hsr) and (sameas(bsr, "0") or sameas(hsr,"0"))) = YES;
 $endIf.shell
+$endIf.sequentialRen
 
 $ifthen.calibrationRun "%RUNTYPE%" == "calibration"
 
 sets
 vinCalib(ttot, vin)  "Dynamic vintages in calibration"
-gradientVarsCon(bs, hs, ttot)                       "Combinations to loop over to compute the gradient in the calibration"
-gradientVarsRen(renType, bsr, hsr, vin, ttot)                       "Combinations to loop over to compute the gradient in the calibration"
+gradientVarsCon(bs, hs, ttot)                       "Construction combinations to loop over to compute the gradient in the calibration"
+$ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+gradientVarsRenBS(bsr, vin, ttot)                                "BS renovation combinations to loop over to compute the gradient in the calibration"
+gradientVarsRenHS(renType, hsr, vin, ttot)                       "HS renovation combinations to loop over to compute the gradient in the calibration"
+$else.sequentialRen
+gradientVarsRen(renType, bsr, hsr, vin, ttot)                    "Renovation combinations to loop over to compute the gradient in the calibration"
+$endIf.sequentialRen
 ;
 
 alias(renType, renType2);
@@ -225,11 +243,22 @@ $load vinCalib
 $gdxin
 
 *** Determine the combinations to loop over in the calibration
+$ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+loop(renAllowedBS(bs, hs, bsr),
+  gradientVarsRenBS(bsr, vin, tcalib)$vinCalib(tcalib, vin) = YES;
+);
+loop((renAllowedHS(bs, hs, hsr), vinCalib(tcalib, vin)),
+  gradientVarsRenHS("identRepl", hsr, vin, tcalib)$sameas(hs, hsr) = YES;
+  gradientVarsRenHS("newSys", hsr, vin, tcalib)$(not sameas(hs, hsr) and not sameas(hsr, "0")) = YES;
+  gradientVarsRenHS("0", hsr, vin, tcalib)$(sameas(hsr, "0")) = YES;
+);
+$else.sequentialRen
 loop((renAllowed(bs, hs, bsr, hsr), vinCalib(tcalib, vin)),
   gradientVarsRen("identRepl", bsr, hsr, vin, tcalib)$sameas(hs, hsr) = YES;
   gradientVarsRen("newSys", bsr, hsr, vin, tcalib)$(not sameas(hs, hsr) and not sameas(hsr, "0")) = YES;
   gradientVarsRen("0", bsr, hsr, vin, tcalib)$(sameas(hsr, "0")) = YES;
 );
+$endIf.sequentialRen
 gradientVarsCon(bs, hs, tcalib) = YES;
 
 $endif.calibrationRun

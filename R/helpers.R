@@ -137,3 +137,9 @@
   }
   return(x)
 }
+
+
+
+.namedLapply <- function(nm, ...) {
+  stats::setNames(lapply(nm, ...), nm)
+}

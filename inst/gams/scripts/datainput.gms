@@ -21,7 +21,12 @@ $endif.matching
 
 $ifthenE.calibration (sameas("%CALIBRATIONMETHOD%","optimization"))or(sameas("%CALIBRATIONMETHOD%","logit"))
 $gdxin input.gdx
-$load p_stockCalibTarget p_renovationCalibTarget p_constructionCalibTarget
+$load p_stockCalibTarget p_constructionCalibTarget
+$ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+$load p_renovationBSCalibTarget p_renovationHSCalibTarget
+$else.sequentialRen
+$load p_renovationCalibTarget
+$endIf.sequentialRen
 $gdxin
 $endif.calibration
 

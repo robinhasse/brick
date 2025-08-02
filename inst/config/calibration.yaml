@@ -17,11 +17,12 @@ switches:
   RUNTYPE: calibration
   CALIBRATIONMETHOD: logit
   FIXEDBUILDINGS: TRUE
+  SEQUENTIALREN: TRUE
   # CALIBRESOLUTION: identRepl
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 80
-  iterations: 20
+  iterations: 2
   iterationsArmijo: 20
   sensitivityArmijo: 0.04
 ...
