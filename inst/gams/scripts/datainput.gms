@@ -185,6 +185,7 @@ p_refWeight(ref)$sameas(ref,"IDEES_heatingShareNew") = 5E1;
 p_refWeight(ref)$sameas(ref,"HeatingSystemSales") = 1 * 1E2;
 p_refWeight(ref)$sameas(ref,"VHK") = 0 * 1E1;
 p_refWeight(ref)$sameas(ref,"EHI_statusQuo") = 0 * 1E2;
+p_refWeight(ref)$sameas(ref,"StatusQuo") = 2E2;
 p_refWeight(ref)$sameas(ref,"Pulsen") = 3E2;
 p_refWeight(ref)$sameas(ref,"Destatis") = 5E2;
 p_refWeight(ref)$sameas(ref,"Eurostat_loc") = 5E1;
