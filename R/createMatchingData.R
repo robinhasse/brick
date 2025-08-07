@@ -164,6 +164,10 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
     select("reference", "refVarGroup", "region", "ttot") %>%
     .unique()
 
+  # ignore refVars starting with _
+  refVarConsidered <- refVarRef %>%
+    filter(!startsWith(as.character(.data$refVar), "_"))
+
 
 
   # CREATE GAMS OBJECTS --------------------------------------------------------
@@ -241,7 +245,13 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
     domain = c(reference, refVar),
     records = .unique(refVals[, c("reference", "refVar")]),
     description = "mapping references to reference variables"
-  ))
+  )
+  refVarConsidered <- m$addSet(
+    name = "refVarConsidered",
+    domain = c(reference, refVar),
+    records = refVarConsidered,
+    description = "mapping references to all reference variables that are considered in the deviation"
+  )
 
   refVarExists <- m$addSet(
     name = "refVarExists",

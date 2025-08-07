@@ -62,7 +62,7 @@ plotRefDeviation <- function(path,
     }))
   } else {
     # all refVars
-    readSymbol(m, "refVarRef") %>%
+    readSymbol(m, "refVarConsidered") %>%
       filter(.data$reference %in% refs)
   }
 
@@ -79,21 +79,21 @@ plotRefDeviation <- function(path,
     left_join(refVarBasic, by = c("reference", "refVar")) %>%
     left_join(refValsBasic, by = c("reference", "refVarGroup", "region", ttot = "t"),
               suffix = c("", ".basic")) %>%
-    mutate(value.basic = replace_na(.data[["value.basic"]], 1),
-           value = ifelse(abs(.data[["value"]]) < 1E-4 & .data[["value.ref"]] == 0,
+    mutate(value.basic = replace_na(.data$value.basic, 1),
+           value = ifelse(abs(.data$value) < 1E-4 & .data$value.ref == 0,
                           0,
-                          .data[["value"]] / .data[["value.ref"]] / .data[["value.basic"]]),
+                          .data$value / .data$value.ref / .data$value.basic),
            valueDiscrete = case_when(
-             (is.na(.data[["value"]]) | is.infinite(.data[["value"]])) & .data[["value.ref"]] == 0 ~ "> 0",
-             abs(.data[["value"]]) < 0.1                      ~ "< 10 %",
-             abs(.data[["value"]]) > 0.3                      ~ "> 30 %",
-             abs(.data[["value"]]) <= 0.3                     ~ "10-30 %"
+             (is.na(.data$value) | is.infinite(.data$value)) & .data$value.ref == 0 ~ "> 0",
+             abs(.data$value) < 0.1                      ~ "< 10 %",
+             abs(.data$value) > 0.3                      ~ "> 30 %",
+             abs(.data$value) <= 0.3                     ~ "10-30 %"
            ))
 
   refDeviationTot <- full_join(refDeviation, refWeight,
                                by = "reference") %>%
-    filter(.data[["reference"]] %in% refs) %>%
-    mutate(value = .data[["value.x"]] * .data[["value.y"]])
+    filter(.data$reference %in% refs) %>%
+    mutate(value = .data$value.x * .data$value.y)
 
   # plot dir
   plotDir <- file.path(path, "plots")
@@ -114,11 +114,11 @@ plotRefDeviation <- function(path,
     p <- refDeviationVarRel %>%
       filter(.data$region %in% reg) %>%
       mutate(reference = linebreak(.data$reference)) %>%
-      ggplot(aes(.data[["ttot"]], .data[["refVar"]])) +
+      ggplot(aes(.data$ttot, .data$refVar)) +
       geom_vline(aes(xintercept = .data$period),
                  data.frame(period = (head(periods, -1) + tail(periods, -1)) / 2),
                  colour = "lightgrey", linewidth = 0.1) +
-      geom_tile(aes(fill = .data[["valueDiscrete"]]),
+      geom_tile(aes(fill = .data$valueDiscrete),
                 colour = "white") +
       geom_text(aes(label = ifelse(is.na(.data$value),
                                    "",
@@ -152,7 +152,7 @@ plotRefDeviation <- function(path,
 
 
   p <- ggplot(refDeviationTot) +
-    geom_col(aes(.data[["ttot"]], .data[["value"]], fill = .data[["reference"]])) +
+    geom_col(aes(.data$ttot, .data$value, fill = .data$reference)) +
     scale_fill_brewer(palette = "Set3") +
     scale_y_continuous("total reference deviation") +
     facet_wrap("region", scales = "free_y") +

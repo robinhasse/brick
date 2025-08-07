@@ -120,18 +120,19 @@ state(bs,hs)            "building state"
 ren(bs,hs,bsr,hsr)      "renovation alternatives"
 
 *** mappings to filter unwanted combinations
-vinExists(ttot,vin)                                "existing vintage cohorts (i.e. ttot cannot be before cohort starts)"
-renAllowed(bs,hs,bsr,hsr)                          "allowed renovation transitions"
-renAllowedBS(bs,hs,bsr)                            "allowed building shell retrofits"
-renAllowedHS(bs,hs,hsr)                            "allowed heating system replacements"
-sameState(bs,hs,bsr,hsr)                           "Is the state after the renovation the same as before"
-renEffective(bs,hs,bsr,hsr)                        "Renovations without untouched buildings"
-refVarExists (reference,refVar,region,ttot)           "There is a value for this combination of reference, variable, region and period"
-refVarGroupExists (reference,refVarGroup,region,ttot) "There is a value for this combination of reference, variable group, region and period"
-refVarRef(reference,refVar)                        "mapping references to reference variables"
-refVarBasic(reference,refVar,refVarGroup)          "mapping reference variables to group summed to basic value of a share reference"
-hsCarrier(hs,carrier)                              "mapping between heating system and energy carrier"
-typInSec(typ,sec)                                     "mapping between building type and buildings subsector"
+vinExists(ttot,vin)                                  "existing vintage cohorts (i.e. ttot cannot be before cohort starts)"
+renAllowed(bs,hs,bsr,hsr)                            "allowed renovation transitions"
+renAllowedBS(bs,hs,bsr)                              "allowed building shell retrofits"
+renAllowedHS(bs,hs,hsr)                              "allowed heating system replacements"
+sameState(bs,hs,bsr,hsr)                             "Is the state after the renovation the same as before"
+renEffective(bs,hs,bsr,hsr)                          "Renovations without untouched buildings"
+refVarExists(reference,refVar,region,ttot)           "There is a value for this combination of reference, variable, region and period"
+refVarGroupExists(reference,refVarGroup,region,ttot) "There is a value for this combination of reference, variable group, region and period"
+refVarRef(reference,refVar)                          "mapping references to reference variables"
+refVarConsidered(reference,refVar)                   "mapping references to all reference variables that are considered in the deviation"
+refVarBasic(reference,refVar,refVarGroup)            "mapping reference variables to group summed to basic value of a share reference"
+hsCarrier(hs,carrier)                                "mapping between heating system and energy carrier"
+typInSec(typ,sec)                                    "mapping between building type and buildings subsector"
 
 *** control sets (should be empty)
 ErrStock(bs,hs,vin,region,loc,typ,inc,ttot)              "Error in stock of buildings"
@@ -163,7 +164,7 @@ $gdxin
 
 $ifthen.matching "%RUNTYPE%" == "matching"
 $gdxin references.gdx
-$load refVarRef
+$load refVarRef refVarConsidered
 $load refVarExists refVarGroupExists
 $load refVarBasic
 $gdxin
