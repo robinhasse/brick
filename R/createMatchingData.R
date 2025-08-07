@@ -42,8 +42,8 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
 
 
 
-  getRefData <- function(ref, regions, periods) {
-    calcOutput("MatchingReference", subtype = ref, aggregate = FALSE) %>%
+  getRefData <- function(ref, data, regions, periods) {
+    data %>%
       as.quitte(na.rm = TRUE) %>%
       filter(.data[["region"]] %in% regions,
              .data[["period"]] %in% periods) %>%
@@ -57,6 +57,25 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
              ttot = "period",
              "value") %>%
       .explicitZero()
+  }
+
+
+
+
+
+  getRefDescription <- function(data) {
+
+    getField <- function(x, key) {
+      keyPattern <- paste0("^\\s*", key, ":\\s*")
+      line <- grep(keyPattern, x)
+      sub(keyPattern, "", x[line])
+    }
+
+    comment <- attr(data, "comment")
+    description <- getField(comment, "description")
+    unit <- getField(comment, "unit")
+
+    paste0(description, " [", unit, "]")
   }
 
 
@@ -148,7 +167,17 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
   ## reference values ====
 
   # TODO: this should come from refs
-  refVals <- do.call(rbind, lapply(references, getRefData, regions, periods))
+  refVals <- data.frame()
+  refRecords <- data.frame()
+  for (ref in references) {
+    refData <- calcOutput("MatchingReference", subtype = ref, aggregate = FALSE)
+    refRecords <- rbind(refRecords,
+                        data.frame(reference = ref,
+                                   description = getRefDescription(refData)))
+    refVals <- rbind(refVals,
+                     getRefData(ref, refData, regions, periods))
+  }
+
   refValsMed <- refVals %>%
     group_by(across(all_of(c("reference", "region")))) %>%
     summarise(value = median(abs(.data[["value"]][.data[["value"]] != 0]),
@@ -162,6 +191,11 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
   refVarGroupExists <- refVarExists %>%
     inner_join(refVarBasic, by = c("reference", "refVar")) %>%
     select("reference", "refVarGroup", "region", "ttot") %>%
+    .unique()
+
+  # mapping references to refVals
+  refVarRef <- refVals %>%
+    select("reference", "refVar") %>%
     .unique()
 
   # ignore refVars starting with _
@@ -215,17 +249,17 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
 
   reference <- m$addSet(
     name = "reference",
-    records = references,
+    records = refRecords,
     description = "reference sources that historic quantities can be calibrated to"
   )
   invisible(m$addSet(
     name = "refAbs",
-    records = referencesAbs,
+    records = refRecords[refRecords$reference %in% referencesAbs, ],
     description = "absolute reference sources that historic quantities can be calibrated to"
   ))
   invisible(m$addSet(
     name = "refRel",
-    records = referencesRel,
+    records = refRecords[refRecords$reference %in% referencesRel, ],
     description = "relative reference sources that historic quantities can be calibrated to"
   ))
   invisible(m$addSet(
@@ -236,14 +270,13 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
 
   invisible(m$addSet(
     name = "ref",
-    records = referencesUsed,
+    records = refRecords[refRecords$reference %in% referencesUsed, ],
     description = "reference sources that historic quantities are calibrated to"
   ))
-
-  invisible(m$addSet(
+  refVarRef <- m$addSet(
     name = "refVarRef",
     domain = c(reference, refVar),
-    records = .unique(refVals[, c("reference", "refVar")]),
+    records = refVarRef,
     description = "mapping references to reference variables"
   )
   refVarConsidered <- m$addSet(
