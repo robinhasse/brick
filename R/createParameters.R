@@ -289,27 +289,37 @@ createParameters <- function(m, config, inputDir) {
                             shift = as.numeric(ltHsShift))
     ltHs <- ltHs %>%
       left_join(ltHsShift, by = c("hs", "variable")) %>%
-      mutate(value = .data[["value"]] + replace_na(.data[["shift"]], 0)) %>%
+      mutate(value = .data$value + replace_na(.data$shift, 0)) %>%
       select(-"shift")
   }
 
   # Calculate share of buildings that need to be renovated or demolished between
   # given time steps assuming a Weibull distribution of the technology life time.
   # When passing the standing life time, the share of the initial stock standing
-  # in ttotIn that has to be demolished or renovated until the given time step ttot
-  # is calculated.
-  shareRen <- function(params, standingLifeTime = NULL, timePeriods = NULL) {
+  # in ttotIn that has to be demolished or renovated until the given time step
+  # ttot is calculated.
+  shareRen <- function(params, standingLifeTime = FALSE, timePeriods = NULL) {
 
     if (is.null(timePeriods)) {
       timePeriods <- expandSets(ttotIn = "ttot", ttotOut = "ttot", .m = m) %>%
         filter(.data$ttotIn <= .data$ttotOut)
     }
 
-    share <- timePeriods %>%
-      cross_join(params) %>%
-      pivot_wider(names_from = "variable")
+    params <- pivot_wider(params, names_from = "variable")
 
-    share <- if (is.null(standingLifeTime)) {
+    commonCols <- intersect(names(timePeriods), names(params))
+    share <- if (length(commonCols) > 0) {
+      right_join(timePeriods, params, by = commonCols)
+    } else {
+      cross_join(timePeriods, params)
+    }
+
+    share <- if (isTRUE(standingLifeTime)) {
+      # standing life time considers stock not flows -> no consideration of dt
+      share %>%
+        mutate(lt = .data$ttotOut - .data$ttotIn + .data$standingLt,
+               p0 = pweibull(.data$standingLt, .data$shape, .data$scale))
+    } else {
       # average past flow activity happened dt/2 before nominal time step ttotIn
       share %>%
         left_join(readSymbol(p_dt) %>%
@@ -318,18 +328,13 @@ createParameters <- function(m, config, inputDir) {
         filter(!is.na(.data$dt)) %>%
         mutate(lt = .data$ttotOut - (.data$ttotIn - .data$dt / 2),
                p0 = 0)
-    } else {
-      # standing life time considers stock not flows -> no consideration of dt
-      share %>%
-        mutate(lt = .data$ttotOut - .data$ttotIn + standingLifeTime,
-               p0 = pweibull(standingLifeTime, .data$shape, .data$scale))
     }
 
     share %>%
       mutate(p  = pweibull(.data$lt, .data$shape, .data$scale),
              value = (.data$p - .data$p0) / (1 - .data$p0),
              value = ifelse(.data$value > cutOffShare, 1, .data$value)) %>%
-      select(-any_of(c("shape", "scale", "dt", "lt", "p", "p0")))
+      select(-any_of(c("shape", "scale", "standingLt", "dt", "lt", "p", "p0")))
   }
 
   ## building ====
@@ -401,7 +406,7 @@ createParameters <- function(m, config, inputDir) {
   )
 
   # assumption: average life time of initial stock of building shells: 12 years
-  p_shareRenBSinit <- shareRen(ltBs, standingLifeTime = 27) %>%
+  p_shareRenBSinit <- shareRen(ltBs, standingLifeTime = TRUE) %>%
     select("region", "ttotIn", "ttotOut", "value") %>%
     toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
   p_shareRenBSinit <- m$addParameter(
@@ -435,8 +440,7 @@ createParameters <- function(m, config, inputDir) {
   )
 
   # assumption: average life time of initial stock of heating systems: 12 years
-  standingLifeTimeHs <- 12
-  p_shareRenHSinit <- shareRen(ltHs, standingLifeTime = standingLifeTimeHs) %>%
+  p_shareRenHSinit <- shareRen(ltHs, standingLifeTime = TRUE) %>%
     select("hs", "region", "typ", "ttotIn", "ttotOut", "value") %>%
     toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
   p_shareRenHSinit <- m$addParameter(
@@ -461,23 +465,27 @@ createParameters <- function(m, config, inputDir) {
     records = p_shareRenHSfull,
     description = "distribution of hs renovation at high time resolution"
   )
-
-  timePeriodsFullInit <- data.frame(
-    ttotIn = readSymbol(m, symbol = "tinit"),
-    lt = seq(0, 60, 0.5)
-  ) %>%
-    mutate(ttotIn = .data$ttotIn - standingLifeTimeHs,
+  timePeriodsFullInit <- ltHs %>%
+    pivot_wider(names_from = "variable") %>%
+    select(-"shape", -"scale") %>%
+    cross_join(data.frame(
+      ttotIn = readSymbol(m, symbol = "tinit"),
+      lt = seq(0, 60, 0.5)
+    )) %>%
+    mutate(ttotIn = .data$ttotIn - round(.data$standingLt / 0.5) * 0.5,
            ttotOut = .data$ttotIn + .data$lt,
-           .keep = "none")
+           .keep = "unused")
 
   # Share of heating systems in the standing stock at time ttotIn = tinit - standingLifeTimeHs
   # to be renovated by time ttotOut.
-  p_shareRenHSfullInit <- shareRen(
-    ltHs,
-    standingLifeTime = 0, # We already subtracted the standing lifetime,
-    # but want to ignore the time step length as we will compare this to the lifetimes of the standing stock.
-    timePeriods = timePeriodsFullInit
-  ) %>%
+  p_shareRenHSfullInit <- ltHs %>%
+    mutate(value = ifelse(.data$variable == "standingLt", 0, .data$value)) %>%
+    shareRen(
+      standingLifeTime = TRUE, # We already subtracted the standing lifetime,
+      # but want to ignore the time step length as we will compare this to the
+      # lifetimes of the standing stock.
+      timePeriods = timePeriodsFullInit
+    ) %>%
     select("hs", "region", "typ", "ttotIn", "ttotOut", "value") %>%
     toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
   p_shareRenHSfullInit <- m$addParameter(
