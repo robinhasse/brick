@@ -318,10 +318,10 @@ runCalibrationLogit <- function(path,
       stepSizeParams <- .adjustStepSizeAfterArmijo(totalStep, stepSizeParams)
 
       optimVar <- .namedLapply(variables, function(var) {
-        .updateXSelect(totalStep, optimVar, deviation, stepSizeParams, dims[[var]])
+        .updateXSelect(totalStep, optimVar[[var]], deviation[[var]], stepSizeParams, dims[[var]])
       })
 
-      .addSpecCostToInput(mInput, path, optimVar, xinit, tcalib, varName = "xA",
+      .addSpecCostToInput(mInput, path, optimVar, xinit, tcalib, dims, varName = "xA",
                           vinExists = vinExists, vinCalib = vinCalib, shiftIntang = switches[["SHIFTINTANG"]])
 
       ## Re-evaluate outer objective of Brick results ====
@@ -484,10 +484,6 @@ runCalibrationOptim <- function(path,
 
   .addTargetsToInput(mInput, path, calibTarget, dims)
 
-  p_calibTarget <- .namedLapply(variables, function(var) {
-    .pick(calibTarget[[var]], qty = "area")
-  })
-
   # Initial Brick run
   runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
 
@@ -511,12 +507,14 @@ runCalibrationOptim <- function(path,
       .computeDescentDirection(m, dims[[var]], tcalib, flow = var)
     })
 
-    # if (switches[["AGGREGATEDIM"]] == "vin") {
-    #   deviationRen <- select(deviationRen, -"vin")
-    #   dims$renovationDeviation <- setdiff(dims$renovation, "vin")
-    # } else {
-    #   dims$renovationDeviation <- dims$renovation
-    # }
+    for (var in grep("renovation", variables, value = TRUE)) {
+      if (switches[["AGGREGATEDIM"]] == "vin") {
+        deviation[[var]] <- select(deviation[[var]], -"vin")
+        dims[[paste0(var, "Dev")]] <- setdiff(dims[[var]], "vin")
+      } else {
+        dims[[paste0(var, "Dev")]] <- dims[[var]]
+      }
+    }
 
     # Compute parameters delta and phi-derivative of the step size adaptation
     stepSizeParams <- .combineStepSizeParams(deviation)
@@ -537,7 +535,8 @@ runCalibrationOptim <- function(path,
 
       ## Adjust the optimization variable according to current step size ====
       optimVar <- .namedLapply(variables, function(var) {
-        .updateXSelect(armijoStep, optimVar[[var]], deviation[[var]], stepSizeParams, dims[[var]])
+        .updateXSelect(armijoStep, optimVar[[var]], deviation[[var]], stepSizeParams,
+                       dims[[if (identical(var, "construction")) var else paste0(var, "Dev")]])
       })
 
       .addSpecCostToInput(mInput, path, optimVar, xinit, tcalib, dims, varName = "xA",
@@ -547,7 +546,7 @@ runCalibrationOptim <- function(path,
 
       runGams(path, gamsOptions = gamsOptions, switches = switchesScenRun, gamsCall = gamsCall)
 
-      gdxA <- file.path(path, paste0("calibrationA_", j, ".gdx"))
+      gdxA <- file.path(path, "calibrationA.gdx")
       file.copy(from = gdxOutput, to = gdxA, overwrite = TRUE)
       mA <- Container$new(gdxA)
 
@@ -594,10 +593,9 @@ runCalibrationOptim <- function(path,
       stepSizeParams <- .adjustStepSizeAfterArmijo(armijoStep, stepSizeParams)
 
       optimVar <- .namedLapply(variables, function(var) {
-        .updateXSelect(armijoStep, optimVar[[var]], deviation[[var]], stepSizeParams, dims[[var]])
+        .updateXSelect(armijoStep, optimVar[[var]], deviation[[var]], stepSizeParams,
+                       dims[[if (identical(var, "construction")) var else paste0(var, "Dev")]])
       })
-    #   optimVarCon <- .updateXSelect(armijoStep, optimVarCon, deviationCon, stepSizeParams, dims$construction)
-    #   optimVarRen <- .updateXSelect(armijoStep, optimVarRen, deviationRen, stepSizeParams, dims$renovationDeviation)
     }
 
 
@@ -1093,11 +1091,10 @@ runCalibrationOptim <- function(path,
 #'
 #' @param m Gams transfer container with previous input data
 #' @param path character, path to this run
-#' @param optimVarCon data frame with optimization variables of construction
-#' @param optimVarRen data frame with optimization variables of renovation
-#' @param xinitCon data frame with initial specific intangible costs of construction
-#' @param xinitRen data frame with initial specific intangible costs of renovation
+#' @param optimVar list of data frames with optimization variables of all flows
+#' @param xinitCon list of data frames with initial specific intangible costs of all flows
 #' @param tcalib numeric, calibration time steps
+#' @param dims list of characters, dimensions of each flow
 #' @param vinExists data frame of vintages that exist for each time period
 #' @param vinCalib data frame with vintages that exist in calibration periods
 #' @param varName character, optimization variable to calculate specific costs from.
@@ -1121,21 +1118,16 @@ runCalibrationOptim <- function(path,
   p_specCost <- .namedLapply(variables, function(var) {
     m$getSymbols(costSym[[var]])[[1]]
   })
-  # p_specCostCon <- m$getSymbols("p_specCostCon")[[1]]
-  # p_specCostRen <- m$getSymbols("p_specCostRen")[[1]]
 
   p_specCostTang <- .namedLapply(variables, function(var) {
     filter(readSymbol(m, symbol = costSym[[var]]), .data$cost == "tangible")
   })
 
-  # dimsCon <- c("bs", "hs", "region", "loc", "typ", "inc", "ttot")
-  # dimsRen <- c("bs", "hs", "bsr", "hsr", "vin", "region", "loc", "typ", "inc", "ttot")
-
   p_specCostData <- .namedLapply(variables, function(var) {
     rbind(
       p_specCostTang[[var]],
       .determineSpecCost(optimVar[[var]], xinit[[var]], dims[[var]], tcalib,
-                         flow = var, varName = varName, 
+                         flow = var, varName = varName,
                          vinExists = vinExists, vinCalib = vinCalib, shiftIntang = shiftIntang)
     )
   })
@@ -1143,9 +1135,6 @@ runCalibrationOptim <- function(path,
   lapply(variables, function(var) {
     p_specCost[[var]]$setRecords(p_specCostData[[var]])
   })
-
-  # p_specCostCon$setRecords(p_specCostConData)
-  # p_specCostRen$setRecords(p_specCostRenData)
 
   m$write(file.path(path, "input.gdx"), compress = TRUE)
 }

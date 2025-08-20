@@ -174,10 +174,10 @@ $ifThen.calibTarget "%CALIBRATIONTYPE%" == "flows"
 $macro func sum(state3$(p_constructionCalibTarget("area", state3, subs, tcalib2)), \
   power(p_constructionCalibTarget("area", state3, subs, tcalib2) - v_construction.l("area", state3, subs, tcalib2), 2)) \
 $ifThen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
-  + sum((vin3, state3, bsr3)$(renAllowedBS(state3, bsr3) and p_renovationBSCalibTarget("area", state3, bsr3, vin3, subs, tcalib2) ne NA), \
-  power(p_renovationBSCalibTarget("area", state3, bsr3, vin3, subs, tcalib2) - v_renovationBS.l("area", state3, bsr3, vin3, subs, tcalib2), 2)) \
-  + sum((vin3, state3, hsr3)$(renAllowedHS(state3, hsr3) and p_renovationHSCalibTarget("area", state3, hsr3, vin3, subs, tcalib2) ne NA), \
-  power(p_renovationHSCalibTarget("area", state3, hsr3, vin3, subs, tcalib2) - v_renovationHS.l("area", state3, hsr3, vin3, subs, tcalib2), 2));
+  + sum((vin3, state3, bsr4)$(renAllowedBS(state3, bsr4) and p_renovationBSCalibTarget("area", state3, bsr4, vin3, subs, tcalib2) ne NA), \
+  power(p_renovationBSCalibTarget("area", state3, bsr4, vin3, subs, tcalib2) - v_renovationBS.l("area", state3, bsr4, vin3, subs, tcalib2), 2)) \
+  + sum((vin3, state3, hsr4)$(renAllowedHS(state3, hsr4) and p_renovationHSCalibTarget("area", state3, hsr4, vin3, subs, tcalib2) ne NA), \
+  power(p_renovationHSCalibTarget("area", state3, hsr4, vin3, subs, tcalib2) - v_renovationHS.l("area", state3, hsr4, vin3, subs, tcalib2), 2));
 $else.sequentialRen
   + sum((vin3, state3, stateFull3)$(renAllowed(state3, stateFull3) and p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2) ne NA), \
   power(p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2) - v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib2), 2));
@@ -191,10 +191,10 @@ $elseIf.calibTarget "%CALIBRATIONTYPE%" == "stockszero"
 $macro func sum((vin3, state3), \
   power(p_stockCalibTarget("area", state3, vin3, subs, tcalib2) - v_stock.l("area", state3, vin3, subs, tcalib2), 2)) \
 $ifThen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
-  + sum((vin3, state3, bsr3)$zeroFlowBS(state3, bsr3), \
-  power(p_renovationBSCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2) - v_renovationBS.l("area", state3, bsr3, vin3, subs, tcalib2), 2)) \
-  + sum((vin3, state3, stateFull3)$zeroFlowHS(state3, hsr3), \
-  power(p_renovationHSCalibTarget("area", state3, hsr3, vin3, subs, tcalib2) - v_renovationHS.l("area", state3, hsr3, vin3, subs, tcalib2), 2));
+  + sum((vin3, state3, bsr4)$zeroFlowBS(state3, bsr4), \
+  power(p_renovationBSCalibTarget("area", state3, bsr4, vin3, subs, tcalib2) - v_renovationBS.l("area", state3, bsr4, vin3, subs, tcalib2), 2)) \
+  + sum((vin3, state3, hsr4)$zeroFlowHS(state3, hsr4), \
+  power(p_renovationHSCalibTarget("area", state3, hsr4, vin3, subs, tcalib2) - v_renovationHS.l("area", state3, hsr4, vin3, subs, tcalib2), 2));
 $else.sequentialRen
   + sum((vin3, state3, stateFull3)$zeroFlow(state3, stateFull3), \
   power(p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2) - v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib2), 2));
@@ -213,20 +213,20 @@ $macro func - sum(state3, \
     + epsilonSmall) \
   ) \
 $ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
-- sum((vin3, state3, bsr3)$renAllowedBS(state3, bsr3), \
-  p_renovationBSCalibTarget("area", state3, bsr3, vin3, subs, tcalib2) \
-  * log(v_renovationBS.l("area", state3, bsr3, vin3, subs, tcalib2) \
-    / (sum((state4, bsr4), \
-      v_renovationBS.l("area", state4, bsr4, vin3, subs, tcalib2) \
+- sum((vin3, state3, bsr4)$renAllowedBS(state3, bsr4), \
+  p_renovationBSCalibTarget("area", state3, bsr4, vin3, subs, tcalib2) \
+  * log(v_renovationBS.l("area", state3, bsr4, vin3, subs, tcalib2) \
+    / (sum((state4, bsr5), \
+      v_renovationBS.l("area", state4, bsr5, vin3, subs, tcalib2) \
       ) \
       + epsilonSmall) \
     + epsilonSmall) \
   ) \
-  - sum((vin3, state3, hsr3)$renAllowedHS(state3, hsr3), \
-  p_renovationHSCalibTarget("area", state3, hsr3, vin3, subs, tcalib2) \
-  * log(v_renovationHS.l("area", state3, hsr3, vin3, subs, tcalib2) \
-    / (sum((state4, hsr4), \
-      v_renovationHS.l("area", state4, hsr4, vin3, subs, tcalib2) \
+  - sum((vin3, state3, hsr4)$renAllowedHS(state3, hsr4), \
+  p_renovationHSCalibTarget("area", state3, hsr4, vin3, subs, tcalib2) \
+  * log(v_renovationHS.l("area", state3, hsr4, vin3, subs, tcalib2) \
+    / (sum((state4, hsr5), \
+      v_renovationHS.l("area", state4, hsr5, vin3, subs, tcalib2) \
       ) \
       + epsilonSmall) \
     + epsilonSmall) \
@@ -264,20 +264,20 @@ $macro func - sum((vin3, state3), \
     + epsilonSmall) \
   + epsilonSmall)) \
 $ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
-  - sum((vin3, state3, bsr3)$zeroFlowBS(state3, bsr3), \
-  p_renovationBSCalibTarget("area", state3, bsr3, vin3, subs, tcalib2) \
-  * log(v_renovationBS.l("area", state3, bsr3, vin3, subs, tcalib2) \
-    / (sum((state4, bsr4), \
-      v_renovationBS.l("area", state4, bsr4, vin3, subs, tcalib2) \
+  - sum((vin3, state3, bsr4)$zeroFlowBS(state3, bsr4), \
+  p_renovationBSCalibTarget("area", state3, bsr4, vin3, subs, tcalib2) \
+  * log(v_renovationBS.l("area", state3, bsr4, vin3, subs, tcalib2) \
+    / (sum((state4, bsr5), \
+      v_renovationBS.l("area", state4, bsr5, vin3, subs, tcalib2) \
       ) \
       + epsilonSmall) \
     + epsilonSmall) \
   ) \
-  - sum((vin3, state3, hsr3)$zeroFlow(state3, hsr3), \
-  p_renovationHSCalibTarget("area", state3, hsr3, vin3, subs, tcalib2) \
-  * log(v_renovationHS.l("area", state3, hsr3, vin3, subs, tcalib2) \
-    / (sum((state4, hsr4), \
-      v_renovationHS.l("area", state4, hsr4, vin3, subs, tcalib2) \
+  - sum((vin3, state3, hsr4)$zeroFlow(state3, hsr4), \
+  p_renovationHSCalibTarget("area", state3, hsr4, vin3, subs, tcalib2) \
+  * log(v_renovationHS.l("area", state3, hsr4, vin3, subs, tcalib2) \
+    / (sum((state4, hsr5), \
+      v_renovationHS.l("area", state4, hsr5, vin3, subs, tcalib2) \
       ) \
       + epsilonSmall) \
     + epsilonSmall) \
@@ -303,10 +303,10 @@ $ifThen.calibTarget "%CALIBRATIONTYPE%" == "flows"
 $macro func sum(state3$(p_constructionCalibTarget("area", state3, subs, tcalib2)), \
   power(p_constructionCalibTarget("area", state3, subs, tcalib2) - v_construction.l("area", state3, subs, tcalib2), 2)) \
 $ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
-  + sum((state3, bsr3)$(renAllowedBS(state3, bsr3) and sum(vin3, p_renovationBSCalibTarget("area", state3, bsr3, vin3, subs, tcalib2)) ne NA), \
-  power(sum(vin3, p_renovationBSCalibTarget("area", state3, bsr3, vin3, subs, tcalib2)) - sum(vin3, v_renovationBS.l("area", state3, bsr3, vin3, subs, tcalib2)), 2)) \
-  + sum((state3, hsr3)$(renAllowedHS(state3, hsr3) and sum(vin3, p_renovationHSCalibTarget("area", state3, hsr3, vin3, subs, tcalib2)) ne NA), \
-  power(sum(vin3, p_renovationHSCalibTarget("area", state3, hsr3, vin3, subs, tcalib2)) - sum(vin3, v_renovationHS.l("area", state3, hsr3, vin3, subs, tcalib2)), 2));
+  + sum((state3, bsr4)$(renAllowedBS(state3, bsr4) and sum(vin3, p_renovationBSCalibTarget("area", state3, bsr4, vin3, subs, tcalib2)) ne NA), \
+  power(sum(vin3, p_renovationBSCalibTarget("area", state3, bsr4, vin3, subs, tcalib2)) - sum(vin3, v_renovationBS.l("area", state3, bsr4, vin3, subs, tcalib2)), 2)) \
+  + sum((state3, hsr4)$(renAllowedHS(state3, hsr4) and sum(vin3, p_renovationHSCalibTarget("area", state3, hsr4, vin3, subs, tcalib2)) ne NA), \
+  power(sum(vin3, p_renovationHSCalibTarget("area", state3, hsr4, vin3, subs, tcalib2)) - sum(vin3, v_renovationHS.l("area", state3, hsr4, vin3, subs, tcalib2)), 2));
 $else.sequentialRen
   + sum((state3, stateFull3)$(renAllowed(state3, stateFull3) and sum(vin3, p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2)) ne NA), \
   power(sum(vin3, p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2)) - sum(vin3, v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib2)), 2));

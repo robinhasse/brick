@@ -22,7 +22,7 @@ switches:
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 80
-  iterations: 2
+  iterations: 10
   iterationsArmijo: 20
   sensitivityArmijo: 0.04
 ...

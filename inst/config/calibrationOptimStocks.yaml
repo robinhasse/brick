@@ -2,6 +2,7 @@
 title: "calibration-stocks"
 basedOn: "default.yaml"
 # scope and resolution
+granularity: lowGran
 periods: [2005, 2010, 2015]
 startyear: 2010
 calibperiods: 2010
@@ -16,11 +17,12 @@ switches:
   CALIBRATIONMETHOD: optimization
   TARGETFUNCTION: minsquare
   CALIBRATIONTYPE: stocks
+  AGGREGATEDIM: vin
   SEQUENTIALREN: TRUE
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 1
-  iterations: 1
-  iterationsArmijo: 5
+  iterations: 10
+  iterationsArmijo: 20
   sensitivityArmijo: 0.04
 ...

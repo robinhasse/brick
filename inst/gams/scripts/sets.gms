@@ -75,8 +75,8 @@ renType "Renovation types"
 ;
 
 *** aliases
-alias(bsr,bsr2,bsr3);
-alias(hsr,hsr2,hsr3);
+alias(bsr,bsr2,bsr3,bsr4,bsr5);
+alias(hsr,hsr2,hsr3,hsr4,hsr5);
 alias(bs,bs2,bs3);
 alias(hs,hs2,hs3);
 alias(vin,vin2,vin3);
@@ -211,6 +211,8 @@ $gdxin
 $ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
 $ifthen.shell not "%ignoreShell%" == "TRUE"
 zeroFlowBS(bs,hs,bsr)$(renAllowedBS(bs,hs,bsr) and sameas(bsr,"0")) = YES;
+$else.shell
+zeroFlowBS(bs,hs,bsr) = NO;
 $endIf.shell
 zeroFlowHS(bs,hs,hsr)$(renAllowedHS(bs,hs,hsr) and sameas(hsr,"0")) = YES;
 

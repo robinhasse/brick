@@ -19,11 +19,12 @@ switches:
   TARGETFUNCTION: minsquare
   CALIBRATIONTYPE: stockszero
   FIXEDBUILDINGS: TRUE
+  SEQUENTIALREN: TRUE
   # AGGREGATEDIM: vin
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 10
-  iterations: 5
+  iterations: 10
   iterationsArmijo: 20
   sensitivityArmijo: 0.04
 ...

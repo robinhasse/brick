@@ -20,10 +20,11 @@ switches:
   CALIBRATIONTYPE: flows
   # AGGREGATEDIM: vin
   FIXEDBUILDINGS: TRUE
+  SEQUENTIALREN: TRUE
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 10
-  iterations: 5
+  iterations: 10
   iterationsArmijo: 20
   sensitivityArmijo: 0.04
 ...
