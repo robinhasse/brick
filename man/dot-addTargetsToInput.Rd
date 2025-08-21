@@ -4,7 +4,7 @@
 \alias{.addTargetsToInput}
 \title{Add the calibration targets to the input gdx}
 \usage{
-.addTargetsToInput(mInput, path, calibTarget)
+.addTargetsToInput(mInput, path, calibTarget, dims)
 }
 \arguments{
 \item{mInput}{gamstransfer container of the input gdx}
@@ -12,6 +12,8 @@
 \item{path}{character, path to output folder of this run}
 
 \item{calibTarget}{list of data frames of calibration targets}
+
+\item{dims}{list of characters, dimensions of data}
 }
 \description{
 Add the calibration targets to the input gdx

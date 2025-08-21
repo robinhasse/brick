@@ -6,6 +6,9 @@ granularity: lowGran
 periods: [2000, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050]
 startyear: 2005
 calibperiods: [2005, 2010]
+# periods: [2000, 2005, 2010]
+# startyear: 2005
+# calibperiods: 2005
 regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
 regions: EUR
 ignoreShell: TRUE
@@ -17,12 +20,12 @@ switches:
   RUNTYPE: calibration
   CALIBRATIONMETHOD: logit
   FIXEDBUILDINGS: TRUE
-  SEQUENTIALREN: TRUE
+  # SEQUENTIALREN: TRUE
   # CALIBRESOLUTION: identRepl
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 80
-  iterations: 10
+  iterations: 2
   iterationsArmijo: 20
   sensitivityArmijo: 0.04
 ...

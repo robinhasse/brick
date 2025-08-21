@@ -10,7 +10,7 @@
 #' @author Robin Hasse
 #'
 #' @importFrom dplyr %>% .data left_join rename mutate filter select cross_join
-#'   group_by ungroup across all_of arrange inner_join
+#'   group_by ungroup across all_of arrange inner_join relocate
 #' @importFrom tidyr pivot_wider
 #' @importFrom stats pweibull
 
@@ -140,6 +140,14 @@ createParameters <- function(m, config, inputDir) {
   p_specCostRenBS <- rbind(p_specCostRenBS_tang, p_specCostRenBS_intang)
   p_specCostRenHS <- rbind(p_specCostRenHS_tang, p_specCostRenHS_intang)
 
+  if (identical(config[["switches"]][["RUNTYPE"]], "calibration") && !isTRUE(config[["switches"]][["SEQUENTIALREN"]])) {
+    p_specCostRen <- full_join(p_specCostRenBS, p_specCostRenHS,
+                               by = c("cost", state, "vin", "region", "loc", "typ", "inc", "ttot"),
+                               suffix = c(".bs", ".hs")) %>%
+      relocate("hsr", .after = "bsr") %>%
+      mutate(value = .data$value.bs + .data$value.hs, .keep = "unused")
+  }
+
   p_specCostRenBS <- m$addParameter(
     name = "p_specCostRenBS",
     domain = c("cost", state, "bsr", "vin", "region", "loc", "typ", "inc", "ttot"),
@@ -152,6 +160,15 @@ createParameters <- function(m, config, inputDir) {
     records = p_specCostRenHS,
     description = "floor-space specific heating system replacement cost [USD/m2]"
   )
+
+  if (identical(config[["switches"]][["RUNTYPE"]], "calibration") && !isTRUE(config[["switches"]][["SEQUENTIALREN"]])) {
+    p_specCostRen <- m$addParameter(
+      name = "p_specCostRen",
+      domain = c("cost", state, "bsr", "hsr", "vin", "region", "loc", "typ", "inc", "ttot"),
+      records = p_specCostRen,
+      description = "floor-space specific renovation cost [USD/m2]"
+    )
+  }
 
 
   ## operation ====
@@ -513,7 +530,7 @@ createParameters <- function(m, config, inputDir) {
     ))
   }
 
-  if (grepl("calibration", config[["switches"]][["RUNTYPE"]])) {
+  if (identical(config[["switches"]][["RUNTYPE"]], "calibration")) {
     invisible(m$addSet(
       "tcalib",
       records = periodFromConfig(config, "tcalib"),

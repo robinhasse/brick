@@ -7,11 +7,10 @@
 .addSpecCostToInput(
   m,
   path,
-  optimVarCon,
-  optimVarRen,
-  xinitCon,
-  xinitRen,
+  optimVar,
+  xinit,
   tcalib,
+  dims,
   vinExists,
   vinCalib,
   varName = "x",
@@ -23,15 +22,13 @@
 
 \item{path}{character, path to this run}
 
-\item{optimVarCon}{data frame with optimization variables of construction}
+\item{optimVar}{list of data frames with optimization variables of all flows}
 
-\item{optimVarRen}{data frame with optimization variables of renovation}
-
-\item{xinitCon}{data frame with initial specific intangible costs of construction}
-
-\item{xinitRen}{data frame with initial specific intangible costs of renovation}
+\item{xinit}{list of data frames with initial specific intangible costs of all flows}
 
 \item{tcalib}{numeric, calibration time steps}
+
+\item{dims}{list of characters, dimensions of each flow}
 
 \item{vinExists}{data frame of vintages that exist for each time period}
 

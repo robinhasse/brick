@@ -541,7 +541,7 @@ $endif.nlp
   p_fDiffRenHS(renType2, hsr3, vin2, subs, tcalib2) = func
 );
 
-$elseIf.sequentialRen
+$else.sequentialRen
 p_xinitRen(state, stateFull, vin, subs, t)$renAllowed(state, stateFull) = p_specCostRen("intangible", state, stateFull, vin, subs, t);
 
 * Compute the gradient

@@ -294,6 +294,8 @@ createSets <- function(m, config) {
       filter(.data$bsr == "0")
   }
 
+  renAllowed$all <- full_join(renAllowed$bs, renAllowed$hs, by = c("bs", "hs"))
+
   invisible(m$addSet(
     name = "renAllowedBS",
     domain = c(bs, hs, bsr),
@@ -306,6 +308,13 @@ createSets <- function(m, config) {
     domain = c(bs, hs, hsr),
     records = renAllowed$hs,
     description = "allowed heating system replacements"
+  ))
+
+  invisible(m$addSet(
+    name = "renAllowed",
+    domain = c(bs, hs, bsr, hsr),
+    records = renAllowed$all,
+    description = "all allowed replacements"
   ))
 
 

@@ -154,7 +154,7 @@ alias(renAllowed,renAllowed2);
 
 *** load fundamental sets
 $gdxin input.gdx
-$load renAllowedBS renAllowedHS
+$load renAllowedBS renAllowedHS renAllowed
 $load vinExists
 $load hsCarrier
 $load typInSec

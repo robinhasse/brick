@@ -37,7 +37,6 @@
 #' @author Ricarda Rosemann
 #'
 #' @importFrom dplyr %>% .data anti_join filter left_join mutate rename right_join select
-#' @importFrom stats setNames
 #' @importFrom tidyr pivot_wider
 #'
 runCalibration <- function(path,
@@ -163,14 +162,14 @@ runCalibrationLogit <- function(path,
     renovationBS = "deviationRenBSIter",
     renovationHS = "deviationRenHSIter"
   )
-  diagnostics <- setNames(nm = c(unlist(diagDev[variables], use.names = FALSE),
-                                 "stepSizeParamsIter")) %>%
+  diagnostics <- stats::setNames(nm = c(unlist(diagDev[variables], use.names = FALSE),
+                                        "stepSizeParamsIter")) %>%
     lapply(function(x) data.frame())
 
-  diagnosticsDetail <- setNames(nm = c("stepSizeAllIter",
-                                       "armijoStepAllIter",
-                                       "heuristicStepAllIter",
-                                       "outerObjectiveAllIter")) %>%
+  diagnosticsDetail <- stats::setNames(nm = c("stepSizeAllIter",
+                                              "armijoStepAllIter",
+                                              "heuristicStepAllIter",
+                                              "outerObjectiveAllIter")) %>%
     lapply(function(x) data.frame())
 
   gdxOutput <- file.path(path, "output.gdx")
@@ -293,14 +292,14 @@ runCalibrationLogit <- function(path,
 
       diagDetObj <- list(stepSizeAllIter = stepSizeParams, armijoStepAllIter = armijoStep,
                          heuristicStepAllIter = heuristicStep, outerObjectiveAllIter = outerObjective)
-      diagnosticsDetail <- setNames(lapply(names(diagDetObj), function(nm) {
+      diagnosticsDetail <- .namedLapply(names(diagDetObj), function(nm) {
         rbind(
           diagnosticsDetail[[nm]],
           diagDetObj[[nm]] %>%
             mutate(iteration = i, iterA = j) %>%
             select(-any_of(c("fMin", "fPrev"))) # only required for outerObjective
         )
-      }), names(diagDetObj))
+      })
 
       if (nrow(totalStep) == 0) {# All combinations satisfy the Armijo/heuristic condition
         break
@@ -361,7 +360,7 @@ runCalibrationLogit <- function(path,
       }), unlist(diagDev[variables], use.names = FALSE)),
       list(stepSizeParamsIter = stepSizeParams)
     )
-    diagnostics <- setNames(lapply(names(diagObj), function(nm) {
+    diagnostics <- stats::setNames(lapply(names(diagObj), function(nm) {
       rbind(diagnostics[[nm]], mutate(diagObj[[nm]], iteration = i))
     }), names(diagObj))
 
@@ -468,14 +467,14 @@ runCalibrationOptim <- function(path,
     renovationBS = "deviationRenBSIter",
     renovationHS = "deviationRenHSIter"
   )
-  diagnostics <- setNames(nm = c(unlist(diagDev[variables], use.names = FALSE),
-                                 "stepSizeParamsIter")) %>%
+  diagnostics <- stats::setNames(nm = c(unlist(diagDev[variables], use.names = FALSE),
+                                        "stepSizeParamsIter")) %>%
     lapply(function(x) data.frame())
 
-  diagnosticsDetail <- setNames(nm = c("stepSizeAllIter",
-                                       "armijoStepAllIter",
-                                       "heuristicStepAllIter",
-                                       "outerObjectiveAllIter")) %>%
+  diagnosticsDetail <- stats::setNames(nm = c("stepSizeAllIter",
+                                              "armijoStepAllIter",
+                                              "heuristicStepAllIter",
+                                              "outerObjectiveAllIter")) %>%
     lapply(function(x) data.frame())
 
   outerObjectiveIterComp <- data.frame()
@@ -560,14 +559,14 @@ runCalibrationOptim <- function(path,
 
       diagDetObj <- list(stepSizeAllIter = stepSizeParams, armijoStepAllIter = armijoStep,
                          outerObjectiveAllIter = outerObjective)
-      diagnosticsDetail <- setNames(lapply(names(diagDetObj), function(nm) {
+      diagnosticsDetail <- .namedLapply(names(diagDetObj), function(nm) {
         rbind(
           diagnosticsDetail[[nm]],
           diagDetObj[[nm]] %>%
             mutate(iteration = i, iterA = j) %>%
             select(-any_of(c("fMin", "fPrev"))) # only required for outerObjective
         )
-      }), names(diagDetObj))
+      })
 
       if (nrow(armijoStep) == 0) {
         break
@@ -632,9 +631,9 @@ runCalibrationOptim <- function(path,
       }), unlist(diagDev[variables], use.names = FALSE)),
       list(stepSizeParamsIter = stepSizeParams)
     )
-    diagnostics <- setNames(lapply(names(diagObj), function(nm) {
+    diagnostics <- .namedLapply(names(diagObj), function(nm) {
       rbind(diagnostics[[nm]], mutate(diagObj[[nm]], iteration = i))
-    }), names(diagObj))
+    })
 
   }
 
@@ -667,7 +666,7 @@ runCalibrationOptim <- function(path,
 #' @importFrom dplyr %>% .data filter mutate
 #'
 .readCalibTarget <- function(dims, tcalib) {
-  lapply(setNames(nm = names(dims)), function(var) {
+  .namedLapply(names(dims), function(var) {
     file <- paste0("f_", var, "CalibTarget.cs4r")
     readInput(file, c(dims[[var]], "target")) %>%
       mutate(across(-all_of(c("target", "ttot")), as.character))
@@ -721,36 +720,34 @@ runCalibrationOptim <- function(path,
 #' @param mInput gamstransfer container of the input gdx
 #' @param path character, path to output folder of this run
 #' @param calibTarget list of data frames of calibration targets
+#' @param dims list of characters, dimensions of data
 #'
 .addTargetsToInput <- function(mInput, path, calibTarget, dims) {
 
-  invisible(mInput$addParameter(
-    name = "p_stockCalibTarget",
-    domain = c("qty", dims[["stock"]]),
-    records = rename(calibTarget[["stock"]], value = "target"),
-    description = "historic stock of buildings as calibration target in million m2"
-  ))
+  paramNames <- c(
+    stock = "p_stockCalibTarget",
+    construction = "p_constructionCalibTarget",
+    renovation = "p_renovationCalibTarget",
+    renovationBS = "p_renovationBSCalibTarget",
+    renovationHS = "p_renovationHSCalibTarget"
+  )
 
-  invisible(mInput$addParameter(
-    name = "p_constructionCalibTarget",
-    domain = c("qty", dims[["construction"]]),
-    records = rename(calibTarget[["construction"]], value = "target"),
-    description = "historic flow of new buildings as calibration target in million m2/yr"
-  ))
+  descriptions <- c(
+    stock = "historic stock of buildings as calibration target in million m2",
+    construction = "historic flow of new buildings as calibration target in million m2/yr",
+    renovation = "historic flow of renovated and untouched buildings as calibration target in million m2/yr",
+    renovationBS = "historic flow of shell renovation as calibration target in million m2/yr",
+    renovationHS = "historic flow of heating system renovation as calibration target in million m2/yr"
+  )
 
-  invisible(mInput$addParameter(
-    name = "p_renovationBSCalibTarget",
-    domain = c("qty", dims[["renovationBS"]]),
-    records = rename(calibTarget[["renovationBS"]], value = "target"),
-    description = "historic flow of shell renovation as calibration target in million m2/yr"
-  ))
-
-  invisible(mInput$addParameter(
-    name = "p_renovationHSCalibTarget",
-    domain = c("qty", dims[["renovationHS"]]),
-    records = rename(calibTarget[["renovationHS"]], value = "target"),
-    description = "historic flow of heating system renovation as calibration target in million m2/yr"
-  ))
+  for (var in names(dims)) {
+    invisible(mInput$addParameter(
+      name = paramNames[[var]],
+      domain = c("qty", dims[[var]]),
+      records = rename(calibTarget[[var]], value = "target"),
+      description = descriptions[[var]]
+    ))
+  }
 
   mInput$write(file.path(path, "input.gdx"), compress = TRUE)
 
@@ -915,12 +912,12 @@ runCalibrationOptim <- function(path,
   } else {
     p_d <- do.call(expandSets, c(as.list(dims), .m = m)) %>%
       right_join(p_d, by = setdiff(dims, c("bs", "hs")))
-    if (identical(flow, "renovationHS")) {
+    if (flow %in% c("renovation", "renovationHS")) {
       p_d <- p_d %>%
         filter(
-          .data[["renType"]] == "0" & .data[["hsr"]] == "0" # zero renovation
-          | .data[["renType"]] == "identRepl" & .data[["hs"]] == .data[["hsr"]] # identical replacement
-          | .data[["renType"]] == "newSys" & .data[["hs"]] != .data[["hsr"]] # new system
+          .data$renType == "0" & .data$hsr == "0" # zero renovation
+          | .data$renType == "identRepl" & .data$hs == .data$hsr # identical replacement
+          | .data$renType == "newSys" & .data$hs != .data$hsr # new system
         ) %>%
         select(-"renType")
     }
@@ -1092,7 +1089,7 @@ runCalibrationOptim <- function(path,
 #' @param m Gams transfer container with previous input data
 #' @param path character, path to this run
 #' @param optimVar list of data frames with optimization variables of all flows
-#' @param xinitCon list of data frames with initial specific intangible costs of all flows
+#' @param xinit list of data frames with initial specific intangible costs of all flows
 #' @param tcalib numeric, calibration time steps
 #' @param dims list of characters, dimensions of each flow
 #' @param vinExists data frame of vintages that exist for each time period
@@ -1367,7 +1364,7 @@ runCalibrationOptim <- function(path,
 #' @importFrom utils write.csv
 #'
 .writeCostIntang <- function(file, optimVar, xinit, dims, tcalib,
-                             flow = c("construction", "renovationBS", "renovationHS"),
+                             flow = c("construction", "renovation", "renovationBS", "renovationHS"),
                              vinExists = NULL, vinCalib = NULL) {
   flow <- match.arg(flow)
 
