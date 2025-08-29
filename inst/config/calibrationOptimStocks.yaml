@@ -1,8 +1,7 @@
 ---
-title: "calibration-stocks-hier-aggVin"
+title: "calibration-stocks"
 basedOn: "default.yaml"
 # scope and resolution
-granularity: lowGran
 periods: [2005, 2010, 2015]
 startyear: 2010
 calibperiods: 2010
@@ -17,12 +16,11 @@ switches:
   CALIBRATIONMETHOD: optimization
   TARGETFUNCTION: minsquare
   CALIBRATIONTYPE: stocks
-  AGGREGATEDIM: vin
-  # SEQUENTIALREN: TRUE
+  # AGGREGATEDIM: vin
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 1
-  iterations: 2
+  iterations: 5
   iterationsArmijo: 20
   sensitivityArmijo: 0.04
 ...

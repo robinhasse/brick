@@ -1,31 +1,27 @@
 ---
-title: "calibration"
+title: "calibration-shell"
 basedOn: "default.yaml"
 # scope and resolution
 granularity: lowGran
 periods: [2000, 2005, 2010, 2015, 2020, 2025, 2030, 2035, 2040, 2045, 2050]
 startyear: 2005
 calibperiods: [2005, 2010]
-# periods: [2000, 2005, 2010]
-# startyear: 2005
-# calibperiods: 2005
 regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
 regions: EUR
-ignoreShell: TRUE
+# ignoreShell: TRUE
 statusQuoPreference: 0
-reportingTemplate: ignoreShell_onlyRes
+reportingTemplate: onlyRes
 ltEternalShare: 0.05
 # switches
 switches:
   RUNTYPE: calibration
   CALIBRATIONMETHOD: logit
   FIXEDBUILDINGS: TRUE
-  # SEQUENTIALREN: TRUE
   # CALIBRESOLUTION: identRepl
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 80
-  iterations: 2
+  iterations: 20
   iterationsArmijo: 20
   sensitivityArmijo: 0.04
 ...

@@ -409,6 +409,17 @@ $endif.nlp
 *** Compute the functional value
 p_f(subs, tcalib2) = func
 
+*** Store renovation and construction values
+p_stock("area", state, vin, subs, t) = v_stock.l("area", state, vin, subs, t);
+p_construction("area", state, subs, t) = v_construction.l("area", state, subs, t);
+
+$ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+p_renovationBS("area", state, bsr, vin, subs, t) = v_renovationBS.l("area", state, bsr, vin, subs, t);
+p_renovationHS("area", state, hsr, vin, subs, t) = v_renovationHS.l("area", state, hsr, vin, subs, t);
+$else.sequentialRen
+p_renovation("area", state, stateFull, vin, subs, t) = v_renovation.l("area", state, stateFull, vin, subs, t);
+$endIf.sequentialRen
+
 
 *** Evaluate changes in the construction after price changes --------------------
 

@@ -47,19 +47,16 @@ runCalibration <- function(path,
                            fileName = "main.gms",
                            gamsCall = "gams") {
 
+
+  dims <- list(
+    stock        = c("qty", "bs", "hs", "vin", "region", "loc", "typ", "inc", "ttot"),
+    construction = c("qty", "bs", "hs", "region", "loc", "typ", "inc", "ttot")
+  )
   if (isTRUE(switches[["SEQUENTIALREN"]])) {
-    dims <- list(
-      stock        = c("qty", "bs", "hs", "vin", "region", "loc", "typ", "inc", "ttot"),
-      construction = c("qty", "bs", "hs", "region", "loc", "typ", "inc", "ttot"),
-      renovationBS   = c("qty", "bs", "hs", "bsr", "vin", "region", "loc", "typ", "inc", "ttot"),
-      renovationHS   = c("qty", "bs", "hs", "hsr", "vin", "region", "loc", "typ", "inc", "ttot")
-    )
+    dims$renovationBS <- c("qty", "bs", "hs", "bsr", "vin", "region", "loc", "typ", "inc", "ttot")
+    dims$renovationHS <- c("qty", "bs", "hs", "hsr", "vin", "region", "loc", "typ", "inc", "ttot")
   } else {
-    dims <- list(
-      stock        = c("qty", "bs", "hs", "vin", "region", "loc", "typ", "inc", "ttot"),
-      construction = c("qty", "bs", "hs", "region", "loc", "typ", "inc", "ttot"),
-      renovation   = c("qty", "bs", "hs", "bsr", "hsr", "vin", "region", "loc", "typ", "inc", "ttot")
-    )
+    dims$renovation <- c("qty", "bs", "hs", "bsr", "hsr", "vin", "region", "loc", "typ", "inc", "ttot")
   }
 
   .runCalibration <- switch(
@@ -128,12 +125,8 @@ runCalibrationLogit <- function(path,
     renovationBS = "renAllowedBS",
     renovationHS = "renAllowedHS"
   )
-  renAllowed <- c(
-    construction = NULL,
-    .namedLapply(setdiff(variables, "construction"), function(var) {
-      readSymbol(mInput, symbol = renAllowedSym[[var]])
-    })
-  )
+  renAllowed <- lapply(X = renAllowedSym[setdiff(variables, "construction")], FUN = readSymbol, x = mInput)
+
   vinExists <- readSymbol(mInput, symbol = "vinExists")
   vinCalib <- readSymbol(mInput, symbol = "vinCalib")
   costSym <- list(
@@ -142,8 +135,8 @@ runCalibrationLogit <- function(path,
     renovationBS = "p_specCostRenBS",
     renovationHS = "p_specCostRenHS"
   )
-  xinit <- .namedLapply(variables, function(var) {
-    filter(readSymbol(mInput, costSym[[var]]), .data$cost == "intangible")
+  xinit <- lapply(costSym[variables], function(symb) {
+    filter(readSymbol(mInput, symb), .data$cost == "intangible")
   })
 
   # Brick only runs as standard scenario run
@@ -162,22 +155,20 @@ runCalibrationLogit <- function(path,
     renovationBS = "deviationRenBSIter",
     renovationHS = "deviationRenHSIter"
   )
-  diagnostics <- stats::setNames(nm = c(unlist(diagDev[variables], use.names = FALSE),
-                                        "stepSizeParamsIter")) %>%
-    lapply(function(x) data.frame())
+  diagnostics <- .createListWithEmptyDf(nm = c(unlist(diagDev[variables], use.names = FALSE),
+                                               "stepSizeParamsIter"))
 
-  diagnosticsDetail <- stats::setNames(nm = c("stepSizeAllIter",
-                                              "armijoStepAllIter",
-                                              "heuristicStepAllIter",
-                                              "outerObjectiveAllIter")) %>%
-    lapply(function(x) data.frame())
+  diagnosticsDetail <- .createListWithEmptyDf(nm = c("stepSizeAllIter",
+                                                     "armijoStepAllIter",
+                                                     "heuristicStepAllIter",
+                                                     "outerObjectiveAllIter"))
 
   gdxOutput <- file.path(path, "output.gdx")
 
   .addTargetsToInput(mInput, path, calibTarget, dims)
 
-  p_calibTarget <- .namedLapply(variables, function(var) {
-    .pick(calibTarget[[var]], qty = "area")
+  p_calibTarget <- lapply(calibTarget[variables], function(target) {
+    .pick(target, qty = "area")
   })
 
   # Initial Brick run
@@ -341,8 +332,8 @@ runCalibrationLogit <- function(path,
     }
 
     # Update optimization variable data
-    optimVar <- .namedLapply(variables, function(var) {
-      mutate(optimVar[[var]], x = .data$xA, xA = NULL, xMin = NULL)
+    optimVar <- lapply(optimVar[variables], function(optimX) {
+      mutate(optimX, x = .data$xA, xA = NULL, xMin = NULL)
     })
 
     # Update optimization objective data
@@ -354,15 +345,12 @@ runCalibrationLogit <- function(path,
     m <- Container$new(gdx)
 
     # Store diagnostic variables
-    diagObj <- c(
-      stats::setNames(lapply(variables, function(var) {
-        deviation[[var]]
-      }), unlist(diagDev[variables], use.names = FALSE)),
-      list(stepSizeParamsIter = stepSizeParams)
-    )
-    diagnostics <- stats::setNames(lapply(names(diagObj), function(nm) {
+    diagObj <- stats::setNames(deviation[variables],
+                               unlist(diagDev[variables], use.names = FALSE))
+    diagObj$stepSizeParamsIter <- stepSizeParams
+    diagnostics <- .namedLapply(names(diagObj), function(nm) {
       rbind(diagnostics[[nm]], mutate(diagObj[[nm]], iteration = i))
-    }), names(diagObj))
+    })
 
   }
 
@@ -433,12 +421,7 @@ runCalibrationOptim <- function(path,
     renovationBS = "renAllowedBS",
     renovationHS = "renAllowedHS"
   )
-  renAllowed <- c(
-    construction = NULL,
-    .namedLapply(setdiff(variables, "construction"), function(var) {
-      readSymbol(mInput, symbol = renAllowedSym[[var]])
-    })
-  )
+  renAllowed <- lapply(X = renAllowedSym[setdiff(variables, "construction")], FUN = readSymbol, x = mInput)
   vinExists <- readSymbol(mInput, symbol = "vinExists")
   vinCalib <- readSymbol(mInput, symbol = "vinCalib")
   costSym <- list(
@@ -467,15 +450,13 @@ runCalibrationOptim <- function(path,
     renovationBS = "deviationRenBSIter",
     renovationHS = "deviationRenHSIter"
   )
-  diagnostics <- stats::setNames(nm = c(unlist(diagDev[variables], use.names = FALSE),
-                                        "stepSizeParamsIter")) %>%
-    lapply(function(x) data.frame())
+  diagnostics <- .createListWithEmptyDf(nm = c(unlist(diagDev[variables], use.names = FALSE),
+                                               "stepSizeParamsIter"))
 
-  diagnosticsDetail <- stats::setNames(nm = c("stepSizeAllIter",
-                                              "armijoStepAllIter",
-                                              "heuristicStepAllIter",
-                                              "outerObjectiveAllIter")) %>%
-    lapply(function(x) data.frame())
+  diagnosticsDetail <- .createListWithEmptyDf(nm = c("stepSizeAllIter",
+                                                     "armijoStepAllIter",
+                                                     "heuristicStepAllIter",
+                                                     "outerObjectiveAllIter"))
 
   outerObjectiveIterComp <- data.frame()
 
@@ -625,12 +606,9 @@ runCalibrationOptim <- function(path,
     )
 
     # Store diagnostic variables
-    diagObj <- c(
-      stats::setNames(lapply(variables, function(var) {
-        deviation[[var]]
-      }), unlist(diagDev[variables], use.names = FALSE)),
-      list(stepSizeParamsIter = stepSizeParams)
-    )
+    diagObj <- stats::setNames(deviation[variables],
+                               unlist(diagDev[variables], use.names = FALSE))
+    diagObj$stepSizeParamsIter <- stepSizeParams
     diagnostics <- .namedLapply(names(diagObj), function(nm) {
       rbind(diagnostics[[nm]], mutate(diagObj[[nm]], iteration = i))
     })
@@ -713,6 +691,15 @@ runCalibrationOptim <- function(path,
 .initOuterObjective <- function(mInput, tcalib) {
   expandSets("region", "loc", "typ", "inc", "ttot", .m = mInput) %>%
     filter(.data[["ttot"]] %in% tcalib)
+}
+
+#' Create a list of empty data frames
+#'
+#' @param nm character, names of the empty data frames
+#'
+.createListWithEmptyDf <- function(nm) {
+  stats::setNames(nm = nm) %>%
+    lapply(function(x) data.frame())
 }
 
 #' Add the calibration targets to the input gdx

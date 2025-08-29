@@ -147,5 +147,5 @@
 #' @returns named list
 #'
 .namedLapply <- function(nm, ...) {
-  stats::setNames(lapply(nm, ...), nm)
+  stats::setNames(lapply(X = nm, ...), nm)
 }
