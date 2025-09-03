@@ -161,7 +161,8 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
   ## reference weights ====
 
   refWeight <- refConfig %>%
-    select("reference", value = "weight")
+    select("reference", value = "weight") %>%
+    mutate(value = as.numeric(.data$value))
 
 
   ## reference values ====
