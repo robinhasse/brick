@@ -16,7 +16,7 @@ switches:
   CALIBRATIONMETHOD: optimization
   TARGETFUNCTION: minsquare
   CALIBRATIONTYPE: stocks
-  # AGGREGATEDIM: vin
+  AGGREGATEDIM: vin
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 1

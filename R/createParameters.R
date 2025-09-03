@@ -104,11 +104,10 @@ createParameters <- function(m, config, inputDir) {
                                     inputDir) %>%
     toModelResolution(m) %>%
     .explicitZero()
-  p_specCostRenBS <- expandSets("cost", "bs", "hs", "bsr", "vin", "region",
-                                "loc", "typ", "inc", "ttot", .m = m) %>%
-    .filter(readSymbol(m, "renAllowedBS"))
-  p_specCostRenBS_tang <- p_specCostRenBS %>%
-    filter(.data$cost == "tangible") %>%
+  p_specCostRenBS_tang <- expandSets("bs", "hs", "bsr", "vin", "region",
+                                     "loc", "typ", "inc", "ttot", .m = m) %>%
+    .filter(readSymbol(m, "renAllowedBS")) %>%
+    mutate(cost = "tangible", .before = 1) %>%
     left_join(p_specCostRenBS_tang,
               by = c("bs", "bsr", "vin", "region", "typ", "ttot"))
 
@@ -117,11 +116,10 @@ createParameters <- function(m, config, inputDir) {
                                     inputDir) %>%
     toModelResolution(m) %>%
     .explicitZero()
-  p_specCostRenHS <- expandSets("cost", "bs", "hs", "hsr", "vin", "region",
-                                "loc", "typ", "inc", "ttot", .m = m) %>%
-    .filter(readSymbol(m, "renAllowedHS"))
-  p_specCostRenHS_tang <- p_specCostRenHS %>%
-    filter(.data$cost == "tangible") %>%
+  p_specCostRenHS_tang <- expandSets("bs", "hs", "hsr", "vin", "region",
+                                     "loc", "typ", "inc", "ttot", .m = m) %>%
+    .filter(readSymbol(m, "renAllowedHS")) %>%
+    mutate(cost = "tangible", .before = 1) %>%
     left_join(p_specCostRenHS_tang,
               by = c("bs", "hs", "hsr", "vin", "region", "typ", "ttot"))
 
@@ -130,44 +128,55 @@ createParameters <- function(m, config, inputDir) {
     p_specCostRenHS_tang <- .makeIdentVin(p_specCostRenHS_tang)
   }
 
-  p_specCostRenBS_intang <- p_specCostRenBS %>%
-    filter(.data$cost == "intangible") %>%
-    addAssump(intangCostFiles[["ren"]], key = "BS")
-  p_specCostRenHS_intang <- p_specCostRenHS %>%
-    filter(.data$cost == "intangible") %>%
-    addAssump(intangCostFiles[["ren"]], key = "HS")
+  if (isTRUE(config[["switches"]][["SEQUENTIALREN"]])) {
 
-  p_specCostRenBS <- rbind(p_specCostRenBS_tang, p_specCostRenBS_intang)
-  p_specCostRenHS <- rbind(p_specCostRenHS_tang, p_specCostRenHS_intang)
+    p_specCostRenBS_intang <- expandSets("bs", "hs", "bsr", "vin", "region",
+                                         "loc", "typ", "inc", "ttot", .m = m) %>%
+      mutate(cost = "intangible", .before = 1) %>%
+      addAssump(intangCostFiles[["ren"]], key = "BS")
+    p_specCostRenHS_intang <- expandSets("bs", "hs", "hsr", "vin", "region",
+                                         "loc", "typ", "inc", "ttot", .m = m) %>%
+      mutate(cost = "intangible", .before = 1) %>%
+      addAssump(intangCostFiles[["ren"]], key = "HS")
 
-  if (identical(config[["switches"]][["RUNTYPE"]], "calibration") && !isTRUE(config[["switches"]][["SEQUENTIALREN"]])) {
-    p_specCostRen <- full_join(p_specCostRenBS, p_specCostRenHS,
-                               by = c("cost", state, "vin", "region", "loc", "typ", "inc", "ttot"),
-                               suffix = c(".bs", ".hs")) %>%
+    p_specCostRenBS <- rbind(p_specCostRenBS_tang, p_specCostRenBS_intang)
+    p_specCostRenHS <- rbind(p_specCostRenHS_tang, p_specCostRenHS_intang)
+
+    p_specCostRenBS <- m$addParameter(
+      name = "p_specCostRenBS",
+      domain = c("cost", state, "bsr", "vin", "region", "loc", "typ", "inc", "ttot"),
+      records = p_specCostRenBS,
+      description = "floor-space specific building shell retrofit cost [USD/m2]"
+    )
+    p_specCostRenHS <- m$addParameter(
+      name = "p_specCostRenHS",
+      domain = c("cost", state, "hsr", "vin", "region", "loc", "typ", "inc", "ttot"),
+      records = p_specCostRenHS,
+      description = "floor-space specific heating system replacement cost [USD/m2]"
+    )
+
+  } else {
+
+    p_specCostRen_intang <- expandSets("bs", "hs", "bsr", "hsr", "vin", "region",
+                                       "loc", "typ", "inc", "ttot", .m = m) %>%
+      mutate(cost = "intangible", .before = 1) %>%
+      addAssump(intangCostFiles[["ren"]])
+
+    p_specCostRen_tang <- full_join(p_specCostRenBS_tang, p_specCostRenHS_tang,
+                                    by = c("cost", state, "vin", "region", "loc", "typ", "inc", "ttot"),
+                                    suffix = c(".bs", ".hs")) %>%
       relocate("hsr", .after = "bsr") %>%
       mutate(value = .data$value.bs + .data$value.hs, .keep = "unused")
-  }
 
-  p_specCostRenBS <- m$addParameter(
-    name = "p_specCostRenBS",
-    domain = c("cost", state, "bsr", "vin", "region", "loc", "typ", "inc", "ttot"),
-    records = p_specCostRenBS,
-    description = "floor-space specific building shell retrofit cost [USD/m2]"
-  )
-  p_specCostRenHS <- m$addParameter(
-    name = "p_specCostRenHS",
-    domain = c("cost", state, "hsr", "vin", "region", "loc", "typ", "inc", "ttot"),
-    records = p_specCostRenHS,
-    description = "floor-space specific heating system replacement cost [USD/m2]"
-  )
+    p_specCostRen <- rbind(p_specCostRen_tang, p_specCostRen_intang)
 
-  if (identical(config[["switches"]][["RUNTYPE"]], "calibration") && !isTRUE(config[["switches"]][["SEQUENTIALREN"]])) {
     p_specCostRen <- m$addParameter(
       name = "p_specCostRen",
       domain = c("cost", state, "bsr", "hsr", "vin", "region", "loc", "typ", "inc", "ttot"),
       records = p_specCostRen,
       description = "floor-space specific renovation cost [USD/m2]"
     )
+
   }
 
 

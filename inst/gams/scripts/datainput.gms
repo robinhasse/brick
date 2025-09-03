@@ -2,7 +2,12 @@
 
 $gdxin input.gdx
 $load p_dt p_dtVin t0
-$load p_specCostCon p_specCostRenBS p_specCostRenHS p_specCostDem
+$load p_specCostCon p_specCostDem
+$ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+$load p_specCostRenBS p_specCostRenHS
+$else.sequentialRen
+$load p_specCostRen
+$endif.sequentialRen
 $load priceSensBS priceSensHS p_statusQuoPref
 $load p_carbonPrice p_carrierPrice p_carrierEmi p_ueDemand p_eff p_renDepth
 $load p_discountRate
@@ -25,7 +30,6 @@ $load p_stockCalibTarget p_constructionCalibTarget
 $ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
 $load p_renovationBSCalibTarget p_renovationHSCalibTarget
 $else.sequentialRen
-$load p_specCostRen
 $load p_renovationCalibTarget
 $endIf.sequentialRen
 $gdxin
@@ -89,12 +93,12 @@ p_feDemand(hs,bs,vin,reg,typ,ttot) =
 ;
 
 * renovation cost (hierarchical renovation)
-$ifThenE.noTotal (((not(sameas("%CALIBRATIONMETHOD%","logit")))and(not(sameas("%CALIBRATIONMETHOD%","optimization"))))or(sameas("%SEQUENTIALREN%","TRUE")))
+$ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
 p_specCostRen(cost,state,bsr,hsr,vin,subs,ttot) =
     p_specCostRenBS(cost,state,bsr,vin,subs,ttot)
   + p_specCostRenHS(cost,state,hsr,vin,subs,ttot)
 ;
-$endIf.noTotal
+$endIf.sequentialRen
 
 $ifThen.lowop "%CALIBRATIONLOWOP%" == "FALSE"
 * floor-space specific operation cost

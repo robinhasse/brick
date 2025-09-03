@@ -14,16 +14,16 @@
 
 addAssump <- function(df, assumpFile, key = NULL) {
 
-  if (!file.exists(assumpFile)) {
-    stop("This assumption file doesn't exist: ", assumpFile)
-  }
-
   if (is.list(assumpFile)) {
     if (is.null(key)) {
       stop("If 'assumpFile' is a list, you need to provide a key indicating ",
            "which list element to consider.")
     }
     assumpFile <- assumpFile[[key]]
+  }
+
+  if (!file.exists(assumpFile)) {
+    stop("This assumption file doesn't exist: ", assumpFile)
   }
 
   assump <- read.csv(assumpFile, stringsAsFactors = TRUE, na.strings = "", comment.char = "#")

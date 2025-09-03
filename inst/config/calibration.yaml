@@ -1,5 +1,5 @@
 ---
-title: "calibration-shell"
+title: "calibration"
 basedOn: "default.yaml"
 # scope and resolution
 granularity: lowGran
@@ -8,9 +8,9 @@ startyear: 2005
 calibperiods: [2005, 2010]
 regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
 regions: EUR
-# ignoreShell: TRUE
+ignoreShell: TRUE
 statusQuoPreference: 0
-reportingTemplate: onlyRes
+reportingTemplate: ignoreShell_onlyRes
 ltEternalShare: 0.05
 # switches
 switches:
