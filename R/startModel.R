@@ -11,7 +11,7 @@
 #' @param runReporting logical, whether to run the reporting, i.e. write the mif
 #'
 #' @importFrom utils read.csv2
-#' @importFrom reportbrick showSankey
+#' @importFrom reportbrick showSankey plotMatchingComparison
 #' @export
 #'
 startModel <- function(path, runReporting = TRUE) {
@@ -82,6 +82,7 @@ startModel <- function(path, runReporting = TRUE) {
 
   if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
     plotRefDeviation(path)
+    plotMatchingComparison(path)
     plotSummary(path, c("loc", "typ"))
   }
 

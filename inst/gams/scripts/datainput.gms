@@ -162,7 +162,7 @@ $ifthen.matching "%RUNTYPE%" == "matching"
 
 
 
-p_flowVariationWeight = 5E3;
+p_flowVariationWeight = 7E3;
 p_slackRenWeight = 1E4;
 
 * p_refValsMed(reference,reg) = 1;  !! TODO: remove or rewrite normalisation of references
