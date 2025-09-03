@@ -121,13 +121,17 @@ initModel <- function(config = NULL,
       stop("You passed an existing path, but did not set this as a restart run. Stopping.")
     }
 
-    cfg <- readConfig(config = config,
-                      configFolder = configFolder)
+    cfg <- if (is.list(config)) {
+      config
+    } else {
+      readConfig(config = config,
+                 configFolder = configFolder)
+    }
+
     title <- paste(cfg[["title"]], sep = "-")
 
     if (is.null(path)) {
-      stamp <- format(Sys.time(), "_%Y-%m-%d_%H.%M.%S")
-      path <- file.path(outputFolder, paste0(title, stamp))
+      path <- file.path(outputFolder, .addTimeStamp(title))
     }
 
     createRunFolder(path, cfg)

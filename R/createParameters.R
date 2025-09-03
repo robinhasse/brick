@@ -637,7 +637,7 @@ createParameters <- function(m, config, inputDir) {
 
 
 
-  # Stock ----------------------------------------------------------------------
+  # Historic stock -------------------------------------------------------------
 
   # stock of residential floor space
   p_stockHist <- readInput("f_buildingStock.cs4r",
@@ -667,6 +667,29 @@ createParameters <- function(m, config, inputDir) {
     description = "historic stock of buildings in million m2"
   )
 
+
+
+  # Target trajectory ----------------------------------------------------------
+
+
+  ## aggregated matching variables ====
+  if (identical(config[["switches"]][["RUNTYPE"]], "renCorrect")) {
+    # read uncorrected aggregated matching results
+    matchingFolder <- file.path(config[["matchingRun"]],
+                                "aggregationForCalibration",
+                                "uncorrectedAggregation")
+    matchingFiles <- list.files(matchingFolder, full.names = TRUE)
+
+    for (file in matchingFiles) {
+      var <- sub("(.*)\\.csv$", "\\1", basename(file))
+      data <- read.csv(file)
+      invisible(m$addParameter(
+        name = paste0("p_", var),
+        domain = head(names(data), -1),
+        records = data
+      ))
+    }
+  }
 
   return(m)
 }

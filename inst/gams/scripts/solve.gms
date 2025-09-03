@@ -130,6 +130,28 @@ $endif.shell
 ;
 $endif.matching
 
+$ifthen.renCorrect "%RUNTYPE%" == "renCorrect"
+model renCorrect "Find renovation flows that best matches other run"
+  /
+  q_renCorrectObj
+$ifthen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+  q_stockBal1
+  q_stockBal2
+  q_stockBal3
+$else.sequentialRen
+  q_stockBalNext
+  q_stockBalPrev
+  q_renovationBS
+  q_renovationHS
+$endif.sequentialRen
+$ifthen.shell not "%ignoreShell%" == "TRUE"
+  q_lifeTimeBS
+$endif.shell
+  q_lifeTimeHS
+  /
+;
+$endif.renCorrect
+
 
 
 *** prepare solving ------------------------------------------------------------
@@ -624,7 +646,6 @@ loop(region,
   subs(region,loc,typ,inc) = yes;
 
   solve matching minimizing v_matchingObj using qcp;
-  execute_unload "test.gdx";
 
   reg(region) = no;
   subs(region,loc,typ,inc) = no;
@@ -634,6 +655,19 @@ reg(region) = yes;
 subs(all_subs) = yes;
 
 $endif.matching
+
+
+
+*** renovation correction ------------------------------------------------------
+
+$ifthen.renCorrect "%RUNTYPE%" == "renCorrect"
+
+q(qty) = yes;
+q("num") = no;
+
+solve renCorrect minimizing v_renCorrectObj using qcp;
+
+$endif.renCorrect
 
 
 $onOrder

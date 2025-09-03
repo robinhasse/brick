@@ -963,3 +963,54 @@ q_testRenHS(q,renAllowedHS,vin,subs)..
 ;
 
 $endif.matching
+
+
+
+*** renovation correction ------------------------------------------------------
+
+$ifthen.renCorrect "%RUNTYPE%" == "renCorrect"
+q_renCorrectObj..
+  v_renCorrectObj
+  =e=
+  sum((state,vin,subs,t)$vinExists(t,vin),
+    sqr(
+        v_stock("area",state,vin,subs,t)
+      - p_stock("area",state,vin,subs,t)
+    )
+  )
+  +
+  sum((state,subs,t),
+    sqr(
+        v_construction("area",state,subs,t)
+      - p_construction("area",state,subs,t)
+    )
+  )
+  +
+$ifthen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+  sum((renAllowedBS(state,bsr),vin,subs,t)$(    not(sameas(bsr,"0"))
+                                            and vinExists(t,vin)),
+    sqr(
+        v_renovationBS("area",renAllowedBS,vin,subs,t)
+      - p_renovationBS("area",renAllowedBS,vin,subs,t)
+    )
+  )
+  +
+  sum((renAllowedHS(state,hsr),vin,subs,t)$(    not(sameas(hsr,"0"))
+                                            and vinExists(t,vin)),
+    sqr(
+        v_renovationHS("area",renAllowedHS,vin,subs,t)
+      - p_renovationHS("area",renAllowedHS,vin,subs,t)
+    )
+  )
+$else.sequentialRen
+  sum((ren(renAllowed(state,bsr,hsr)),vin,subs,t)$(not(    sameas(hsr,"0")
+                                                       and sameas(bsr,"0"))
+                                                   and vinExists(t,vin)),
+    sqr(
+        v_renovation("area",ren,vin,subs,t)
+      - p_renovation("area",ren,vin,subs,t)
+    )
+  )
+;
+$endif.sequentialRen
+$endIf.renCorrect

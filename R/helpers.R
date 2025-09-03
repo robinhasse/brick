@@ -149,3 +149,56 @@
 .namedLapply <- function(nm, ...) {
   stats::setNames(lapply(X = nm, ...), nm)
 }
+
+
+#' Add time stamp
+#'
+#' Append current date and time
+#'
+#' @param x character
+#' @returns character with time stamp suffix
+
+.addTimeStamp <- function(x) {
+  stamp <- format(Sys.time(), "_%Y-%m-%d_%H.%M.%S")
+  paste0(x, stamp)
+}
+
+
+
+#' Find region mapping
+#'
+#' @param regionmapping character. If \code{NULL}, country regions are used. It
+#'   can otherwise be a path to a mapping file (length one) or a vector of
+#'   length two with the file name and the location (\code{where}) of a madrat
+#'   regional mapping.
+#' @returns data frame with region mapping
+#'
+#' @importFrom madrat toolGetMapping
+
+.findRegionMapping <- function(regionmapping) {
+
+  if (is.null(regionmapping)) {
+    # missing region mapping -> national resolution
+    name <- "regionmappingNational.csv"
+    where <- "mredgebuildings"
+  } else if (is.character(regionmapping)) {
+    name <- regionmapping[1]
+    if (length(regionmapping) == 1) {
+      if (!file.exists(name)) {
+        stop("Can't find regionmapping. This file doesn't exist: ", name)
+      }
+      where <- "local"
+    } else if (length(regionmapping) == 2) {
+      where <- regionmapping[2]
+    } else {
+      stop("'regionmapping' in your config cannot have more than two elements.",
+           " Either give the directory to a local mapping file or a vector of ",
+           "the file name and the 'where' argument of toolGetMapping.")
+    }
+  } else {
+    stop("'regionmapping' in your config can either be NULL, a filepath or a ",
+         "character vector of length 2, not ", class(regionmapping), ".")
+  }
+
+  toolGetMapping(name, "regional", where)
+}

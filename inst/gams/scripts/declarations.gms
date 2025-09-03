@@ -109,6 +109,10 @@ $endif.matching
 v_sysCost(region,loc,typ,inc,ttot) "system cost cost cash flow in USD/yr"
 v_conCost(region,loc,typ,inc,ttot) "construction cost cash flow in USD/yr"
 v_renCost(region,loc,typ,inc,ttot) "renovation cost cash flow in USD/yr"
+
+$ifthen.renCorrect "%RUNTYPE%" == "renCorrect"
+v_renCorrectObj "correction objective: renovation deviation"
+$endif.renCorrect
 ;
 
 positive variables
@@ -206,6 +210,10 @@ q_refValsBasic(reference,refVarGroup,region,t) "sum v_refVals to basic value of 
 
 q_matchingObj "matching objective: reference deviation and flow variation"
 $endif.matching
+
+$ifthen.renCorrect "%RUNTYPE%" == "renCorrect"
+q_renCorrectObj "correction objective: renovation deviation"
+$endif.renCorrect
 ;
 
 $ifthenE.calibration (sameas("%CALIBRATIONMETHOD%","optimization"))or(sameas("%CALIBRATIONMETHOD%","logit"))
@@ -252,3 +260,13 @@ p_fDiffRen(renType, bsr, hsr, vin, region, loc, typ, inc, ttot)        "objectiv
 $endIf.sequentialRen
 ;
 $endif.calibrationOptimization
+
+$ifThen.renCorrect "%RUNTYPE%" == "renCorrect"
+parameters
+p_renovation(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot) "target flow of renovated and untouched buildings [million m2/yr]"
+p_renovationBS(qty,bs,hs,bsr,vin,region,loc,typ,inc,ttot)   "target flow of building shell retrofitted and untouched buildings [million m2/yr]"
+p_renovationHS(qty,bs,hs,hsr,vin,region,loc,typ,inc,ttot)   "target flow of heating system replacement and untouched buildings [million m2/yr]"
+p_construction(qty,bs,hs,region,loc,typ,inc,ttot)           "target flow of new buildings [million m2/yr]"
+p_stock(qty, bs, hs, vin, region, loc, typ, inc, ttot)      "target stock of buildings [million m2]"
+;
+$endif.renCorrect

@@ -4,33 +4,44 @@
 \alias{createCalibrationTarget}
 \title{Create calibration targets}
 \usage{
-createCalibrationTarget(path, outDir, digits = 4)
+createCalibrationTarget(
+  path,
+  calibConfig,
+  outDir = NULL,
+  digits = 4,
+  rmCorrectionRun = FALSE
+)
 }
 \arguments{
 \item{path}{character, directory of matching folder}
 
-\item{outDir}{character, directory to save files in}
+\item{calibConfig}{character, calibration config}
+
+\item{outDir}{character, directory to save calibration target files in}
 
 \item{digits}{integer indicating the number of decimal places}
+
+\item{rmCorrectionRun}{logical, if \code{TRUE}, the run folder of the
+renovation correction is eventually removed}
+}
+\value{
+named list with aggregated and corrected stock and flows
 }
 \description{
 read results from matching run and aggregate them spatially and temporally
 to the resolution of calibration runs
 }
 \details{
-This is a first implementation with many known issues/limitations:
-\itemize{
- \item The temporal resolution is hard-coded.
- \item It is assumed that the matching ran on European countries and is to be
- aggregated to one EU27 region
- \item The temporal aggregation of renovation flows is non-trivial: It is
- generally possible that buildings can change states multiple time within one
- aggregated time step but they can't be tracked through renovations
- individually. Currently, we just assume the mean of renovations across all
- years of an aggregated time step and adjust the zero flows to match the
- stock. This procedure can lead to inconsistent and even negative flows. In
- fact, aggregated stock and flows are inconsistent in the current version.
-}
+The temporal aggregation of renovation flows is non-trivial: It is generally
+possible that buildings can change states multiple time within one aggregated
+time step but they can't be tracked through renovations individually.
+Currently, we first assume the mean of renovations across all years of an
+aggregated time step. In a second step, we perform a renovation correction
+run with BRICK that minimises deviation from these mean flows and the stock
+subject to the stock balance and building shell and heating system life
+times. The correction assures consistency, mostly changing the zero flow that
+depends most on the temporal resolution. This renovation correction run is
+performed in a sub folder of the matching run.
 }
 \author{
 Robin Hasse

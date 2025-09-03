@@ -110,7 +110,7 @@ forceDownload: FALSE
 # path to previous model run to use as initial starting point
 startingPoint: NULL
 
-### mathcing run ###
+### matching run ###
 # path to matching run
 # only for calibration
 # TODO: to be removed when migrating to mredgebuidlings
