@@ -9,7 +9,7 @@
   xinit,
   dims,
   tcalib,
-  flow = c("construction", "renovation"),
+  flow = c("construction", "renovation", "renovationBS", "renovationHS"),
   varName = "x",
   vinExists = NULL,
   vinCalib = NULL,

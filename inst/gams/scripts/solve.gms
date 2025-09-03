@@ -173,8 +173,15 @@ $ifThen.targetFunc "%TARGETFUNCTION%" == "minsquare"
 $ifThen.calibTarget "%CALIBRATIONTYPE%" == "flows"
 $macro func sum(state3$(p_constructionCalibTarget("area", state3, subs, tcalib2)), \
   power(p_constructionCalibTarget("area", state3, subs, tcalib2) - v_construction.l("area", state3, subs, tcalib2), 2)) \
+$ifThen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
+  + sum((vin3, state3, bsr4)$(renAllowedBS(state3, bsr4) and p_renovationBSCalibTarget("area", state3, bsr4, vin3, subs, tcalib2) ne NA), \
+  power(p_renovationBSCalibTarget("area", state3, bsr4, vin3, subs, tcalib2) - v_renovationBS.l("area", state3, bsr4, vin3, subs, tcalib2), 2)) \
+  + sum((vin3, state3, hsr4)$(renAllowedHS(state3, hsr4) and p_renovationHSCalibTarget("area", state3, hsr4, vin3, subs, tcalib2) ne NA), \
+  power(p_renovationHSCalibTarget("area", state3, hsr4, vin3, subs, tcalib2) - v_renovationHS.l("area", state3, hsr4, vin3, subs, tcalib2), 2));
+$else.sequentialRen
   + sum((vin3, state3, stateFull3)$(renAllowed(state3, stateFull3) and p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2) ne NA), \
   power(p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2) - v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib2), 2));
+$endIf.sequentialRen
 
 $elseIf.calibTarget "%CALIBRATIONTYPE%" == "stocks"
 $macro func sum((vin3, state3), \
@@ -183,8 +190,15 @@ $macro func sum((vin3, state3), \
 $elseIf.calibTarget "%CALIBRATIONTYPE%" == "stockszero"
 $macro func sum((vin3, state3), \
   power(p_stockCalibTarget("area", state3, vin3, subs, tcalib2) - v_stock.l("area", state3, vin3, subs, tcalib2), 2)) \
+$ifThen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
+  + sum((vin3, state3, bsr4)$zeroFlowBS(state3, bsr4), \
+  power(p_renovationBSCalibTarget("area", state3, bsr4, vin3, subs, tcalib2) - v_renovationBS.l("area", state3, bsr4, vin3, subs, tcalib2), 2)) \
+  + sum((vin3, state3, hsr4)$zeroFlowHS(state3, hsr4), \
+  power(p_renovationHSCalibTarget("area", state3, hsr4, vin3, subs, tcalib2) - v_renovationHS.l("area", state3, hsr4, vin3, subs, tcalib2), 2));
+$else.sequentialRen
   + sum((vin3, state3, stateFull3)$zeroFlow(state3, stateFull3), \
   power(p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2) - v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib2), 2));
+$endIf.sequentialRen
 $endIf.calibTarget
 
 $elseIf.targetFunc "%TARGETFUNCTION%" == "maxlikely"
@@ -198,6 +212,26 @@ $macro func - sum(state3, \
       + epsilonSmall) \
     + epsilonSmall) \
   ) \
+$ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+- sum((vin3, state3, bsr4)$renAllowedBS(state3, bsr4), \
+  p_renovationBSCalibTarget("area", state3, bsr4, vin3, subs, tcalib2) \
+  * log(v_renovationBS.l("area", state3, bsr4, vin3, subs, tcalib2) \
+    / (sum((state4, bsr5), \
+      v_renovationBS.l("area", state4, bsr5, vin3, subs, tcalib2) \
+      ) \
+      + epsilonSmall) \
+    + epsilonSmall) \
+  ) \
+  - sum((vin3, state3, hsr4)$renAllowedHS(state3, hsr4), \
+  p_renovationHSCalibTarget("area", state3, hsr4, vin3, subs, tcalib2) \
+  * log(v_renovationHS.l("area", state3, hsr4, vin3, subs, tcalib2) \
+    / (sum((state4, hsr5), \
+      v_renovationHS.l("area", state4, hsr5, vin3, subs, tcalib2) \
+      ) \
+      + epsilonSmall) \
+    + epsilonSmall) \
+  );
+$else.sequentialRen
   - sum((vin3, state3, stateFull3)$renAllowed(state3, stateFull3), \
   p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2) \
   * log(v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib2) \
@@ -207,27 +241,9 @@ $macro func - sum(state3, \
       + epsilonSmall) \
     + epsilonSmall) \
   );
+$endIf.sequentialRen
 
 $elseIf.calibTarget "%CALIBRATIONTYPE%" == "stocks"
-$macro func - sum((vin3, state3), \
-  p_stockCalibTarget("area", state3, vin3, subs, tcalib2) \
-  * log(v_stock.l("area", state3, vin3, subs, tcalib2) \
-    / (sum((state4), \
-      v_stock.l("area", state4, vin3, subs, tcalib2) \
-    ) \
-    + epsilonSmall) \
-  + epsilonSmall)) \
-  - sum((vin3, state3, stateFull3)$zeroFlow(state3, stateFull3), \
-  p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2) \
-  * log(v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib2) \
-    / (sum((state4, stateFull4), \
-      v_renovation.l("area", state4, stateFull4, vin3, subs, tcalib2) \
-      ) \
-      + epsilonSmall) \
-    + epsilonSmall) \
-);
-
-$elseIf.calibTarget "%CALIBRATIONTYPE%" == "stockszero"
 $macro func - sum((vin3, state3), \
   p_stockCalibTarget("area", state3, vin3, subs, tcalib2) \
   * log(v_stock.l("area", state3, vin3, subs, tcalib2) \
@@ -238,6 +254,46 @@ $macro func - sum((vin3, state3), \
   + epsilonSmall));
 $endIf.calibTarget
 
+$elseIf.calibTarget "%CALIBRATIONTYPE%" == "stockszero"
+$macro func - sum((vin3, state3), \
+  p_stockCalibTarget("area", state3, vin3, subs, tcalib2) \
+  * log(v_stock.l("area", state3, vin3, subs, tcalib2) \
+    / (sum((state4), \
+      v_stock.l("area", state4, vin3, subs, tcalib2) \
+    ) \
+    + epsilonSmall) \
+  + epsilonSmall)) \
+$ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+  - sum((vin3, state3, bsr4)$zeroFlowBS(state3, bsr4), \
+  p_renovationBSCalibTarget("area", state3, bsr4, vin3, subs, tcalib2) \
+  * log(v_renovationBS.l("area", state3, bsr4, vin3, subs, tcalib2) \
+    / (sum((state4, bsr5), \
+      v_renovationBS.l("area", state4, bsr5, vin3, subs, tcalib2) \
+      ) \
+      + epsilonSmall) \
+    + epsilonSmall) \
+  ) \
+  - sum((vin3, state3, hsr4)$zeroFlow(state3, hsr4), \
+  p_renovationHSCalibTarget("area", state3, hsr4, vin3, subs, tcalib2) \
+  * log(v_renovationHS.l("area", state3, hsr4, vin3, subs, tcalib2) \
+    / (sum((state4, hsr5), \
+      v_renovationHS.l("area", state4, hsr5, vin3, subs, tcalib2) \
+      ) \
+      + epsilonSmall) \
+    + epsilonSmall) \
+);
+$else.sequentialRen
+  - sum((vin3, state3, stateFull3)$zeroFlow(state3, stateFull3), \
+  p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2) \
+  * log(v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib2) \
+    / (sum((state4, stateFull4), \
+      v_renovation.l("area", state4, stateFull4, vin3, subs, tcalib2) \
+      ) \
+      + epsilonSmall) \
+    + epsilonSmall) \
+);
+$endIf.sequentialRen
+
 $endIf.targetFunc
 
 $elseIf.aggregateDim "%AGGREGATEDIM%" == "vin"
@@ -246,8 +302,15 @@ $ifThen.targetFunc "%TARGETFUNCTION%" == "minsquare"
 $ifThen.calibTarget "%CALIBRATIONTYPE%" == "flows"
 $macro func sum(state3$(p_constructionCalibTarget("area", state3, subs, tcalib2)), \
   power(p_constructionCalibTarget("area", state3, subs, tcalib2) - v_construction.l("area", state3, subs, tcalib2), 2)) \
+$ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+  + sum((state3, bsr4)$(renAllowedBS(state3, bsr4) and sum(vin3, p_renovationBSCalibTarget("area", state3, bsr4, vin3, subs, tcalib2)) ne NA), \
+  power(sum(vin3, p_renovationBSCalibTarget("area", state3, bsr4, vin3, subs, tcalib2)) - sum(vin3, v_renovationBS.l("area", state3, bsr4, vin3, subs, tcalib2)), 2)) \
+  + sum((state3, hsr4)$(renAllowedHS(state3, hsr4) and sum(vin3, p_renovationHSCalibTarget("area", state3, hsr4, vin3, subs, tcalib2)) ne NA), \
+  power(sum(vin3, p_renovationHSCalibTarget("area", state3, hsr4, vin3, subs, tcalib2)) - sum(vin3, v_renovationHS.l("area", state3, hsr4, vin3, subs, tcalib2)), 2));
+$else.sequentialRen
   + sum((state3, stateFull3)$(renAllowed(state3, stateFull3) and sum(vin3, p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2)) ne NA), \
   power(sum(vin3, p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2)) - sum(vin3, v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib2)), 2));
+$endIf.sequentialRen
 
 $elseIf.calibTarget "%CALIBRATIONTYPE%" == "stocks"
 $macro func sum(state3, \
@@ -256,8 +319,11 @@ $macro func sum(state3, \
 $elseIf.calibTarget "%CALIBRATIONTYPE%" == "stockszero"
 $macro func sum(state3, \
   power(sum(vin3, p_stockCalibTarget("area", state3, vin3, subs, tcalib2)) - sum(vin3, v_stock.l("area", state3, vin3, subs, tcalib2)), 2)) \
+$ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+$else.sequentialRen
   + sum((state3, stateFull3)$zeroFlow(state3, stateFull3), \
   power(sum(vin3, p_renovationCalibTarget("area", state3, stateFull3, vin3, subs, tcalib2)) - sum(vin3, v_renovation.l("area", state3, stateFull3, vin3, subs, tcalib2)), 2));
+$endIf.sequentialRen
 $endIf.calibTarget
 
 $endIf.targetFunc
@@ -344,20 +410,22 @@ $endif.nlp
 p_f(subs, tcalib2) = func
 
 *** Store renovation and construction values
-p_construction("area", state, subs, t) = v_construction.l("area", state, subs, t);
-p_renovation("area", state, stateFull, vin, subs, t) = v_renovation.l("area", state, stateFull, vin, subs, t);
 p_stock("area", state, vin, subs, t) = v_stock.l("area", state, vin, subs, t);
+p_construction("area", state, subs, t) = v_construction.l("area", state, subs, t);
 
-*** Save the model statistics
-p_repyFullSysNLP(subs,'solvestat') = fullSysNLP.solvestat;
-p_repyFullSysNLP(subs,'modelstat') = fullSysNLP.modelstat;
-p_repyFullSysNLP(subs,'resusd')    = fullSysNLP.resusd;
-p_repyFullSysNLP(subs,'objval')    = fullSysNLP.objval;
+$ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+p_renovationBS("area", state, bsr, vin, subs, t) = v_renovationBS.l("area", state, bsr, vin, subs, t);
+p_renovationHS("area", state, hsr, vin, subs, t) = v_renovationHS.l("area", state, hsr, vin, subs, t);
+$else.sequentialRen
+p_renovation("area", state, stateFull, vin, subs, t) = v_renovation.l("area", state, stateFull, vin, subs, t);
+$endIf.sequentialRen
+
+
+*** Evaluate changes in the construction after price changes --------------------
 
 p_xinitCon(state, subs, t) = p_specCostCon("intangible", state, subs, t);
-p_xinitRen(state, stateFull, vin, subs, t)$renAllowed(state, stateFull) = p_specCostRen("intangible", state, stateFull, vin, subs, t);
 
-*** Compute the gradient
+* Compute the gradient for construction
 loop((bs3, hs3, tcalib2),
   p_xDiffCon(bs, hs, subs, tcalib)$(gradientVarsCon(bs, hs, tcalib)
                                     and (not sameas(bs, bs3) or not sameas(hs, hs3) or not sameas(tcalib, tcalib2)))
@@ -392,6 +460,102 @@ $endif.nlp
   p_fDiffCon(bs3, hs3, subs, tcalib2) = func
 );
 
+*** Evaluate changes in the construction after price changes --------------------
+
+$ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+
+p_xinitRenBS(state, bsr, vin, subs, t)$renAllowedBS(state, bsr) = p_specCostRenBS("intangible", state, bsr, vin, subs, t);
+p_xinitRenHS(state, hsr, vin, subs, t)$renAllowedHS(state, hsr) = p_specCostRenHS("intangible", state, hsr, vin, subs, t);
+
+* Compute the gradient for building shell renovation
+loop(gradientVarsRenBS(bsr3, vin2, tcalib2),
+  p_xDiffRenBS(bsr, vin, subs, tcalib)$(gradientVarsRenBS(bsr, vin, tcalib)
+                                                            and (not sameas(bsr, bsr3)
+                                                                 or not sameas(vin, vin2) or not sameas(tcalib, tcalib2)))
+                                                          = 0;
+  p_xDiffRenBS(bsr, vin, subs, tcalib)$(gradientVarsRenBS(bsr, vin, tcalib)
+                                                            and (sameas(bsr, bsr3)
+                                                                 and sameas(vin, vin2) and sameas(tcalib, tcalib2)))
+                                                          = p_diff;
+  p_specCostCalibRenBS(bs, hs, bsr, vin, subs, tcalib)$(vinCalib(tcalib, vin)) = p_xDiffRenBS(bsr, vin, subs, tcalib);
+
+  p_specCostRenBS("intangible", renAllowedBS, vin, subs, t) = p_xinitRenBS(renAllowedBS, vin, subs, t) + p_specCostCalibRenBS(renAllowedBS, vin, subs, t);
+
+  v_stock.l("area", state, vin, subs, ttot) = 0;
+  v_construction.l("area", state, subs, ttot) = 0;
+  v_renovationBS.l("area", state, bsr, vin, subs, ttot) = 0;
+  v_renovationHS.l("area", state, hsr, vin, subs, ttot) = 0;
+
+$ifthenE.lp (sameas("%SOLVEPROBLEM%","lp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
+  solve fullSysLP minimizing v_totObj using lp;
+  p_repyFullSysLP('solvestat') = fullSysLP.solvestat;
+  p_repyFullSysLP('modelstat') = fullSysLP.modelstat;
+  p_repyFullSysLP('resusd')    = fullSysLP.resusd;
+  p_repyFullSysLP('objval')    = fullSysLP.objval;
+$endif.lp
+
+
+* non-linear model
+$ifthenE.nlp (sameas("%SOLVEPROBLEM%","nlp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
+
+  solveParallel
+
+$endif.nlp
+
+  p_fDiffRenBS(bsr3, vin2, subs, tcalib2) = func
+);
+
+* Compute the gradient for heating system renovation
+loop(gradientVarsRenHS(renType2, hsr3, vin2, tcalib2),
+  p_xDiffRenHS(renType, hsr, vin, subs, tcalib)$(gradientVarsRenHS(renType, hsr, vin, tcalib)
+                                                            and (not sameas(renType, renType2)
+                                                                 or not sameas(hsr, hsr3)
+                                                                 or not sameas(vin, vin2) or not sameas(tcalib, tcalib2)))
+                                                          = 0;
+  p_xDiffRenHS(renType, hsr, vin, subs, tcalib)$(gradientVarsRenHS(renType, hsr, vin, tcalib)
+                                                            and (sameas(renType, renType2)
+                                                                 and sameas(hsr, hsr3)
+                                                                 and sameas(vin, vin2) and sameas(tcalib, tcalib2)))
+                                                          = p_diff;
+  loop(renAllowedHS(bs, hs, hsr),
+    p_specCostCalibRenHS(bs, hs, hsr, vin, subs, tcalib)$(vinCalib(tcalib, vin) and sameas(hs, hsr))
+                                                                           = p_xDiffRenHS("identRepl", hsr, vin, subs, tcalib);
+    p_specCostCalibRenHS(bs, hs, hsr, vin, subs, tcalib)$(vinCalib(tcalib, vin) and not sameas(hs, hsr) and not sameas(hsr, "0"))
+                                                                           = p_xDiffRenHS("newSys", hsr, vin, subs, tcalib);
+    p_specCostCalibRenHS(bs, hs, hsr, vin, subs, tcalib)$(vinCalib(tcalib, vin) and sameas(hsr, "0")) = p_xDiffRenHS("0", hsr, vin, subs, tcalib);
+  );
+  display p_xDiffRenHS, p_specCostCalibRenHS;
+
+  p_specCostRenHS("intangible", renAllowedHS, vin, subs, t) = p_xinitRenHS(renAllowedHS, vin, subs, t) + p_specCostCalibRenHS(renAllowedHS, vin, subs, t);
+
+  v_stock.l("area", state, vin, subs, ttot) = 0;
+  v_construction.l("area", state, subs, ttot) = 0;
+  v_renovationBS.l("area", state, bsr, vin, subs, ttot) = 0;
+  v_renovationHS.l("area", state, hsr, vin, subs, ttot) = 0;
+
+$ifthenE.lp (sameas("%SOLVEPROBLEM%","lp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
+  solve fullSysLP minimizing v_totObj using lp;
+  p_repyFullSysLP('solvestat') = fullSysLP.solvestat;
+  p_repyFullSysLP('modelstat') = fullSysLP.modelstat;
+  p_repyFullSysLP('resusd')    = fullSysLP.resusd;
+  p_repyFullSysLP('objval')    = fullSysLP.objval;
+$endif.lp
+
+
+* non-linear model
+$ifthenE.nlp (sameas("%SOLVEPROBLEM%","nlp"))or(sameas("%SOLVEPROBLEM%","lpnlp"))
+
+  solveParallel
+
+$endif.nlp
+
+  p_fDiffRenHS(renType2, hsr3, vin2, subs, tcalib2) = func
+);
+
+$else.sequentialRen
+p_xinitRen(state, stateFull, vin, subs, t)$renAllowed(state, stateFull) = p_specCostRen("intangible", state, stateFull, vin, subs, t);
+
+* Compute the gradient
 loop(gradientVarsRen(renType2, bsr3, hsr3, vin2, tcalib2),
   p_xDiffRen(renType, bsr, hsr, vin, subs, tcalib)$(gradientVarsRen(renType, bsr, hsr, vin, tcalib)
                                                             and (not sameas(renType, renType2)
@@ -436,6 +600,8 @@ $endif.nlp
 
   p_fDiffRen(renType2, bsr3, hsr3, vin2, subs, tcalib2) = func
 );
+
+$endIf.sequentialRen
 
 $endif.fullSys
 

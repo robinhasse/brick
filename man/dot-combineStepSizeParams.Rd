@@ -4,12 +4,10 @@
 \alias{.combineStepSizeParams}
 \title{Combine the step size paramters delta and phi-derivative from construction and renovation flows}
 \usage{
-.combineStepSizeParams(paramsCon, paramsRen)
+.combineStepSizeParams(deviation)
 }
 \arguments{
-\item{paramsCon}{data frame with step size parameters from construction}
-
-\item{paramsRen}{data frame with step size parameters from renovation}
+\item{deviation}{named list of data frames with deviation and adjustmeht term 'd' from all calibration variables}
 }
 \description{
 Combine the step size paramters delta and phi-derivative from construction and renovation flows

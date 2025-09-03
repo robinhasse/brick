@@ -10,7 +10,7 @@ Then compute the adjustment term for the calibration \code{d}}
   target,
   dims,
   tcalib,
-  flow = c("construction", "renovation"),
+  flow = c("construction", "renovation", "renovationBS", "renovationHS"),
   renAllowed = NULL,
   vinExists = NULL,
   agg = NULL,

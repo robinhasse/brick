@@ -137,3 +137,15 @@
   }
   return(x)
 }
+
+
+
+#' Lapply with output named by given list
+#'
+#' @param nm list of characters, lapply input list and name of output
+#' @param ... further inputs to lapply
+#' @returns named list
+#'
+.namedLapply <- function(nm, ...) {
+  stats::setNames(lapply(X = nm, ...), nm)
+}

@@ -4,9 +4,11 @@
 \alias{.readCalibTarget}
 \title{Read calibration targets from input folder}
 \usage{
-.readCalibTarget(tcalib)
+.readCalibTarget(dims, tcalib)
 }
 \arguments{
+\item{dims}{named character, dimensions of each variable of the calibration}
+
 \item{tcalib}{numeric, calibration time periods}
 }
 \description{

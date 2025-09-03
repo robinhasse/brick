@@ -8,9 +8,9 @@ by combining resuls from construction and renovation.}
 .combineOuterObjective(
   m,
   outerObjective,
-  p_constructionCalibTarget,
-  p_renovationCalibTarget,
+  p_calibTarget,
   tcalib,
+  dims,
   varName = "f",
   agg = NULL
 )
@@ -20,11 +20,11 @@ by combining resuls from construction and renovation.}
 
 \item{outerObjective}{data frame to write the outer objective to}
 
-\item{p_constructionCalibTarget}{data frame with historic construction flows}
-
-\item{p_renovationCalibTarget}{data frame with historic renovation flows}
+\item{p_calibTarget}{data frame with historic flows}
 
 \item{tcalib}{numeric, calibration time steps}
+
+\item{dims}{named character, dimensions of the flows}
 
 \item{varName}{character, column name in \code{outerObjective} to write the result to.
 Should be one of 'f', 'fA', 'fMin'.}
