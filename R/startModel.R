@@ -41,6 +41,10 @@ startModel <- function(path, runReporting = TRUE) {
     }
   }
 
+  if ("reweightMatching" %in% restart) {
+    reweightMatchingReferences(path)
+  }
+
 
   if (cfg[["switches"]][["SOLVEPROBLEM"]] == "auto") {
     cfg[["switches"]][["SOLVEPROBLEM"]]  <- if (is.null(cfg[["startingPoint"]])) {

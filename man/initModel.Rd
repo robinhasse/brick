@@ -40,6 +40,7 @@ BRICK-internal config folder is used.}
        made in Gams code)
  \item \code{"createInput"} to recreate the input data
  \item \code{"createMatching"} to recreate the matching data
+ \item \code{"reweightMatching"} to use the run from which we restart as the starting point
  \item \code{"useAsStart"} to use the run from which we restart as the starting point
  \item \code{"none"} (or any other string) to do none of the above
 }}

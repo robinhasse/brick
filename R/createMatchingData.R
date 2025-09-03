@@ -25,17 +25,16 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
 
   getRefs <- function() {
     refListName <- "references.csv"
-    refListPath <- file.path(path, "config", refListName)
-    if (file.exists(refListPath)) {
-      refList <- toolGetMapping(refListPath, type = NULL, where = "local",
-                                returnPathOnly = TRUE) %>%
-        read.csv2(comment.char = "#")
-    } else {
-      refList <- toolGetMapping(refListName,
-                                type = "sectoral", where = "mredgebuildings",
-                                returnPathOnly = TRUE) %>%
-        read.csv2(comment.char = "#")
-      write.csv2(refList, refListPath, row.names = FALSE)
+    # read central list of references
+    refList <- toolGetMapping(refListName,
+                              type = "sectoral", where = "mredgebuildings",
+                              returnPathOnly = TRUE) %>%
+      read.csv2(comment.char = "#")
+    # save reference list run folder only if not there yet
+    # to avoid overriding local settings
+    refListPathLocal <- file.path(path, "config", refListName)
+    if (!file.exists(refListPathLocal)) {
+      write.csv2(refList, refListPathLocal, row.names = FALSE)
     }
     return(refList)
   }
