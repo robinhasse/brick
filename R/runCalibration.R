@@ -160,7 +160,6 @@ runCalibrationLogit <- function(path,
 
   diagnosticsDetail <- .createListWithEmptyDf(nm = c("stepSizeAllIter",
                                                      "armijoStepAllIter",
-                                                     "heuristicStepAllIter",
                                                      "outerObjectiveAllIter"))
 
   gdxOutput <- file.path(path, "output.gdx")
@@ -209,39 +208,7 @@ runCalibrationLogit <- function(path,
 
     stepSizeParams <- .initStepSize(i, stepSizeParams, outerObjective, parameters[["stepSizeInit"]])
 
-
-    ## Determine the step size adaptation algorithm ====
-
-    # Run Brick for a test point close to the starting point
-    optimVar <- .namedLapply(variables, function(var) {
-      .updateX(optimVar[[var]], deviation[[var]], stepSizeParams, dims[[var]],
-               nameTo = "xMin", factorMin = 0.0001)
-    })
-
-    .addSpecCostToInput(mInput, path, optimVar, xinit, tcalib, dims, varName = "xMin",
-                        vinExists = vinExists, vinCalib = vinCalib, shiftIntang = switches[["SHIFTINTANG"]])
-
-    runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
-
-    gdxMin <- file.path(path, "calibrationMin.gdx")
-    file.copy(from = gdxOutput, to = gdxMin, overwrite = TRUE)
-    mMin <- Container$new(gdxMin)
-
-    # Evaluate the (virtual) objective of the outer optimization
-    outerObjective <- .combineOuterObjective(mMin, outerObjective, p_calibTarget, tcalib, dims,
-                                             varName = "fMin", agg = switches[["AGGREGATEDIM"]])
-
-    totalStep <- select(stepSizeParams, "region", "loc", "typ", "inc", "ttot")
-
-    # Check for which combinations the armijo step size algorithm cannot be applied:
-    # If a point close to the starting point does not satisfy the Armijo condition,
-    # we use a heuristic step size criterion
-    heuristicStep <- .checkArmijoStep(totalStep, stepSizeParams, outerObjective, parameters[["sensitivityArmijo"]],
-                                      varName = "fMin", factorMin = 0.0001)
-
-    # If the Armijo condition is satisfied for the test point, we apply the armijo step size algorithm
-    armijoStep <- totalStep %>%
-      anti_join(heuristicStep, by = c("region", "loc", "typ", "inc", "ttot"))
+    armijoStep <- select(stepSizeParams, "region", "loc", "typ", "inc", "ttot")
 
 
 
@@ -252,11 +219,12 @@ runCalibrationLogit <- function(path,
       ## Adjust the optimization variable according to current step size ====
 
       optimVar <- .namedLapply(variables, function(var) {
-        .updateXSelect(totalStep, optimVar[[var]], deviation[[var]], stepSizeParams, dims[[var]])
+        .updateXSelect(armijoStep, optimVar[[var]], deviation[[var]], stepSizeParams, dims[[var]])
       })
 
       .addSpecCostToInput(mInput, path, optimVar, xinit, tcalib, dims, varName = "xA",
                           vinExists = vinExists, vinCalib = vinCalib, shiftIntang = switches[["SHIFTINTANG"]])
+
 
       ## Evaluate outer objective of Brick results ====
 
@@ -276,13 +244,8 @@ runCalibrationLogit <- function(path,
       # Filter for combinations that do not satisfy the Armijo condition yet
       armijoStep <- .checkArmijoStep(armijoStep, stepSizeParams, outerObjective, parameters[["sensitivityArmijo"]])
 
-      # Filter for combinations where the objective is still larger than in the previous iteration
-      heuristicStep <- .checkHeuristicStep(heuristicStep, outerObjective)
-
-      totalStep <- rbind(armijoStep, heuristicStep)
-
       diagDetObj <- list(stepSizeAllIter = stepSizeParams, armijoStepAllIter = armijoStep,
-                         heuristicStepAllIter = heuristicStep, outerObjectiveAllIter = outerObjective)
+                         outerObjectiveAllIter = outerObjective)
       diagnosticsDetail <- .namedLapply(names(diagDetObj), function(nm) {
         rbind(
           diagnosticsDetail[[nm]],
@@ -292,33 +255,34 @@ runCalibrationLogit <- function(path,
         )
       })
 
-      if (nrow(totalStep) == 0) {# All combinations satisfy the Armijo/heuristic condition
+      if (nrow(armijoStep) == 0) {# All combinations satisfy the Armijo/heuristic condition
         break
       }
 
       # Update the step size where applicable
-      stepSizeParams <- .updateStepSize(totalStep, stepSizeParams, outerObjective, parameters[["stepReduction"]])
+      stepSizeParams <- .updateStepSize(armijoStep, stepSizeParams, outerObjective, parameters[["stepReduction"]],
+                                        j == parameters[["iterationsArmijo"]])
 
     }
 
     # If the armijo condition is still not satisfied for any combination:
     # Use the step size with the minimum objective function.
-    # Print a warning if this minimum does not exist and use the last step size of the iteration.
-    if (nrow(totalStep) > 0) {
-      stepSizeParams <- .adjustStepSizeAfterArmijo(totalStep, stepSizeParams)
+    # Print a warning if this minimum does not exist and set step size to zero.
+    if (nrow(armijoStep) > 0) {
+      stepSizeParams <- .adjustStepSizeAfterArmijo(armijoStep, stepSizeParams)
 
       optimVar <- .namedLapply(variables, function(var) {
-        .updateXSelect(totalStep, optimVar[[var]], deviation[[var]], stepSizeParams, dims[[var]])
+        .updateXSelect(armijoStep, optimVar[[var]], deviation[[var]], stepSizeParams, dims[[var]])
       })
 
       .addSpecCostToInput(mInput, path, optimVar, xinit, tcalib, dims, varName = "xA",
                           vinExists = vinExists, vinCalib = vinCalib, shiftIntang = switches[["SHIFTINTANG"]])
 
+
       ## Re-evaluate outer objective of Brick results ====
 
-      # TODO: This is only necessary because in the case of no descent we're using a step size
-      # we never computed with before
-      # Can be replaced by any previous step size to save this code bit.
+      # This is necessary because we may now have a combination of step sizes for the different subsets
+      # we never computed with before. To obtain a clean calibration.gdx, we need to recalculate.
 
       runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
 
@@ -554,7 +518,8 @@ runCalibrationOptim <- function(path,
       }
 
       # Update the step size where applicable
-      stepSizeParams <- .updateStepSize(armijoStep, stepSizeParams, outerObjective, parameters[["stepReduction"]])
+      stepSizeParams <- .updateStepSize(armijoStep, stepSizeParams, outerObjective, parameters[["stepReduction"]],
+                                        j == parameters[["iterationsArmijo"]])
 
     }
 
@@ -568,7 +533,7 @@ runCalibrationOptim <- function(path,
 
     # If the armijo condition is still not satisfied for any combination:
     # Use the step size with the minimum objective function.
-    # Print a warning if this minimum does not exist and use the last step size of the iteration.
+    # Print a warning if this minimum does not exist and set step size to zero.
     if (nrow(armijoStep) > 0) {
       stepSizeParams <- .adjustStepSizeAfterArmijo(armijoStep, stepSizeParams)
 
@@ -1291,16 +1256,18 @@ runCalibrationOptim <- function(path,
 #' @param stepSizeParams data frame with the parameters of the step size adjustment algorithm
 #' @param outerObjective data frame containing the value of the outer objective function.
 #' @param stepReduction numeric, factor applied to stepSize to reduce the step size. Should be < 1.
+#' @param lastIteration logical, if this is the last iteration of the step size adaptation
 #'
 #' @importFrom dplyr %>% .data anti_join mutate right_join
 #'
-.updateStepSize <- function(totalStep, stepSizeParams, outerObjective, stepReduction) {
+.updateStepSize <- function(totalStep, stepSizeParams, outerObjective, stepReduction, lastIteration) {
   stepSizeParamsSelect <- stepSizeParams %>%
     right_join(totalStep, by = c("region", "loc", "typ", "inc", "ttot")) %>%
     left_join(outerObjective, by = c("region", "loc", "typ", "inc", "ttot")) %>%
     mutate(minStepSize = ifelse(.data$fA < .data$minOuterObj, .data$stepSize, .data$minStepSize),
            minOuterObj = pmin(.data$minOuterObj, .data$fA)) %>%
-    mutate(stepSize = .data[["stepSize"]] * stepReduction) %>%
+    # Don't decrease the step size in the last iteration
+    mutate(stepSize = if (isTRUE(lastIteration)) .data[["stepSize"]] else .data[["stepSize"]] * stepReduction) %>%
     select(-any_of(c("f", "fA", "fMin", "fPrev")))
 
   stepSizeParams %>%
@@ -1312,7 +1279,7 @@ runCalibrationOptim <- function(path,
 #'
 #' If for any combination the condition is still not satisfied:
 #' Use the step size with the minimum objective function.
-#' Print a warning if this minimum does not exist and use the last step size of the iteration.
+#' Print a warning if this minimum does not exist set step size to zero.
 #'
 #' @param totalStep data frame with combinations for which the condition is not satisfied
 #' @param stepSizeParams data frame with the parameters of the step size adaptation procedure
@@ -1320,17 +1287,16 @@ runCalibrationOptim <- function(path,
 #'  @importFrom dplyr mutate right_join
 #'
 .adjustStepSizeAfterArmijo <- function(totalStep, stepSizeParams) {
+  message("Armijo adaptation algorithm is not satisfied in the prescribed number of iterations ",
+          "for at least one subset. ",
+          "The step size with minimum objective is chosen.")
   stepSizeParamsSelect <- right_join(stepSizeParams, totalStep,
                                      by = c("region", "loc", "typ", "inc", "ttot"))
   if (nrow(stepSizeParamsSelect[stepSizeParamsSelect$minStepSize == 0, ]) > 0) {
     warning("At least one subset seems to have stalled, i.e. no descent has been detected. ",
-            "Continuing with the smallest step size of the step size adaptation algorithm")
+            "Step size is set to zero.")
   }
-  stepSizeParamsSelect <- mutate(stepSizeParamsSelect, stepSize = ifelse(
-    .data$minStepSize != 0,
-    .data$minStepSize,
-    .data$stepSize
-  ))
+  stepSizeParamsSelect <- mutate(stepSizeParamsSelect, stepSize = .data$minStepSize)
 
   stepSizeParams %>%
     anti_join(stepSizeParamsSelect, by = c("region", "loc", "typ", "inc", "ttot")) %>%
