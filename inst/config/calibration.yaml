@@ -17,7 +17,7 @@ switches:
   RUNTYPE: calibration
   CALIBRATIONMETHOD: logit
   FIXEDBUILDINGS: TRUE
-  # CALIBRESOLUTION: identRepl
+  SEQUENTIALREN: TRUE
 # parameters for calibration
 calibrationParameters:
   stepSizeInit: 80

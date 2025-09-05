@@ -1,0 +1,12 @@
+---
+title: "calibration-stockszeroF"
+basedOn: "calibration.yaml"
+# switches
+switches:
+  CALIBRATIONMETHOD: optimization
+  TARGETFUNCTION: minsquare
+  CALIBRATIONTYPE: stockszero
+# parameters for calibration
+calibrationParameters:
+  stepSizeInit: 10
+...
