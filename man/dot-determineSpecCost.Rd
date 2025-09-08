@@ -17,7 +17,7 @@
 )
 }
 \arguments{
-\item{optimVar}{data frame with the optimization variable 'x' and optionally 'xMin' and 'xA'}
+\item{optimVar}{data frame with the optimization variable 'x' and optionally and 'xA'}
 
 \item{xinit}{data frame with initial specific intangible costs}
 
@@ -28,7 +28,7 @@
 \item{flow}{character, type of flow, either construction or renovation}
 
 \item{varName}{character, optimization variable to calculate specific costs from.
-Should be one of 'x', 'xA' or 'xMin'.}
+Should be either 'x' or 'xA'.}
 
 \item{vinExists}{data frame of vintages that exist for each time period}
 

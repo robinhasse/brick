@@ -10,8 +10,7 @@ Return only data combinations for which it does not hold.}
   stepSizeParams,
   outerObjective,
   sensitivityArmijo,
-  varName = "fA",
-  factorMin = 1
+  varName = "fA"
 )
 }
 \arguments{
@@ -25,8 +24,6 @@ Needs to contain the column \code{f} and the column specified by \code{varName}.
 \item{sensitivityArmijo}{numeric, parameter of the Armijo condition specifying how strict the condition is}
 
 \item{varName}{character, outer objective variable to test the Armijo condition on}
-
-\item{factorMin}{numeric, additional factor to modify the Armijo condition}
 }
 \description{
 Check if the Armijo condition holds.

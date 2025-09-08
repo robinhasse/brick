@@ -4,10 +4,10 @@
 \alias{.updateXSelect}
 \title{Update the optimization variable 'x' for selected combinations only}
 \usage{
-.updateXSelect(totalStep, optimVar, deviation, stepSizeParams, dims)
+.updateXSelect(armijoStep, optimVar, deviation, stepSizeParams, dims)
 }
 \arguments{
-\item{totalStep}{data frame with combinations to perform the adjustment of 'x' on}
+\item{armijoStep}{data frame with combinations to perform the adjustment of 'x' on}
 
 \item{optimVar}{data frame with the optimization variables}
 

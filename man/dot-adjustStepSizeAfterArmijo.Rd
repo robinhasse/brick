@@ -4,10 +4,10 @@
 \alias{.adjustStepSizeAfterArmijo}
 \title{Handle the case that the step size adaptation condition is not satisfied after the predefined number of iterations.}
 \usage{
-.adjustStepSizeAfterArmijo(totalStep, stepSizeParams)
+.adjustStepSizeAfterArmijo(armijoStep, stepSizeParams)
 }
 \arguments{
-\item{totalStep}{data frame with combinations for which the condition is not satisfied}
+\item{armijoStep}{data frame with combinations for which the condition is not satisfied}
 
 \item{stepSizeParams}{data frame with the parameters of the step size adaptation procedure
 
@@ -16,5 +16,5 @@
 \description{
 If for any combination the condition is still not satisfied:
 Use the step size with the minimum objective function.
-Print a warning if this minimum does not exist and use the last step size of the iteration.
+Print a warning if this minimum does not exist set step size to zero.
 }

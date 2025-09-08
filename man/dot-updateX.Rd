@@ -4,17 +4,10 @@
 \alias{.updateX}
 \title{Update the optimization variable 'x'}
 \usage{
-.updateX(
-  optimVar,
-  deviation,
-  stepSizeParams,
-  dims,
-  nameTo = "x",
-  factorMin = 1
-)
+.updateX(optimVar, deviation, stepSizeParams, dims, nameTo = "x")
 }
 \arguments{
-\item{optimVar}{data frame with the optimization variable 'x' and optionally 'xMin' and 'xA'}
+\item{optimVar}{data frame with the optimization variable 'x' and optionally and 'xA'}
 
 \item{deviation}{data frame with deviation and adjustment term 'd'}
 
@@ -23,8 +16,6 @@
 \item{dims}{character, dimensions of the optimization variable}
 
 \item{nameTo}{character, optimization variable to write the result to}
-
-\item{factorMin}{numeric, additional factor to multiply the adjustment term with}
 }
 \description{
 Adjust 'x' by adding the adjustment term 'd' multiplied by the step size

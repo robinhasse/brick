@@ -12,7 +12,7 @@
 \item{outerObjective}{data frame to write the outer objective to}
 
 \item{varName}{character, column name in \code{outerObjective} to write the result to.
-Should be one of 'f', 'fA', 'fMin'.}
+Should be either 'f' or 'fA'.}
 }
 \description{
 Only applicable for optimization calibration.

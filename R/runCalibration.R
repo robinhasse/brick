@@ -83,7 +83,7 @@ runCalibration <- function(path,
 #' \code{d = log(<brick result>/<historic value>)}.
 #'
 #' Here the armijo step size algorithm may not be applicable; if this is the
-#' case, a heuristic step size adaptation is applied.
+#' case, the minimum objective over all armijo iterations is used.
 #'
 #' @param path character vector with folders to run gams in
 #' @param parameters named list of calibration parameters
@@ -146,7 +146,7 @@ runCalibrationLogit <- function(path,
   optimVar <- .namedLapply(variables, function(var) {
     .initOptimVar(mInput, tcalib, dims[[var]], renAllowed[[var]])
   })
-  outerObjective <- .initOuterObjective(mInput, tcalib)
+  outerObjective <- .initOuterObjective(mInput)
 
   # Initialise objects to store diagnostic parameters over calibration iterations
   diagDev <- list(
@@ -208,7 +208,7 @@ runCalibrationLogit <- function(path,
 
     stepSizeParams <- .initStepSize(i, stepSizeParams, outerObjective, parameters[["stepSizeInit"]])
 
-    armijoStep <- select(stepSizeParams, "region", "loc", "typ", "inc", "ttot")
+    armijoStep <- select(stepSizeParams, "region", "loc", "typ", "inc")
 
 
 
@@ -251,11 +251,11 @@ runCalibrationLogit <- function(path,
           diagnosticsDetail[[nm]],
           diagDetObj[[nm]] %>%
             mutate(iteration = i, iterA = j) %>%
-            select(-any_of(c("fMin", "fPrev"))) # only required for outerObjective
+            select(-any_of("fPrev")) # only required for outerObjective
         )
       })
 
-      if (nrow(armijoStep) == 0) {# All combinations satisfy the Armijo/heuristic condition
+      if (nrow(armijoStep) == 0) {# All combinations satisfy the Armijo condition
         break
       }
 
@@ -297,11 +297,11 @@ runCalibrationLogit <- function(path,
 
     # Update optimization variable data
     optimVar <- lapply(optimVar[variables], function(optimX) {
-      mutate(optimX, x = .data$xA, xA = NULL, xMin = NULL)
+      mutate(optimX, x = .data$xA, xA = NULL)
     })
 
     # Update optimization objective data
-    outerObjective <- mutate(outerObjective, fPrev = .data[["f"]], f = .data[["fA"]], fA = NULL, fMin = NULL)
+    outerObjective <- mutate(outerObjective, fPrev = .data[["f"]], f = .data[["fA"]], fA = NULL)
 
     # Rename the last output file of the Armijo iteration
     gdx <- file.path(path, paste0("calibration_", i, ".gdx"))
@@ -405,7 +405,7 @@ runCalibrationOptim <- function(path,
   optimVar <- .namedLapply(variables, function(var) {
     .initOptimVar(mInput, tcalib, dims[[var]], renAllowed[[var]])
   })
-  outerObjective <- .initOuterObjective(mInput, tcalib)
+  outerObjective <- .initOuterObjective(mInput)
 
   # Initialise objects to store diagnostic parameters over calibration iterations
   diagDev <- list(
@@ -469,7 +469,7 @@ runCalibrationOptim <- function(path,
 
     stepSizeParams <- .initStepSize(i, stepSizeParams, outerObjective, parameters[["stepSizeInit"]])
 
-    armijoStep <- select(stepSizeParams, "region", "loc", "typ", "inc", "ttot")
+    armijoStep <- select(stepSizeParams, "region", "loc", "typ", "inc")
 
 
 
@@ -509,7 +509,7 @@ runCalibrationOptim <- function(path,
           diagnosticsDetail[[nm]],
           diagDetObj[[nm]] %>%
             mutate(iteration = i, iterA = j) %>%
-            select(-any_of(c("fMin", "fPrev"))) # only required for outerObjective
+            select(-any_of("fPrev")) # only required for outerObjective
         )
       })
 
@@ -546,7 +546,7 @@ runCalibrationOptim <- function(path,
 
     # Update optimization variable data
     optimVar <- .namedLapply(variables, function(var) {
-      mutate(optimVar[[var]], x = .data[["xA"]], xA = NULL, xMin = NULL)
+      mutate(optimVar[[var]], x = .data[["xA"]], xA = NULL)
     })
 
     .addSpecCostToInput(mInput, path, optimVar, xinit, tcalib, dims,
@@ -649,13 +649,11 @@ runCalibrationOptim <- function(path,
 #' Initialize the data frame for the objective function value
 #'
 #' @param mInput Gamstransfer container with the input data
-#' @param tcalib numeric, calibration time periods
 #'
 #' @importFrom dplyr %>% .data filter
 #'
-.initOuterObjective <- function(mInput, tcalib) {
-  expandSets("region", "loc", "typ", "inc", "ttot", .m = mInput) %>%
-    filter(.data[["ttot"]] %in% tcalib)
+.initOuterObjective <- function(mInput) {
+  expandSets("region", "loc", "typ", "inc", .m = mInput)
 }
 
 #' Create a list of empty data frames
@@ -854,7 +852,7 @@ runCalibrationOptim <- function(path,
   p_diff <- readSymbol(m, symbol = "p_diff")[[1]]
 
   p_d <- p_fDiff %>%
-    left_join(p_f, by = c("region", "loc", "typ", "inc", "ttot")) %>%
+    left_join(p_f, by = c("region", "loc", "typ", "inc")) %>%
     mutate(d = - (.data[["fDiff"]] - .data[["f"]]) / p_diff) %>%
     select(-"f", -"fDiff")
 
@@ -890,7 +888,7 @@ runCalibrationOptim <- function(path,
 #'
 .initStepSize <- function(i, stepSizeParams, outerObjective, stepSizeInit) {
   stepSizeParams %>%
-    left_join(outerObjective, by = c("region", "loc", "typ", "inc", "ttot")) %>%
+    left_join(outerObjective, by = c("region", "loc", "typ", "inc")) %>%
     mutate(stepSize = ifelse(
       i == 1 | .data$delta <= 0.001,
       stepSizeInit,
@@ -925,7 +923,7 @@ runCalibrationOptim <- function(path,
     .computeStepSizeParams(deviation[[var]]) %>%
       mutate(flow = var)
   })) %>%
-    group_by(across(all_of(c("region", "loc", "typ", "inc", "ttot")))) %>%
+    group_by(across(all_of(c("region", "loc", "typ", "inc")))) %>%
     summarise(delta = sum(.data[["delta"]]), phiDeriv = sum(.data[["phiDeriv"]]), .groups = "drop")
 }
 
@@ -933,40 +931,39 @@ runCalibrationOptim <- function(path,
 #'
 #' Adjust 'x' by adding the adjustment term 'd' multiplied by the step size
 #'
-#' @param optimVar data frame with the optimization variable 'x' and optionally 'xMin' and 'xA'
+#' @param optimVar data frame with the optimization variable 'x' and optionally and 'xA'
 #' @param deviation data frame with deviation and adjustment term 'd'
 #' @param stepSizeParams data frame with parameters of step size adaptation, including step size 'stepSize'
 #' @param dims character, dimensions of the optimization variable
 #' @param nameTo character, optimization variable to write the result to
-#' @param factorMin numeric, additional factor to multiply the adjustment term with
 #'
 #' @importFrom dplyr %>% .data left_join mutate rename_with select
 #'
-.updateX <- function(optimVar, deviation, stepSizeParams, dims, nameTo = "x", factorMin = 1) {
+.updateX <- function(optimVar, deviation, stepSizeParams, dims, nameTo = "x") {
   if (!"dCase" %in% colnames(deviation)) {
     deviation <- mutate(deviation, dCase = "standard")
   }
 
   optimVar %>%
     left_join(deviation, by = dims) %>%
-    left_join(stepSizeParams, by = c("region", "loc", "typ", "inc", "ttot")) %>%
+    left_join(stepSizeParams, by = c("region", "loc", "typ", "inc")) %>%
     # Set step size to one if descent direction was computed by alternative approach
     mutate(stepSize = ifelse(.data[["dCase"]] == "oneZero", 1, .data[["stepSize"]]),
-           xNew = .data[["x"]] + factorMin * .data[["stepSize"]] * .data[["d"]]) %>%
+           xNew = .data[["x"]] + .data[["stepSize"]] * .data[["d"]]) %>%
     select(-any_of(nameTo)) %>%
     rename_with(~ nameTo, .cols = "xNew") %>%
-    select(dims, any_of(c("vin", "x", "xMin", "xA")))
+    select(dims, any_of(c("vin", "x", "xA")))
 }
 
 #' Assemble specific costs from initial specific costs and the optimization variable
 #'
-#' @param optimVar data frame with the optimization variable 'x' and optionally 'xMin' and 'xA'
+#' @param optimVar data frame with the optimization variable 'x' and optionally and 'xA'
 #' @param xinit data frame with initial specific intangible costs
 #' @param dims character, dimensions of the optimization variable
 #' @param tcalib numeric, calibration time steps
 #' @param flow character, type of flow, either construction or renovation
 #' @param varName character, optimization variable to calculate specific costs from.
-#'   Should be one of 'x', 'xA' or 'xMin'.
+#'   Should be either 'x' or 'xA'.
 #' @param vinExists data frame of vintages that exist for each time period
 #' @param vinCalib data frame with vintages that exist in calibration periods
 #' @param shiftIntang logical indicating whether intangible costs should be shifted to positive range
@@ -994,7 +991,7 @@ runCalibrationOptim <- function(path,
     .filter(vinExists) %>%
     replace_na(list(value = 0)) %>% # replace missing initial values with 0
     left_join(optimVar, by = dims) %>%
-    group_by(across(-any_of(c("ttot", "x", "xA", "xMin", "value")))) %>%
+    group_by(across(-any_of(c("ttot", "x", "xA", "value")))) %>%
     mutate(xProj = mean(.data[[varName]][.data[["ttot"]] %in% tcalib]),
            value = ifelse(
              .data[["ttot"]] %in% tcalib,
@@ -1002,7 +999,7 @@ runCalibrationOptim <- function(path,
              .data[["value"]] + .data[["xProj"]]
            )) %>%
     ungroup() %>%
-    select(-"xProj", -any_of(c("x", "xMin", "xA")))
+    select(-"xProj", -any_of(c("x", "xA")))
   if (grepl("renovation", flow)) {
     if (all(grepl("all", vinCalib$vin))) {
       vinCalib <- vinCalib %>%
@@ -1047,7 +1044,7 @@ runCalibrationOptim <- function(path,
 #' @param vinExists data frame of vintages that exist for each time period
 #' @param vinCalib data frame with vintages that exist in calibration periods
 #' @param varName character, optimization variable to calculate specific costs from.
-#'   Needs to be a column of optimVarCon and optimVarRen, should be one of 'x', 'xA' or 'xMin'.
+#'   Needs to be a column of optimVarCon and optimVarRen, should be either 'x' or 'xA'.
 #' @param shiftIntang logical indicating whether intangible costs should be shifted to positive range
 #'
 #' @importFrom dplyr filter
@@ -1129,7 +1126,7 @@ runCalibrationOptim <- function(path,
     replace_na(list(value = 0, target = 0)) %>%
     filter(.data[["ttot"]] %in% tcalib) %>%
     .aggregateDim(agg = agg, valueNames = c("value", "target")) %>%
-    group_by(across(all_of(c("region", "loc", "typ", "inc", "ttot")))) %>%
+    group_by(across(all_of(c("region", "loc", "typ", "inc")))) %>%
     summarise(value = .sumSquare(.data[["value"]], .data[["target"]]), .groups = "drop")
 }
 
@@ -1143,7 +1140,7 @@ runCalibrationOptim <- function(path,
 #' @param tcalib numeric, calibration time steps
 #' @param dims named character, dimensions of the flows
 #' @param varName character, column name in \code{outerObjective} to write the result to.
-#'   Should be one of 'f', 'fA', 'fMin'.
+#'   Should be either 'f' or 'fA'.
 #' @param agg character, dimension(s) to aggregate the data over
 #'
 #' @importFrom dplyr %>% .data across all_of group_by mutate rename_with right_join select summarise
@@ -1160,12 +1157,12 @@ runCalibrationOptim <- function(path,
     .computeOuterObjective(m, gamsVar[[var]], p_calibTarget[[var]], dims[[var]], tcalib, agg = agg) %>%
       mutate(flow = var)
   })) %>%
-    group_by(across(all_of(c("region", "loc", "typ", "inc", "ttot")))) %>%
+    group_by(across(all_of(c("region", "loc", "typ", "inc")))) %>%
     summarise(fNew = sum(.data[["value"]]), .groups = "drop") %>%
     rename_with(~ varName, .cols = "fNew") %>%
     right_join(outerObjective %>%
                  select(-any_of(varName)),
-               by = c("region", "loc", "typ", "inc", "ttot"))
+               by = c("region", "loc", "typ", "inc"))
 }
 
 
@@ -1176,7 +1173,7 @@ runCalibrationOptim <- function(path,
 #' @param m Gams transfer container to read brick results from
 #' @param outerObjective data frame to write the outer objective to
 #' @param varName character, column name in \code{outerObjective} to write the result to.
-#'   Should be one of 'f', 'fA', 'fMin'.
+#'   Should be either 'f' or 'fA'.
 #'
 #' @importFrom dplyr %>% rename_with right_join select
 #'
@@ -1186,7 +1183,7 @@ runCalibrationOptim <- function(path,
     rename_with(~ varName, .cols = "value") %>%
     right_join(outerObjective %>%
                  select(-any_of(varName)),
-               by = c("region", "loc", "typ", "inc", "ttot"))
+               by = c("region", "loc", "typ", "inc"))
 
 }
 
@@ -1199,40 +1196,22 @@ runCalibrationOptim <- function(path,
 #'   Needs to contain the column \code{f} and the column specified by \code{varName}.
 #' @param sensitivityArmijo numeric, parameter of the Armijo condition specifying how strict the condition is
 #' @param varName character, outer objective variable to test the Armijo condition on
-#' @param factorMin numeric, additional factor to modify the Armijo condition
 #'
 #' @importFrom dplyr %>% .data filter left_join select
 #'
 .checkArmijoStep <- function(prevStep, stepSizeParams, outerObjective, sensitivityArmijo,
-                             varName = "fA", factorMin = 1) {
+                             varName = "fA") {
   prevStep %>%
-    left_join(outerObjective, by = c("region", "loc", "typ", "inc", "ttot")) %>%
-    left_join(stepSizeParams, by = c("region", "loc", "typ", "inc", "ttot")) %>%
+    left_join(outerObjective, by = c("region", "loc", "typ", "inc")) %>%
+    left_join(stepSizeParams, by = c("region", "loc", "typ", "inc")) %>%
     filter(.data[[varName]] > (.data[["f"]]
-                               + factorMin * sensitivityArmijo * .data[["stepSize"]] * .data[["phiDeriv"]])) %>%
-    select("region", "loc", "typ", "inc", "ttot")
-}
-
-#' Check if the condition of the heuristic step size adaptation holds:
-#' Check if the outer objective does not increase.
-#' Return only data combinations for which the condition does not hold, i.e. the outer objective increases
-#'
-#' @param prevStep data frame with data combinations that did not satisfy the heuristic condition in the previous step
-#' @param outerObjective data frame containing the value of the outer objective function.
-#'   Needs to contain the columns \code{f} and \code{fA}.
-#'
-#' @importFrom dplyr %>% .data filter left_join select
-#'
-.checkHeuristicStep <- function(prevStep, outerObjective) {
-  prevStep %>%
-    left_join(outerObjective, by = c("region", "loc", "typ", "inc", "ttot")) %>%
-    filter(.data[["fA"]] > .data[["f"]]) %>%
-    select("region", "loc", "typ", "inc", "ttot")
+                               + sensitivityArmijo * .data[["stepSize"]] * .data[["phiDeriv"]])) %>%
+    select("region", "loc", "typ", "inc")
 }
 
 #' Update the optimization variable 'x' for selected combinations only
 #'
-#' @param totalStep data frame with combinations to perform the adjustment of 'x' on
+#' @param armijoStep data frame with combinations to perform the adjustment of 'x' on
 #' @param optimVar data frame with the optimization variables
 #' @param deviation data frame with the deviation from historic data and the adjustment parameter 'd'
 #' @param stepSizeParams data frame with the parameters of the step size adaptatation procedure
@@ -1240,8 +1219,8 @@ runCalibrationOptim <- function(path,
 #'
 #' @importFrom dplyr %>% anti_join right_join
 #'
-.updateXSelect <- function(totalStep, optimVar, deviation, stepSizeParams, dims) {
-  optimVarSelect <- right_join(optimVar, totalStep, by = c("region", "loc", "typ", "inc", "ttot"))
+.updateXSelect <- function(armijoStep, optimVar, deviation, stepSizeParams, dims) {
+  optimVarSelect <- right_join(optimVar, armijoStep, by = c("region", "loc", "typ", "inc"))
 
   optimVarSelect <- .updateX(optimVarSelect, deviation, stepSizeParams, dims, nameTo = "xA")
 
@@ -1252,7 +1231,7 @@ runCalibrationOptim <- function(path,
 
 #' Update the step size for the selected combinations
 #'
-#' @param totalStep data frame with combinations to perform the adjustment ot the step size on
+#' @param armijoStep data frame with combinations to perform the adjustment ot the step size on
 #' @param stepSizeParams data frame with the parameters of the step size adjustment algorithm
 #' @param outerObjective data frame containing the value of the outer objective function.
 #' @param stepReduction numeric, factor applied to stepSize to reduce the step size. Should be < 1.
@@ -1260,18 +1239,18 @@ runCalibrationOptim <- function(path,
 #'
 #' @importFrom dplyr %>% .data anti_join mutate right_join
 #'
-.updateStepSize <- function(totalStep, stepSizeParams, outerObjective, stepReduction, lastIteration) {
+.updateStepSize <- function(armijoStep, stepSizeParams, outerObjective, stepReduction, lastIteration) {
   stepSizeParamsSelect <- stepSizeParams %>%
-    right_join(totalStep, by = c("region", "loc", "typ", "inc", "ttot")) %>%
-    left_join(outerObjective, by = c("region", "loc", "typ", "inc", "ttot")) %>%
+    right_join(armijoStep, by = c("region", "loc", "typ", "inc")) %>%
+    left_join(outerObjective, by = c("region", "loc", "typ", "inc")) %>%
     mutate(minStepSize = ifelse(.data$fA < .data$minOuterObj, .data$stepSize, .data$minStepSize),
            minOuterObj = pmin(.data$minOuterObj, .data$fA)) %>%
     # Don't decrease the step size in the last iteration
     mutate(stepSize = if (isTRUE(lastIteration)) .data[["stepSize"]] else .data[["stepSize"]] * stepReduction) %>%
-    select(-any_of(c("f", "fA", "fMin", "fPrev")))
+    select(-any_of(c("f", "fA", "fPrev")))
 
   stepSizeParams %>%
-    anti_join(stepSizeParamsSelect, by = c("region", "loc", "typ", "inc", "ttot")) %>%
+    anti_join(stepSizeParamsSelect, by = c("region", "loc", "typ", "inc")) %>%
     rbind(stepSizeParamsSelect)
 }
 
@@ -1281,17 +1260,17 @@ runCalibrationOptim <- function(path,
 #' Use the step size with the minimum objective function.
 #' Print a warning if this minimum does not exist set step size to zero.
 #'
-#' @param totalStep data frame with combinations for which the condition is not satisfied
+#' @param armijoStep data frame with combinations for which the condition is not satisfied
 #' @param stepSizeParams data frame with the parameters of the step size adaptation procedure
 #'
 #'  @importFrom dplyr mutate right_join
 #'
-.adjustStepSizeAfterArmijo <- function(totalStep, stepSizeParams) {
+.adjustStepSizeAfterArmijo <- function(armijoStep, stepSizeParams) {
   message("Armijo adaptation algorithm is not satisfied in the prescribed number of iterations ",
           "for at least one subset. ",
           "The step size with minimum objective is chosen.")
-  stepSizeParamsSelect <- right_join(stepSizeParams, totalStep,
-                                     by = c("region", "loc", "typ", "inc", "ttot"))
+  stepSizeParamsSelect <- right_join(stepSizeParams, armijoStep,
+                                     by = c("region", "loc", "typ", "inc"))
   if (nrow(stepSizeParamsSelect[stepSizeParamsSelect$minStepSize == 0, ]) > 0) {
     warning("At least one subset seems to have stalled, i.e. no descent has been detected. ",
             "Step size is set to zero.")
@@ -1299,7 +1278,7 @@ runCalibrationOptim <- function(path,
   stepSizeParamsSelect <- mutate(stepSizeParamsSelect, stepSize = .data$minStepSize)
 
   stepSizeParams %>%
-    anti_join(stepSizeParamsSelect, by = c("region", "loc", "typ", "inc", "ttot")) %>%
+    anti_join(stepSizeParamsSelect, by = c("region", "loc", "typ", "inc")) %>%
     rbind(stepSizeParamsSelect)
 }
 

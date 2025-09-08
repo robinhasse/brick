@@ -27,7 +27,7 @@ by combining resuls from construction and renovation.}
 \item{dims}{named character, dimensions of the flows}
 
 \item{varName}{character, column name in \code{outerObjective} to write the result to.
-Should be one of 'f', 'fA', 'fMin'.}
+Should be either 'f' or 'fA'.}
 
 \item{agg}{character, dimension(s) to aggregate the data over}
 }

@@ -226,7 +226,7 @@ p_renovationHSCalibTarget(qty,bs,hs,hsr,vin,region,loc,typ,inc,ttot) "historic f
 $else.sequentialRen
 p_renovationCalibTarget(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot) "historic flow of renovated and untouched buildings as calibration target in million m2/yr"
 $endIf.sequentialRen
-p_f(region, loc, typ, inc, ttot)                                       "value of the objective function in the outer optimization of the calibration; unit depends on target choice"
+p_f(region, loc, typ, inc)                                       "value of the objective function in the outer optimization of the calibration; unit depends on target choice"
 ;
 $endif.calibration
 
