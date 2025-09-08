@@ -316,6 +316,11 @@ runCalibrationLogit <- function(path,
       rbind(diagnostics[[nm]], mutate(diagObj[[nm]], iteration = i))
     })
 
+    if (.checkStoppingCriterion(outerObjective, p_calibTarget, parameters[["threshold"]])) {
+      .printConvergenceMessage(i, parameters[["threshold"]])
+      break
+    }
+
   }
 
 
@@ -376,6 +381,13 @@ runCalibrationOptim <- function(path,
             overwrite = TRUE)
   dims <- .getDims(calibTarget)
   variables <- setdiff(names(calibTarget), "stock")
+  varCalib <- switch(
+    switches[["CALIBRATIONTYPE"]],
+    stocks = "stock",
+    stockszero = c("stock", "renovation", "renovationBS", "renovationHS"),
+    flows = c("construction", "renovation", "renovationBS", "renovationHS")
+  )
+  varCalib <- intersect(varCalib, names(calibTarget))
 
   # Read in required input data
   gdxInput <- file.path(path, "input.gdx")
@@ -427,6 +439,10 @@ runCalibrationOptim <- function(path,
   gdxOutput <- file.path(path, "output.gdx")
 
   .addTargetsToInput(mInput, path, calibTarget, dims)
+
+  p_calibTarget <- lapply(calibTarget[varCalib], function(target) {
+    .pick(target, qty = "area")
+  })
 
   # Initial Brick run
   runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
@@ -577,6 +593,12 @@ runCalibrationOptim <- function(path,
     diagnostics <- .namedLapply(names(diagObj), function(nm) {
       rbind(diagnostics[[nm]], mutate(diagObj[[nm]], iteration = i))
     })
+
+    if (.checkStoppingCriterion(outerObjective, p_calibTarget, parameters[["threshold"]],
+                                zeroFlow = switches[["CALIBRATIONTYPE"]] == "stockszero")) {
+      .printConvergenceMessage(i, parameters[["threshold"]])
+      break
+    }
 
   }
 
@@ -1090,7 +1112,7 @@ runCalibrationOptim <- function(path,
 #' @param res numeric, result values
 #' @param target numeric, historic values
 #'
-.sumSquare <- function(res, target) {
+.sumSquare <- function(res, target = 0) {
   sum((res - target)^2)
 }
 
@@ -1263,7 +1285,7 @@ runCalibrationOptim <- function(path,
 #' @param armijoStep data frame with combinations for which the condition is not satisfied
 #' @param stepSizeParams data frame with the parameters of the step size adaptation procedure
 #'
-#'  @importFrom dplyr mutate right_join
+#' @importFrom dplyr mutate right_join
 #'
 .adjustStepSizeAfterArmijo <- function(armijoStep, stepSizeParams) {
   message("Armijo adaptation algorithm is not satisfied in the prescribed number of iterations ",
@@ -1280,6 +1302,66 @@ runCalibrationOptim <- function(path,
   stepSizeParams %>%
     anti_join(stepSizeParamsSelect, by = c("region", "loc", "typ", "inc")) %>%
     rbind(stepSizeParamsSelect)
+}
+
+#' Compute the sum of the squares for a calibration target
+#'
+#' @param target data frame with calibration target data
+#' @param zeroFlow logical, whether data should be filtered for the zero flow
+#'
+#' @importFrom dplyr across all_of group_by summarise
+#'
+.computeSumSqTarget <- function(target, zeroFlow = FALSE) {
+  if (isTRUE(zeroFlow)) {
+    for (column in intersect(c("bsr", "hsr"), colnames(target)))
+    target <- filter(target, .data[[column]] == "0")
+  }
+
+  target %>%
+    group_by(across(all_of(c("region", "loc", "typ", "inc")))) %>%
+    summarise(target = .sumSquare(.data$target), .groups = "drop")
+}
+
+#' Check for the stopping criterion of the iteration
+#'
+#' Returns \code{TRUE} if and only if both the absolute and the relative stopping criterion
+#' are satisfied for all subsets.
+#'
+#' @param outerObjective data frame containing the value of the outer objective function.
+#' @param p_calibTarget list of data frames with historic flows
+#' @param threshold list of numeric, absolute and relative threshold of the stopping criterion
+#' @param zeroFlow logical, whether renovation flow data should be filtered for zero flows
+#'
+.checkStoppingCriterion <- function(outerObjective, p_calibTarget, threshold, zeroFlow = FALSE) {
+  sumSqTarget <- do.call(rbind, lapply(names(p_calibTarget), function(var) {
+    .computeSumSqTarget(p_calibTarget[[var]], zeroFlow && grepl("renovation", var))
+  })) %>%
+    group_by(across(all_of(c("region", "loc", "typ", "inc")))) %>%
+    summarise(target = sum(.data$target), .groups = "drop")
+
+  outerObjective %>%
+    select(-"fPrev") %>%
+    left_join(sumSqTarget, by = c("region", "loc", "typ", "inc")) %>%
+    mutate(absLevel = sqrt(.data$f),
+           relLevel = sqrt(.data$f) / sqrt(.data$target),
+           .keep = "unused") %>%
+    mutate(absCriterion = .data$absLevel <= threshold[["abs"]],
+           relCriterion = .data$relLevel <= threshold[["rel"]],
+           .keep = "unused") %>%
+    pivot_longer(cols = c("absCriterion", "relCriterion"), names_to = "criterion") %>%
+    pull("value") %>%
+    all()
+}
+
+#' Print message that the calibration converged.
+#'
+#' @param iteration numeric, number of current iteration
+#' @param threshold list of numeric, absolute and relative threshold of the stopping criterion
+#'
+.printConvergenceMessage <- function(iteration, threshold) {
+  message("The calibration converged after ", iteration, " iterations.",
+          "The absolute deviation is below ", threshold[["abs"]],
+          ", the relative deviation is below ", threshold[["rel"]], ".")
 }
 
 #' Write the intangible costs to a .csv file

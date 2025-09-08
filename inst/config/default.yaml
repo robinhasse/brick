@@ -321,4 +321,7 @@ calibrationParameters:
   sensitivityArmijo: 0.01
   stepReduction: 0.5
   deltaDiffQuotient: 0.1
+  threshold:
+    abs: 20
+    rel: 0.2
 ...

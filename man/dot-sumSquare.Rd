@@ -4,7 +4,7 @@
 \alias{.sumSquare}
 \title{Calculate sum of squared differences between results and historic values}
 \usage{
-.sumSquare(res, target)
+.sumSquare(res, target = 0)
 }
 \arguments{
 \item{res}{numeric, result values}

@@ -9,9 +9,7 @@
 \arguments{
 \item{armijoStep}{data frame with combinations for which the condition is not satisfied}
 
-\item{stepSizeParams}{data frame with the parameters of the step size adaptation procedure
-
- @importFrom dplyr mutate right_join}
+\item{stepSizeParams}{data frame with the parameters of the step size adaptation procedure}
 }
 \description{
 If for any combination the condition is still not satisfied:
