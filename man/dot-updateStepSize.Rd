@@ -5,7 +5,7 @@
 \title{Update the step size for the selected combinations}
 \usage{
 .updateStepSize(
-  armijoStep,
+  totalStep,
   stepSizeParams,
   outerObjective,
   stepReduction,
@@ -13,7 +13,7 @@
 )
 }
 \arguments{
-\item{armijoStep}{data frame with combinations to perform the adjustment ot the step size on}
+\item{totalStep}{data frame with combinations to perform the adjustment ot the step size on}
 
 \item{stepSizeParams}{data frame with the parameters of the step size adjustment algorithm}
 

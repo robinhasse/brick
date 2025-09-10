@@ -38,5 +38,5 @@ The adjustment term is computed as if Brick were a pure logit model:
 }
 \details{
 Here the armijo step size algorithm may not be applicable; if this is the
-case, the minimum objective over all armijo iterations is used.
+case, the first local minimum objective is used.
 }

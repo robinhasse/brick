@@ -10,7 +10,7 @@ regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
 regions: EUR
 ignoreShell: TRUE
 statusQuoPreference: 0
-reportingTemplate: ignoreShell_onlyRes
+reportingTemplate: lowGran_ignoreShell
 ltEternalShare: 0.05
 # switches
 switches:
@@ -22,6 +22,6 @@ switches:
 calibrationParameters:
   stepSizeInit: 80
   iterations: 20
-  iterationsArmijo: 20
+  iterationsStepSize: 20
   sensitivityArmijo: 0.04
 ...
