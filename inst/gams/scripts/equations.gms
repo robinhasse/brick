@@ -758,7 +758,7 @@ q_flowVariationRenBS(q,renAllowedBS,subs,t)$(ord(t) lt card(t))..
 ;
 
 q_flowVariationRenHS(q,renAllowedHS,subs,t)$(ord(t) lt card(t))..
-  v_flowVariationRenBS(q,renAllowedHS,subs,t)
+  v_flowVariationRenHS(q,renAllowedHS,subs,t)
   =e=
   (  sum(vinExists(t,vin),   v_renovationHS(q,renAllowedHS,vin,subs,t))
    - sum(vinExists(t+1,vin), v_renovationHS(q,renAllowedHS,vin,subs,t+1)))
@@ -826,7 +826,7 @@ q_refDeviationTot..
 q_refDeviation(ref,reg,t)..
   v_refDeviation(ref,reg,t)
   =e=
-  sum(refVarExists(ref,refVar,reg,t),
+  sum(refVarExists(ref,refVar,reg,t)$(refVarConsidered(ref,refVar)),
     sqr(
       v_refDeviationVar(ref,refVar,reg,t)
 !!      / p_refValsMed(ref,reg)
@@ -837,7 +837,8 @@ q_refDeviation(ref,reg,t)..
 
 * deviation from each variable in reference sources
 
-q_refDeviationVar(refVarExists(ref,refVar,reg,t))..
+q_refDeviationVar(ref,refVar,reg,t)$(    refVarExists(ref,refVar,reg,t)
+                                     and refVarConsidered(ref,refVar))..
   v_refDeviationVar(ref,refVar,reg,t)
   =e=
   v_refVals(ref,refVar,reg,t)
@@ -854,11 +855,10 @@ q_refDeviationVar(refVarExists(ref,refVar,reg,t))..
 
 * aggregate reference variables of share references to basic value
 
-q_refValsBasic(ref,refVarGroup,reg,t)$(refVarGroupExists(ref,refVarGroup,reg,t)
-                                       and refRel(ref))..
+q_refValsBasic(ref,refVarGroup,reg,t)$refRel(ref)..
   v_refValsBasic(ref,refVarGroup,reg,t)
   =e=
-  sum(refVarBasic(ref,refVar,refVarGroup),
+  sum(refVarBasic(ref,refVar,refVarGroup)$refVarRef(ref,refVar),
     v_refVals(ref,refVar,reg,t)
   )
 ;
@@ -866,7 +866,7 @@ q_refValsBasic(ref,refVarGroup,reg,t)$(refVarGroupExists(ref,refVarGroup,reg,t)
 
 * aggregate BRICK variables to reference variable
 
-q_refVals(refVarExists(ref,refVar,reg,t))..
+q_refVals(ref,refVar,reg,t)$refVarRef(ref,refVar)..
   v_refVals(ref,refVar,reg,t)
   =e=
 !! AUTOCODE.insertRefValEqn
@@ -956,7 +956,7 @@ q_testRenBS(q,renAllowedBS,vin,subs)..
 ;
 
 equation q_testRenHS(qty,bs,hs,hsr,vin,region,loc,typ,inc);
-q_testRenBS(q,renAllowedHS,vin,subs)..
+q_testRenHS(q,renAllowedHS,vin,subs)..
   sum(tinit, v_renovationHS(q,renAllowedHS,vin,subs,tinit))
   =l=
   sum(tinit, v_renovationHS(q,renAllowedHS,vin,subs,tinit+1))

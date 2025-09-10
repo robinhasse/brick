@@ -21,4 +21,5 @@ ignoreShell: TRUE
 switches:
   RUNTYPE: matching
   FIXEDBUILDINGS: TRUE
+  SEQUENTIALREN: TRUE
 ...

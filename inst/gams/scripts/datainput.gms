@@ -160,40 +160,9 @@ p_lccCon(cost,var,bs,hs,reg,loc,typ,inc,ttot) =
 
 $ifthen.matching "%RUNTYPE%" == "matching"
 
-* temporary fix assuming a heating system life time of 20 years
-p_refVals(refVarExists("EuropeanCommissionRenovation",refVar,reg,t)) = 0.05;
 
 
-p_refWeight(reference) = 1;
-*p_refWeight(ref)$sameas(ref,"EUBDB_stock") = 0.2;
-*p_refWeight(ref)$sameas(ref,"mredgebuildings_heating") = 2E-5;
-*p_refWeight(ref)$sameas(ref,"mredgebuildings_vintage") = 2;
-*p_refWeight(ref)$sameas(ref,"mredgebuildings_location") = 1E-4;
-*p_refWeight(ref)$sameas(ref,"mredgebuildings_buildingType") = 1E4;
-p_refWeight(ref)$sameas(ref,"Odyssee_constructionFloor_typ") = 5E2;
-p_refWeight(ref)$sameas(ref,"Odyssee_constructionFloor_sec") = 5E2;
-*p_refWeight(ref)$sameas(ref,"Odyssee_heatingShare") = 5E1;
-*p_refWeight(ref)$sameas(ref,"EUBDB_vintage") = 5E1;
-*p_refWeight(ref)$sameas(ref,"EuropeanCommissionRenovation") = 1E2;
-*p_refWeight(ref)$sameas(ref,"Odyssee_stock") = 1E2;
-p_refWeight(ref)$sameas(ref,"OdysseeIDEES_typ") = 1E2;
-p_refWeight(ref)$sameas(ref,"OdysseeIDEES_sec") = 1E2;
-p_refWeight(ref)$sameas(ref,"dummy_hsReplace") =  0 * 7E1;
-p_refWeight(ref)$sameas(ref,"OdysseeIDEES_heating") = 5E1;
-p_refWeight(ref)$sameas(ref,"IDEES_heatingShare") = 5E1;
-p_refWeight(ref)$sameas(ref,"IDEES_heatingShareNew") = 5E1;
-p_refWeight(ref)$sameas(ref,"HeatingSystemSales") = 0 * 1E1;
-p_refWeight(ref)$sameas(ref,"VHK") = 0 * 1E1;
-p_refWeight(ref)$sameas(ref,"EHI_statusQuo") = 0 * 1E2;
-p_refWeight(ref)$sameas(ref,"Destatis") = 5E2;
-p_refWeight(ref)$sameas(ref,"Eurostat_loc") = 5E1;
-p_refWeight(ref)$sameas(ref,"Eurostat_hs_loc") = 5E1;
-p_refWeight(ref)$sameas(ref,"Eurostat_typ_loc") = 3E2;
-p_refWeight(ref)$sameas(ref,"CensusHub_typ_vin") = 1E2;
-p_refWeight(ref)$sameas(ref,"Hotmaps_typ_vin") = 1E2;
-p_refWeight(ref)$sameas(ref,"Hotmaps_sec_vin") = 1E2;
-
-p_flowVariationWeight = 5E3;
+p_flowVariationWeight = 7E3;
 p_slackRenWeight = 1E4;
 
 * p_refValsMed(reference,reg) = 1;  !! TODO: remove or rewrite normalisation of references
