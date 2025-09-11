@@ -4,10 +4,12 @@
 \alias{checkGamsSuccess}
 \title{Check whether Gams finished successfully}
 \usage{
-checkGamsSuccess(path)
+checkGamsSuccess(path, isCalibration = FALSE)
 }
 \arguments{
 \item{path}{character, path to search for gams output files}
+
+\item{isCalibration}{logical, whether this is a calibration run}
 }
 \description{
 Check which output file was written and derive state of Gams run
@@ -15,6 +17,10 @@ Check which output file was written and derive state of Gams run
 \details{
 If \code{output.gdx} was written, give success message.
 If \code{abort.gdx} was written or no output file exists, stop with error message.
+For calibration runs:
+If any file with \code{calibration_<iteration>.gdx} was written, give success message
+including the number of iterations.
+If no file was written, stop with error message.
 }
 \author{
 Ricarda Rosemann

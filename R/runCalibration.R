@@ -1391,7 +1391,7 @@ runCalibrationOptim <- function(path,
 #' @param threshold list of numeric, absolute and relative threshold of the stopping criterion
 #'
 .printConvergenceMessage <- function(iteration, threshold) {
-  message("The calibration converged after ", iteration, " iterations.",
+  message("The calibration converged after ", iteration, " iterations. ",
           "The absolute deviation is below ", threshold[["abs"]],
           ", the relative deviation is below ", threshold[["rel"]], ".")
 }
