@@ -8,7 +8,7 @@ runCalibrationOptim(
   path,
   parameters,
   tcalib,
-  calibTarget,
+  dims,
   gamsOptions = NULL,
   switches = NULL,
   fileName = "main.gms",
@@ -22,7 +22,7 @@ runCalibrationOptim(
 
 \item{tcalib}{numeric, time periods to calibrate on}
 
-\item{calibTarget}{list of data frames of calibration targets}
+\item{dims}{list of characters with dimensions of stock and flow variables}
 
 \item{gamsOptions}{named list of GAMS options}
 

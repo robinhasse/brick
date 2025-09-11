@@ -50,14 +50,14 @@ runCalibration <- function(path,
 
 
   dims <- list(
-    stock        = c("qty", "bs", "hs", "vin", "region", "loc", "typ", "inc", "ttot"),
-    construction = c("qty", "bs", "hs", "region", "loc", "typ", "inc", "ttot")
+    stock        = c("bs", "hs", "vin", "region", "loc", "typ", "inc", "ttot"),
+    construction = c("bs", "hs", "region", "loc", "typ", "inc", "ttot")
   )
   if (isTRUE(switches[["SEQUENTIALREN"]])) {
-    dims$renovationBS <- c("qty", "bs", "hs", "bsr", "vin", "region", "loc", "typ", "inc", "ttot")
-    dims$renovationHS <- c("qty", "bs", "hs", "hsr", "vin", "region", "loc", "typ", "inc", "ttot")
+    dims$renovationBS <- c("bs", "hs", "bsr", "vin", "region", "loc", "typ", "inc", "ttot")
+    dims$renovationHS <- c("bs", "hs", "hsr", "vin", "region", "loc", "typ", "inc", "ttot")
   } else {
-    dims$renovation <- c("qty", "bs", "hs", "bsr", "hsr", "vin", "region", "loc", "typ", "inc", "ttot")
+    dims$renovation <- c("bs", "hs", "bsr", "hsr", "vin", "region", "loc", "typ", "inc", "ttot")
   }
 
   .runCalibration <- switch(
@@ -70,7 +70,7 @@ runCalibration <- function(path,
     path,
     parameters,
     tcalib,
-    calibTarget = .readCalibTarget(dims, tcalib),
+    dims,
     gamsOptions = gamsOptions,
     switches = switches,
     fileName = fileName,
@@ -89,7 +89,7 @@ runCalibration <- function(path,
 #' @param path character vector with folders to run gams in
 #' @param parameters named list of calibration parameters
 #' @param tcalib numeric, time periods to calibrate on
-#' @param calibTarget list of data frames of calibration targets
+#' @param dims list of characters with dimensions of stock and flow variables
 #' @param gamsOptions named list of GAMS options
 #' @param switches named list of model switches
 #' @param fileName character vector with gams file names
@@ -102,7 +102,7 @@ runCalibration <- function(path,
 runCalibrationLogit <- function(path,
                                 parameters,
                                 tcalib,
-                                calibTarget,
+                                dims,
                                 gamsOptions = NULL,
                                 switches = NULL,
                                 fileName = "main.gms",
@@ -115,8 +115,7 @@ runCalibrationLogit <- function(path,
   if (!file.exists(file.path(path, "input_init.gdx"))) {
     file.copy(from = file.path(path, "input.gdx"), to = file.path(path, "input_init.gdx"))
   }
-  dims <- .getDims(calibTarget)
-  variables <- setdiff(names(calibTarget), "stock")
+  variables <- setdiff(names(dims), "stock")
 
   # Read in required input data
   gdxInput <- file.path(path, "input.gdx")
@@ -165,9 +164,10 @@ runCalibrationLogit <- function(path,
 
   gdxOutput <- file.path(path, "output.gdx")
 
-  .addTargetsToInput(mInput, path, calibTarget, dims)
+  p_calibTarget <- .readCalibTarget(dims, mInput)
+  .addTargetsToInput(mInput, path, p_calibTarget, dims)
 
-  p_calibTarget <- lapply(calibTarget[variables], function(target) {
+  p_calibTarget <- lapply(p_calibTarget[variables], function(target) {
     .pick(target, qty = "area")
   })
 
@@ -353,7 +353,7 @@ runCalibrationLogit <- function(path,
 #' @param path character vector with folders to run gams in
 #' @param parameters named list of calibration parameters
 #' @param tcalib numeric, time periods to calibrate on
-#' @param calibTarget list of data frames of calibration targets
+#' @param dims list of characters with dimensions of stock and flow variables
 #' @param gamsOptions named list of GAMS options
 #' @param switches named list of model switches
 #' @param fileName character vector with gams file names
@@ -367,7 +367,7 @@ runCalibrationLogit <- function(path,
 runCalibrationOptim <- function(path,
                                 parameters,
                                 tcalib,
-                                calibTarget,
+                                dims,
                                 gamsOptions = NULL,
                                 switches = NULL,
                                 fileName = "main.gms",
@@ -379,15 +379,14 @@ runCalibrationOptim <- function(path,
   # Store initial input data
   file.copy(from = file.path(path, "input.gdx"), to = file.path(path, "input_init.gdx"),
             overwrite = TRUE)
-  dims <- .getDims(calibTarget)
-  variables <- setdiff(names(calibTarget), "stock")
+  variables <- setdiff(names(dims), "stock")
   varCalib <- switch(
     switches[["CALIBRATIONTYPE"]],
     stocks = "stock",
     stockszero = c("stock", "renovation", "renovationBS", "renovationHS"),
     flows = c("construction", "renovation", "renovationBS", "renovationHS")
   )
-  varCalib <- intersect(varCalib, names(calibTarget))
+  varCalib <- intersect(varCalib, names(dims))
 
   # Read in required input data
   gdxInput <- file.path(path, "input.gdx")
@@ -438,9 +437,10 @@ runCalibrationOptim <- function(path,
 
   gdxOutput <- file.path(path, "output.gdx")
 
-  .addTargetsToInput(mInput, path, calibTarget, dims)
+  p_calibTarget <- .readCalibTarget(dims, mInput)
+  .addTargetsToInput(mInput, path, p_calibTarget, dims)
 
-  p_calibTarget <- lapply(calibTarget[varCalib], function(target) {
+  p_calibTarget <- lapply(p_calibTarget[varCalib], function(target) {
     .pick(target, qty = "area")
   })
 
@@ -630,29 +630,16 @@ runCalibrationOptim <- function(path,
 #' Read calibration targets from input folder
 #'
 #' @param dims named character, dimensions of each variable of the calibration
-#' @param tcalib numeric, calibration time periods
+#' @param mInput gamstransfer container with the input.gdx
 #'
 #' @importFrom dplyr %>% .data filter mutate
 #'
-.readCalibTarget <- function(dims, tcalib) {
+.readCalibTarget <- function(dims, mInput) {
   .namedLapply(names(dims), function(var) {
     file <- paste0("f_", var, "CalibTarget.cs4r")
-    readInput(file, c(dims[[var]], "target")) %>%
+    readInput(file, c("qty", dims[[var]], "target")) %>%
+      toModelResolution(mInput, value = "target") %>%
       mutate(across(-all_of(c("target", "ttot")), as.character))
-  })
-}
-
-#' Get dimension names from calibration targets
-#'
-#' Gives the column names of a list of data frames except the first and the last
-#' one, i.e. \code{qty} and \code{value}.
-#'
-#' @param calibTarget list, calibration targets
-#'
-.getDims <- function(calibTarget) {
-  lapply(calibTarget, function(target) {
-    dims <- colnames(target)
-    dims[2:(length(dims) - 1)]
   })
 }
 
@@ -695,10 +682,10 @@ runCalibrationOptim <- function(path,
 #'
 #' @param mInput gamstransfer container of the input gdx
 #' @param path character, path to output folder of this run
-#' @param calibTarget list of data frames of calibration targets
+#' @param p_calibTarget list of data frames of calibration targets
 #' @param dims list of characters, dimensions of data
 #'
-.addTargetsToInput <- function(mInput, path, calibTarget, dims) {
+.addTargetsToInput <- function(mInput, path, p_calibTarget, dims) {
 
   paramNames <- c(
     stock = "p_stockCalibTarget",
@@ -720,7 +707,7 @@ runCalibrationOptim <- function(path,
     invisible(mInput$addParameter(
       name = paramNames[[var]],
       domain = c("qty", dims[[var]]),
-      records = rename(calibTarget[[var]], value = "target"),
+      records = rename(p_calibTarget[[var]], value = "target"),
       description = descriptions[[var]]
     ))
   }
