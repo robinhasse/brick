@@ -24,6 +24,17 @@ $load p_refVals p_refValsMed p_refWeight
 $gdxin
 $endif.matching
 
+$ifthen.renCorrect "%RUNTYPE%" == "renCorrect"
+$gdxin input.gdx
+$load p_stock p_construction
+$ifthen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+$load p_renovationBS p_renovationHS
+$else.sequentialRen
+$load p_renovation
+$endif.sequentialRen
+$gdxin
+$endif.renCorrect
+
 $ifthenE.calibration (sameas("%CALIBRATIONMETHOD%","optimization"))or(sameas("%CALIBRATIONMETHOD%","logit"))
 $gdxin input.gdx
 $load p_stockCalibTarget p_constructionCalibTarget

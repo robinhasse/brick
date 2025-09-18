@@ -2,17 +2,26 @@
 #'
 #' @author Robin Hasse
 #'
-#' @param x gams Container, Parameter, Variable or Set
+#' @param x gams Container, Parameter, Variable or Set or path to gdx
 #' @param symbol character, name of gams object if x is a Container else NULL
 #' @param selectArea logical, select area quantity and remove this dimension
 #' @param stringAsFactor logical, keep default factors from gams
 #'
 #' @importFrom dplyr %>% filter select .data
+#' @importFrom gamstransfer Container
 
 readSymbol <- function(x, symbol = NULL, selectArea = TRUE,
                        stringAsFactor = TRUE) {
 
   tDims <- c("ttot", "tall", "ttot2", "t", "thist", "tinit", "tcalib")
+
+  # read symbol from gdx file
+  if (is.character(x)) {
+    if (!file.exists(x)) {
+      stop("File not found: ", x)
+    }
+    x <- Container$new(x)
+  }
 
   # get gams Parameter, Variable or Set
   if (class(x)[1] == "Container") {

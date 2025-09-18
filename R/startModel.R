@@ -72,21 +72,23 @@ startModel <- function(path, runReporting = TRUE) {
 
   checkGamsSuccess(path)
 
-  plotSummary(path, NULL)
 
-  # sankey plots
-  try(showSankey(path, "hs", maxPeriodsInRow = 5))
-  if (!isTRUE(cfg[["ignoreShell"]])) {
-    try(showSankey(path, "bs", maxPeriodsInRow = 5))
-  }
-
-  if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
-    plotRefDeviation(path)
-    plotMatchingComparison(path)
-    plotSummary(path, c("loc", "typ"))
-  }
 
   if (isTRUE(runReporting)) {
+    plotSummary(path, NULL)
+
+    # sankey plots
+    try(showSankey(path, "hs", maxPeriodsInRow = 5))
+    if (!isTRUE(cfg[["ignoreShell"]])) {
+      try(showSankey(path, "bs", maxPeriodsInRow = 5))
+    }
+
+    if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
+      plotRefDeviation(path)
+      plotMatchingComparison(path)
+      plotSummary(path, c("loc", "typ"))
+    }
+
     try(reportMif(path))
   }
 

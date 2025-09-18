@@ -3,161 +3,164 @@
 #' read results from matching run and aggregate them spatially and temporally
 #' to the resolution of calibration runs
 #'
-#' This is a first implementation with many known issues/limitations:
-#' \itemize{
-#'  \item The temporal resolution is hard-coded.
-#'  \item It is assumed that the matching ran on European countries and is to be
-#'  aggregated to one EU27 region
-#'  \item The temporal aggregation of renovation flows is non-trivial: It is
-#'  generally possible that buildings can change states multiple time within one
-#'  aggregated time step but they can't be tracked through renovations
-#'  individually. Currently, we just assume the mean of renovations across all
-#'  years of an aggregated time step and adjust the zero flows to match the
-#'  stock. This procedure can lead to inconsistent and even negative flows. In
-#'  fact, aggregated stock and flows are inconsistent in the current version.
-#' }
+#' The temporal aggregation of renovation flows is non-trivial: It is generally
+#' possible that buildings can change states multiple time within one aggregated
+#' time step but they can't be tracked through renovations individually.
+#' Currently, we first assume the mean of renovations across all years of an
+#' aggregated time step. In a second step, we perform a renovation correction
+#' run with BRICK that minimises deviation from these mean flows and the stock
+#' subject to the stock balance and building shell and heating system life
+#' times. The correction assures consistency, mostly changing the zero flow that
+#' depends most on the temporal resolution. This renovation correction run is
+#' performed in a sub folder of the matching run.
 #'
 #' @author Robin Hasse
 #'
 #' @param path character, directory of matching folder
-#' @param outDir character, directory to save files in
+#' @param outDir character, directory to save calibration target files in
+#' @param calibConfig character, calibration config
 #' @param digits integer indicating the number of decimal places
+#' @param rmCorrectionRun logical, if \code{TRUE}, the run folder of the
+#'   renovation correction is eventually removed
+#' @returns named list with aggregated and corrected stock and flows
 #'
-#' @importFrom gamstransfer Container
-#' @importFrom utils write.table
+#' @importFrom utils write.table write.csv
 #' @importFrom dplyr .data %>% mutate filter select group_by across all_of
-#'   ungroup reframe group_modify
-#' @importFrom tidyr replace_na
+#'   ungroup reframe inner_join arrange summarise right_join
 #' @export
 
-createCalibrationTarget <- function(path, outDir, digits = 4) {
+createCalibrationTarget <- function(path,
+                                    calibConfig,
+                                    outDir = NULL,
+                                    digits = 4,
+                                    rmCorrectionRun = FALSE) {
 
-  # CONFIG ---------------------------------------------------------------------
-
-  periods <- c(2000, 2005, 2010, 2015, 2020)
-
-  dt <- data.frame(ttotAgg = periods, dt = c(NA, diff(periods)))
-
-  periodMap <- dt %>%
-    filter(!is.na(.data$dt)) %>%
-    group_by(.data$ttotAgg) %>%
-    reframe(ttot = seq(to = .data$ttotAgg, length.out = .data$dt))
+  # results have to be saved somewhere
+  if (is.null(outDir) && isTRUE(rmCorrectionRun)) {
+    stop("'rmCorrectionRun' can only be TRUE if you pass a 'outDir'.")
+  }
 
 
 
   # FUNCTIONS ------------------------------------------------------------------
 
-  relSSE <- function(x, y) {
+  # build mapping between matching and calibration periods
+  .buildPeriodMap <- function(cfgCalib, cfgMatching) {
+    periods <- cfgCalib$periods
+
+    dt <- data.frame(ttotAgg = periods, dt = c(NA, diff(periods)))
+
+    periodMap <- dt %>%
+      filter(!is.na(.data$dt)) %>%
+      group_by(.data$ttotAgg) %>%
+      reframe(ttot = seq(to = .data$ttotAgg, length.out = .data$dt))
+
+    missingPeriods <- setdiff(periodMap$ttot, cfgMatching$periods)
+    if (length(missingPeriods)) {
+      stop("The matching run ", path, "is missing the following periods: ",
+           paste(missingPeriods, collapse = ", "))
+    }
+
+    periodMap
+  }
+
+
+  # build mapping between matching and calibration regions
+  .buildRegionMap <- function(cfgCalib, cfgMatching) {
+    cfgRegions <- cfgCalib[["regions"]]
+
+    regionMap <- .findRegionMapping(cfgCalib[["regionmapping"]]) %>%
+      select(region = "CountryCode", regionAgg = "RegionCode") %>%
+      filter(.data$regionAgg %in% cfgRegions)
+
+    missingRegions <- setdiff(regionMap$region, cfgMatching$regions)
+    if (length(missingRegions)) {
+      stop("The matching run ", path, "is missing the following regions: ",
+           paste(missingRegions, collapse = ", "))
+    }
+
+    regionMap
+  }
+
+
+  .relSSE <- function(x, y) {
     if (all(x == y)) {
       return(0)
     }
     sum((x - y)^2) / sum(x^2)
   }
 
-  joinVar <- function(x, v, var, by = NULL, valueSuffix = NULL) {
-    dataVar <- v[[var]]
-    names(dataVar)[names(dataVar) == "value"] <- paste0(var, valueSuffix)
-    cols <- intersect(names(x), names(dataVar))
-    cols <- c(cols[!cols %in% by], by)
-    dplyr::left_join(x, dataVar, by = cols)
-  }
 
-
-  # find renovation transition closest to average renovation while satisfying
-  # stock balances
-  correctRenovation <- function(x, key, maxAttempts = 5, maxDeviation = 1E-4, tol = 1E-8) {
-
-    keyMsg <- paste(names(key), lapply(key[1, ], as.character),
-                    sep = " = ", collapse = ", ")
-
-    identityMatrix <- diag(nrow(x))
-
-    stockBal <- c("Prev", "Next")
-
-    constraintMatrix <- do.call(cbind, lapply(stockBal, function(constraint) {
-      stats::model.matrix(
-        stats::reformulate(paste0("state", constraint), intercept = FALSE),
-        data = x
-      )
-    }))
-
-    constraintRhs <- do.call(c, lapply(stockBal, function(constraint) {
-      rhs <- unique(x[paste0(c("state", "rhs"), constraint)])
-      setNames(rhs[[2]], paste0("state", constraint, rhs[[1]]))
-    }))
-
-    attempt <- 0
-    errors <- c()
-
-    for (i in order(constraintRhs, decreasing = TRUE)) {
-
-      attempt <- attempt + 1
-
-      # remove one constraint such that remaining constraints are independent
-      constraintsIndep <- names(constraintRhs)[-i]
-      constraintRhsIndep <- constraintRhs[constraintsIndep]
-      constraintMatrixIndep <- constraintMatrix[, constraintsIndep]
-
-      # solve
-      lb <- if (attempt < maxAttempts / 2) 0 else -tol
-      r <- tryCatch(
-        quadprog::solve.QP(Dmat = identityMatrix,
-                           dvec = x$estimate,
-                           Amat = cbind(constraintMatrixIndep, identityMatrix),
-                           bvec = c(constraintRhsIndep, rep(lb, nrow(x))),
-                           meq = length(constraintRhsIndep)),
-        error = conditionMessage
-      )
-
-      if (length(r) == 1) {
-        errors <- c(errors, r)
-        if (attempt >= maxAttempts) {
-          stop("Unable to solve optimisation after ", attempt,
-               " attempts for this stock subset:\n  ", keyMsg, "\n",
-               "Solving errors:\n  ", paste(errors, collapse = "\n  "),
-               call. = FALSE)
-
-        }
-      } else {
-        break
-      }
+  .dropZero <- function(x, col) {
+    if (col %in% names(x)) {
+      x <- x[x[[col]] != "0", ]
     }
-
-    # check how far the optimisation result is from the estimate
-    deviation <- relSSE(x$estimate, r$solution)
-    if (deviation > maxDeviation) {
-      warning("Optimisation result is far away from estimate ",
-              "for this stock subset:\n  ", keyMsg, "\n",
-              "Deviation: ", signif(deviation, 2), "\n")
-    }
-
-    x$value <- pmax(0, r$solution)
     x
   }
 
 
+  .calcMaxDeviation <- function(v, vCorrected, flows, startyear) {
+    lapply(setNames(nm = names(v)), function(var) {
+      inner_join(v[[var]], vCorrected[[var]],
+                 by = setdiff(names(v[[var]]), "value"),
+                 suffix = c("Uncorrected", "Corrected")) %>%
+        .dropZero("bsr") %>%
+        .dropZero("hsr") %>%
+        filter(if (var %in% flows) .data$ttot >= startyear else TRUE) %>%
+        group_by(across(-any_of(c("bs", "hs", "bsr", "hsr", "valueCorrected", "valueUncorrected")))) %>%
+        summarise(relSSE = .relSSE(.data$valueCorrected, .data$valueUncorrected),
+                  .groups = "drop") %>%
+        ungroup() %>%
+        arrange(-.data$relSSE) %>%
+        filter(row_number() <= 3)
+    })
+  }
 
-  # READ DATA ------------------------------------------------------------------
 
-  m <- Container$new(file.path(path, "output.gdx"))
 
-  dtVin <- readSymbol(m, "p_dtVin") %>%
-    rename(ttotAgg = "ttot") %>%
-    right_join(periodMap, by = "ttotAgg") %>%
-    group_by(across(all_of(c("ttotAgg", "vin")))) %>%
-    summarise(dtVin = sum(.data$value), .groups = "drop")
+  # CONFIG ---------------------------------------------------------------------
 
-  renAllowed <- readSymbol(m, "renAllowed")
+  cfgCalib <- readConfig(calibConfig)
+  cfgMatching <- readConfig(file.path(path, "config", "config_COMPILED.yaml"), readDirect = TRUE)
+
+  periodMap <- .buildPeriodMap(cfgCalib, cfgMatching)
+  regionMap <- .buildRegionMap(cfgCalib, cfgMatching)
+
+
+
+
+
+  # CONFIG ---------------------------------------------------------------------
+
+  cfgCalib <- readConfig(calibConfig)
+  cfgMatching <- readConfig(file.path(path, "config", "config_COMPILED.yaml"), readDirect = TRUE)
+
+  periodMap <- .buildPeriodMap(cfgCalib, cfgMatching)
+  regionMap <- .buildRegionMap(cfgCalib, cfgMatching)
+
+
+
+  # READ MATCHING --------------------------------------------------------------
+
+  matchingGdx <- file.path(path, "output.gdx")
+  sequentialRen <- isTRUE(cfgMatching$switches$SEQUENTIALREN)
 
   vars <- c(
     stock = "v_stock",
     construction = "v_construction",
-    renovation = "v_renovation",
     demolition = "v_demolition"
   )
-  flows <- c("construction", "renovation", "demolition")
 
-  v <- lapply(vars, readSymbol, x = m, selectArea = FALSE)
+  if (sequentialRen) {
+    vars[["renovationHS"]] <- "v_renovationHS"
+    vars[["renovationBS"]] <- "v_renovationBS"
+  } else {
+    vars[["renovation"]] <- "v_renovation"
+  }
+
+  flows <- setdiff(names(vars), "stock")
+
+  v <- lapply(vars, readSymbol, x = matchingGdx, selectArea = FALSE)
 
 
 
@@ -166,7 +169,7 @@ createCalibrationTarget <- function(path, outDir, digits = 4) {
   ## temporal ====
 
   v$stock <- v$stock %>%
-    filter(.data$ttot %in% periods)
+    filter(.data$ttot %in% cfgCalib$periods)
 
   v[flows] <- lapply(v[flows], function(flow) {
     flow %>%
@@ -177,63 +180,90 @@ createCalibrationTarget <- function(path, outDir, digits = 4) {
       rename(ttot = "ttotAgg")
   })
 
-  # recalculate zero renovation flows that fulfil the stock balance
-  v$renovation <- v$renovation %>%
-    rename(renovation = "value") %>%
-    semi_join(renAllowed, by = c("bs", "hs", "bsr", "hsr")) %>%
-    left_join(dt, by = c(ttot = "ttotAgg")) %>%
-    left_join(dtVin, by = c(ttot = "ttotAgg", "vin")) %>%
-    # ttot are the aggregated periods from here on
-    mutate(across(all_of(c("bs", "hs", "bsr", "hsr")), as.character),
-           .bsr = ifelse(.data$bsr == "0", .data$bs, .data$bsr),
-           .hsr = ifelse(.data$hsr == "0", .data$hs, .data$hsr),
-           statePrev = paste(.data$bs, .data$hs),
-           stateNext = paste(.data$.bsr, .data$.hsr),
-           dtVin = replace_na(.data$dtVin, 0),
-           ttotPrev = .data$ttot - .data$dt,
-           untouched = .data$bsr == "0" & .data$hsr == "0") %>%
-    joinVar(v, "stock", by = c(.bsr = "bs", .hsr = "hs"), valueSuffix = "Next") %>%
-    joinVar(v, "stock", by = c(ttotPrev = "ttot"), valueSuffix = "Prev") %>%
-    joinVar(v, "construction") %>%
-    joinVar(v, "demolition", by = c(.bsr = "bs", .hsr = "hs")) %>%
-    replace_na(list(stockPrev = 0)) %>%
-    mutate(rhsPrev = .data$stockPrev / .data$dt + .data$construction * .data$dtVin / .data$dt,
-           rhsNext = .data$stockNext / .data$dt + .data$demolition) %>%
-    group_by(across(all_of(setdiff(names(v$renovation), c("hsr", "value"))))) %>%
-    mutate(estimate = ifelse(.data$untouched,
-                             .data$rhsPrev - sum(.data$renovation[!.data$untouched]),
-                             .data$renovation)) %>%
-    group_by(across(all_of(c("qty", "vin", "region", "loc", "typ", "inc", "ttot")))) %>%
-    group_modify(correctRenovation) %>%
-    ungroup() %>%
-    select(all_of(names(v$renovation)))
 
   ## spatial ====
 
   v <- lapply(v, function(x) {
     x %>%
+      right_join(regionMap, by = "region") %>%
       group_by(across(-all_of(c("region", "value")))) %>%
       summarise(value = round(sum(.data$value), digits)) %>%
-      mutate(region = "EUR", .before = "loc")
+      rename(region = "regionAgg") %>%
+      select(all_of(names(x))) # reorder columns
   })
+
+
+  # WRITE UNCORRECTED FILES ----------------------------------------------------
+
+  # aggregation folder in matching run path
+  outputFolder <- file.path(path, "aggregationForCalibration")
+  if (!dir.exists(outputFolder)) {
+    dir.create(outputFolder)
+  }
+
+  uncorrectedFileFolder <- file.path(outputFolder, "uncorrectedAggregation")
+  dir.create(uncorrectedFileFolder)
+
+  for (var in names(v)) {
+    write.csv(x = v[[var]],
+              file = file.path(uncorrectedFileFolder, paste0(var, ".csv")),
+              row.names = FALSE)
+  }
+
+
+
+  # CORRECT RENOVATION ---------------------------------------------------------
+
+  # create run config based on calibration config
+  cfgCalib[["switches"]][["RUNTYPE"]] <- "renCorrect"
+  cfgCalib[["switches"]][["CALIBRATIONMETHOD"]] <- NULL
+  cfgCalib[["title"]] <- paste(basename(path), "for", calibConfig, sep = "_")
+  cfgCalib[["matchingRun"]] <- normalizePath(path)
+
+  runPath <- initModel(config = cfgCalib,
+                       outputFolder = outputFolder,
+                       runReporting = FALSE,
+                       sendToSlurm = FALSE)
+
+  correctionGdx <- file.path(runPath, "output.gdx")
+  vCorrected <- lapply(vars, readSymbol, x = correctionGdx, selectArea = FALSE)
+
+  deviation <- .calcMaxDeviation(v, vCorrected, flows, cfgCalib$startyear)
+  message("Largest deviations from renovation correction:")
+  print(deviation)
 
 
 
   # OUTPUT ---------------------------------------------------------------------
 
-  if (!dir.exists(outDir)) {
-    dir.create(outDir)
-  }
-
-  header <- paste("* matching run:", path)
-  lapply(names(v), function(var) {
-    outFile <- file.path(outDir, paste0("f_", var, "CalibTarget.cs4r"))
+  # write files into aggregation subfolder
+  header <- c(paste0("* matching run: ", path),
+              paste0("* calibration config: ", calibConfig),
+              paste0("* correction run", if (rmCorrectionRun) " (deleted)", ": ", runPath))
+  outFiles <- lapply(names(vCorrected), function(var) {
+    outFile <- file.path(runPath, paste0("f_", var, "CalibTarget.cs4r"))
     writeLines(header, outFile)
-    write.table(v[[var]], outFile, append = TRUE, quote = FALSE, sep = ",",
+    write.table(vCorrected[[var]], outFile, append = TRUE, quote = FALSE, sep = ",",
                 row.names = FALSE, col.names = FALSE)
+    outFile
   })
 
-  message("Calibration targets written to ", outDir, ".\n")
+  # copy files to given directory
+  if (!is.null(outDir)) {
+    if (!dir.exists(outDir)) {
+      dir.create(outDir)
+    }
+    file.copy(outFiles, outDir, overwrite = TRUE)
+    message("Calibration targets written to ", outDir, ".\n")
+  }
 
-  return(invisible(v))
+  # remove run folder
+  if (rmCorrectionRun) {
+    unlink(runPath, recursive = TRUE, force = TRUE)
+    message("Renovation correction run folder removed.")
+  }
+
+
+
+  return(invisible(vCorrected))
 }

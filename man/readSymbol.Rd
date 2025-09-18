@@ -7,7 +7,7 @@
 readSymbol(x, symbol = NULL, selectArea = TRUE, stringAsFactor = TRUE)
 }
 \arguments{
-\item{x}{gams Container, Parameter, Variable or Set}
+\item{x}{gams Container, Parameter, Variable or Set or path to gdx}
 
 \item{symbol}{character, name of gams object if x is a Container else NULL}
 

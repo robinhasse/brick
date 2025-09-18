@@ -54,6 +54,15 @@ v_construction.fx(qty,bs,hs,region,loc,typ,inc,t) = 0;
 v_demolition.fx(qty,bs,hs,vin,region,loc,typ,inc,t) = 0;
 $endif.fixedBuildings
 
+
+*** renovation correction
+
+$ifthen.renCorrect "%RUNTYPE%" == "renCorrect"
+v_stock.fx(qty,bs,hs,vin,region,loc,typ,inc,tinit) = p_stock(qty,bs,hs,vin,region,loc,typ,inc,tinit);
+v_construction.fx(qty,bs,hs,region,loc,typ,inc,t) = p_construction(qty,bs,hs,region,loc,typ,inc,t);
+$endif.renCorrect
+
+
 *** temp
 
 v_slackRenBS.lo(bs,vin,subs,ttot) = 0;
