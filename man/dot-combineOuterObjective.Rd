@@ -31,6 +31,11 @@ Should be either 'f' or 'fA'.}
 
 \item{agg}{character, dimension(s) to aggregate the data over}
 }
+\value{
+data frame with the outer objective computed from all calibration variables
+  stored in column \code{f} or \code{fA}.
+  If applicable, joined with previously computed value for \code{f}.
+}
 \description{
 Read in brick results and compute the total outer objective function
 by combining resuls from construction and renovation.

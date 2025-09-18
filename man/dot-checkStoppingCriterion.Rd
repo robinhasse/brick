@@ -20,6 +20,9 @@
 
 \item{zeroFlow}{logical, whether renovation flow data should be filtered for zero flows}
 }
+\value{
+logical, whether the stopping criterion is satisfied for all subsets
+}
 \description{
 Returns \code{TRUE} if and only if both the absolute and the relative stopping criterion
 are satisfied for all subsets.

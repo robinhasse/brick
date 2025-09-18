@@ -11,6 +11,9 @@
 
 \item{target}{numeric, historic values}
 }
+\value{
+numeric, negative of the log likelihood
+}
 \description{
 Calculate log-Likelihood of historical values
 }

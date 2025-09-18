@@ -9,6 +9,9 @@
 \arguments{
 \item{mInput}{Gamstransfer container with the input data}
 }
+\value{
+data frame with required dimensions for the outer objective
+}
 \description{
 Initialize the data frame for the objective function value
 }

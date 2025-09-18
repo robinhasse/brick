@@ -11,6 +11,9 @@
 
 \item{target}{numeric, historic values}
 }
+\value{
+numeric, sum of squared differences
+}
 \description{
 Calculate sum of squared differences between results and historic values
 }

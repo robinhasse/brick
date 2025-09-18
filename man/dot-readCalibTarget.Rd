@@ -11,6 +11,9 @@
 
 \item{mInput}{gamstransfer container with the input.gdx}
 }
+\value{
+list of data frames with calibration targets for each variable
+}
 \description{
 Read calibration targets from input folder
 }

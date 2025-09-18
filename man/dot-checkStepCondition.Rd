@@ -18,9 +18,13 @@ Return only data combinations for which it does not hold.}
 \item{stepSizeParams}{data frame with step size and related parameters}
 
 \item{outerObjective}{data frame containing the value of the outer objective function.
-Needs to contain the column \code{f} and the column specified by \code{varName}.}
+Needs to contain the columns \code{f} and \code{fA}.}
 
 \item{sensitivityArmijo}{numeric, parameter of the Armijo condition specifying how strict the condition is}
+}
+\value{
+data frame of combinations that satisfy neither the Armijo condition
+  nor the local minimum criterion in the objective function
 }
 \description{
 Check if the Armijo condition holds or if a local minimum of the outer objective has been identified.

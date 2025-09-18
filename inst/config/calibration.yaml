@@ -18,10 +18,4 @@ switches:
   CALIBRATIONMETHOD: logit
   FIXEDBUILDINGS: TRUE
   SEQUENTIALREN: TRUE
-# parameters for calibration
-calibrationParameters:
-  stepSizeInit: 80
-  iterations: 20
-  iterationsStepSize: 20
-  sensitivityArmijo: 0.04
 ...

@@ -15,6 +15,9 @@
 
 \item{valueNames}{character, names of the columns containing the values to aggregate}
 }
+\value{
+data frame with aggregated data
+}
 \description{
 Aggregate data across given dimensions by a given function
 }

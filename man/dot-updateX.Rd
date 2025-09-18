@@ -7,7 +7,7 @@
 .updateX(optimVar, deviation, stepSizeParams, dims, nameTo = "x")
 }
 \arguments{
-\item{optimVar}{data frame with the optimization variable 'x' and optionally and 'xA'}
+\item{optimVar}{data frame with the optimization variable 'x' and optionally 'xA'}
 
 \item{deviation}{data frame with deviation and adjustment term 'd'}
 
@@ -16,6 +16,9 @@
 \item{dims}{character, dimensions of the optimization variable}
 
 \item{nameTo}{character, optimization variable to write the result to}
+}
+\value{
+data frame with the updated optimization variable \code{x} or \code{xA}
 }
 \description{
 Adjust 'x' by adding the adjustment term 'd' multiplied by the step size

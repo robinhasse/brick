@@ -11,6 +11,9 @@
 
 \item{zeroFlow}{logical, whether data should be filtered for the zero flow}
 }
+\value{
+data frame with the same dimensions as the outer objective, aggregated by computing the sum of the squares
+}
 \description{
 Compute the sum of the squares for a calibration target
 }

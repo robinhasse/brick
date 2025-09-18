@@ -11,6 +11,9 @@
 
 \item{stepSizeParams}{data frame with the parameters of the step size adaptation procedure}
 }
+\value{
+data frame with step size and related paramters, updated if applicable.
+}
 \description{
 If for any combination the condition is still not satisfied:
 Set the step size to zero and print a warning if no descent has been detected.

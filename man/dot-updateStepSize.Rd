@@ -23,6 +23,10 @@
 
 \item{lastIteration}{logical, if this is the last iteration of the step size adaptation}
 }
+\value{
+data frame with the current step size and all related parameters.
+  The step size and the minimum outer objective and minimum step size are updated for selected combinations only.
+}
 \description{
 Update the step size for the selected combinations
 }

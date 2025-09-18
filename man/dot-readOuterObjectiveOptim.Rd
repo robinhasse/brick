@@ -14,6 +14,10 @@
 \item{varName}{character, column name in \code{outerObjective} to write the result to.
 Should be either 'f' or 'fA'.}
 }
+\value{
+data frame with outer objective read from Gams results stored in column \code{f} or \code{fA}.
+  If applicable, joined with previously computed value for \code{f}.
+}
 \description{
 Only applicable for optimization calibration.
 }

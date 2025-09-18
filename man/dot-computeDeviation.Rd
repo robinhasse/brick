@@ -2,7 +2,7 @@
 % Please edit documentation in R/runCalibration.R
 \name{.computeDeviation}
 \alias{.computeDeviation}
-\title{Compute the deviation between historic data and Brick results.
+\title{Compute the deviation between historic data and Brick results as the log ratio.
 Then compute the adjustment term for the calibration \code{d}}
 \usage{
 .computeDeviation(
@@ -36,7 +36,10 @@ Then compute the adjustment term for the calibration \code{d}}
 
 \item{calibResolution}{character, resolution of the calibration for renovation flows}
 }
+\value{
+data frame containing the deviation from the target \code{dev} and the adjustment term \code{d}.
+}
 \description{
-Compute the deviation between historic data and Brick results.
+Compute the deviation between historic data and Brick results as the log ratio.
 Then compute the adjustment term for the calibration \code{d}
 }

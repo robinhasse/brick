@@ -15,6 +15,9 @@
 
 \item{dims}{list of characters, dimensions of data}
 }
+\value{
+gamstransfer container with the modified input gdx (invisibly)
+}
 \description{
 Add the calibration targets to the input gdx
 }

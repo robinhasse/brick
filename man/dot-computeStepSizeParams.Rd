@@ -9,6 +9,9 @@
 \arguments{
 \item{deviation}{data frame with deviation and adjustment term 'd'}
 }
+\value{
+data frame with step size adaptation parameters \code{delta} and \code{phiDeriv}.
+}
 \description{
 Compute the step size adaptation paramters delta and phi-derivative
 }

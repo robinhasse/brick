@@ -15,6 +15,9 @@ set the step size to the value yielding the current minimum.}
 
 \item{outerObjective}{data frame containing the value of the outer objective function.}
 }
+\value{
+data frame with the updated step size where applicable and allrelevant step size parameters
+}
 \description{
 Determine the so far minimum step size.
 If the outerObjective is increasing again after a decrease,

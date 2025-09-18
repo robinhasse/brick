@@ -19,6 +19,9 @@
 
 \item{agg}{character, dimension(s) to aggregate the data over}
 }
+\value{
+data frame with the outer objective computed from one calibration variable
+}
 \description{
 In case of the logit calibration, this outer objective function is virtual:
 We are not actually performing an optimization algorithm on this function,
