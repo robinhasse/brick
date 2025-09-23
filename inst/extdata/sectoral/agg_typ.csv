@@ -4,3 +4,5 @@ dimGranularity,dim,dimAgg,subsector
 1,Com,Com,Com
 2,SFH,SFH,Res
 2,MFH,MFH,Res
+3,SFH,Res,Res
+3,MFH,Res,Res

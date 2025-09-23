@@ -1,3 +1,4 @@
 granularity,vin,typ,loc
 onlyRes,,2,
 lowGran,1,1,0
+lowGran_onlyRes,1,3,0
