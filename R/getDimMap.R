@@ -11,7 +11,12 @@ getDimMap <- function(dim, granularity = NULL) {
   dimGranularity <- if (is.null(granularity)) {
     NA
   } else {
-    .pick(.getMapping("granularity.csv"), granularity = granularity)[[dim]]
+    granularities <- .getMapping("granularity.csv")
+    if (!granularity %in% granularities$granularity) {
+      stop("The granularity '", granularity,
+           "' is not defined in the granularity mapping.")
+    }
+    .pick(granularities, granularity = granularity)[[dim]]
   }
   if (is.na(dimGranularity)) {
     map <- .getMapping("dim")[[dim]]
