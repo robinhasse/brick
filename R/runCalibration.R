@@ -633,7 +633,7 @@ runCalibrationOptim <- function(path,
   .namedLapply(names(dims), function(var) {
     file <- paste0("f_", var, "CalibTarget.cs4r")
     readInput(file, c("qty", dims[[var]], "target")) %>%
-      toModelResolution(mInput, value = "target") %>%
+      toModelResolution(mInput, value = "target", unfilteredDims = "ttot") %>%
       mutate(across(-all_of(c("target", "ttot")), as.character))
   })
 }

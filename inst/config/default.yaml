@@ -323,5 +323,5 @@ calibrationParameters:
   deltaDiffQuotient: 0.1
   threshold:
     abs: 10
-    rel: 0.01
+    rel: 0.005
 ...
