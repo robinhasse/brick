@@ -16,6 +16,10 @@ needs to contain the columns \code{fPrev} and \code{f}}
 
 \item{stepSizeInit}{numeric, lower bound for the initial step size}
 }
+\value{
+data frame with the initial step size and initial values for the minimum outer objective
+  and corresponding step size
+}
 \description{
 Compute the initial step size of the step size iteration algorithm
 }

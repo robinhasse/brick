@@ -70,7 +70,7 @@ startModel <- function(path, runReporting = TRUE) {
             gamsCall = cfg[["gamsCall"]])
   }
 
-  checkGamsSuccess(path)
+  checkGamsSuccess(path, isCalibration = cfg[["switches"]][["RUNTYPE"]] == "calibration")
 
 
 

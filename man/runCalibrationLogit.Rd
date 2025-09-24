@@ -8,7 +8,7 @@ runCalibrationLogit(
   path,
   parameters,
   tcalib,
-  calibTarget,
+  dims,
   gamsOptions = NULL,
   switches = NULL,
   fileName = "main.gms",
@@ -22,7 +22,7 @@ runCalibrationLogit(
 
 \item{tcalib}{numeric, time periods to calibrate on}
 
-\item{calibTarget}{list of data frames of calibration targets}
+\item{dims}{list of characters with dimensions of stock and flow variables}
 
 \item{gamsOptions}{named list of GAMS options}
 
@@ -38,5 +38,5 @@ The adjustment term is computed as if Brick were a pure logit model:
 }
 \details{
 Here the armijo step size algorithm may not be applicable; if this is the
-case, a heuristic step size adaptation is applied.
+case, the first local minimum objective is used.
 }

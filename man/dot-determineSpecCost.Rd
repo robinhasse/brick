@@ -17,7 +17,7 @@
 )
 }
 \arguments{
-\item{optimVar}{data frame with the optimization variable 'x' and optionally 'xMin' and 'xA'}
+\item{optimVar}{data frame with the optimization variable 'x' and optionally 'xA'}
 
 \item{xinit}{data frame with initial specific intangible costs}
 
@@ -28,13 +28,16 @@
 \item{flow}{character, type of flow, either construction or renovation}
 
 \item{varName}{character, optimization variable to calculate specific costs from.
-Should be one of 'x', 'xA' or 'xMin'.}
+Should be either 'x' or 'xA'.}
 
 \item{vinExists}{data frame of vintages that exist for each time period}
 
 \item{vinCalib}{data frame with vintages that exist in calibration periods}
 
 \item{shiftIntang}{logical indicating whether intangible costs should be shifted to positive range}
+}
+\value{
+data frame with specific intangible costs for the given flow
 }
 \description{
 Assemble specific costs from initial specific costs and the optimization variable

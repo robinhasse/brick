@@ -20,6 +20,9 @@
 
 \item{flow}{character, either 'construction' or 'renovation'}
 }
+\value{
+data frame with the adjustment term \code{d}.
+}
 \description{
 Read in objective function values for slightly shifted optimization variables
 and compute the gradient of the objective function.

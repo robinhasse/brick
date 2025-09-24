@@ -35,7 +35,7 @@
 \item{vinCalib}{data frame with vintages that exist in calibration periods}
 
 \item{varName}{character, optimization variable to calculate specific costs from.
-Needs to be a column of optimVarCon and optimVarRen, should be one of 'x', 'xA' or 'xMin'.}
+Needs to be a column of optimVarCon and optimVarRen, should be either 'x' or 'xA'.}
 
 \item{shiftIntang}{logical indicating whether intangible costs should be shifted to positive range}
 }

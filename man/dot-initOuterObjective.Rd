@@ -4,12 +4,13 @@
 \alias{.initOuterObjective}
 \title{Initialize the data frame for the objective function value}
 \usage{
-.initOuterObjective(mInput, tcalib)
+.initOuterObjective(mInput)
 }
 \arguments{
 \item{mInput}{Gamstransfer container with the input data}
-
-\item{tcalib}{numeric, calibration time periods}
+}
+\value{
+data frame with required dimensions for the outer objective
 }
 \description{
 Initialize the data frame for the objective function value

@@ -42,7 +42,8 @@ and a functional evaluation of the deviation represents the objective function \
 
 Brick is run iteratively and from each run, an adjustment term \code{d} is computed.
 The optimization variable is adjusted according to \code{x = x + stepSize * d}, where
-the step size is determined according to the Armijo step size adaptation algorithm.
+the step size is determined according to the Armijo step size adaptation algorithm,
+supplemented with a heuristic that picks the step size resulting in the (locally) minimum outer objective.
 
 The implementation is centered around the following objects:
 \itemize{

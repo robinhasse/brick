@@ -2,13 +2,16 @@
 % Please edit documentation in R/runCalibration.R
 \name{.createListWithEmptyDf}
 \alias{.createListWithEmptyDf}
-\title{Create a list of empty data frames}
+\title{Create a list of empty data frames with given names}
 \usage{
 .createListWithEmptyDf(nm)
 }
 \arguments{
 \item{nm}{character, names of the empty data frames}
 }
+\value{
+list of empty data frames
+}
 \description{
-Create a list of empty data frames
+Create a list of empty data frames with given names
 }

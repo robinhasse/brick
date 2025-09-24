@@ -316,9 +316,12 @@ gamsOptions:
 
 calibrationParameters:
   stepSizeInit: 80
-  iterations: 50
-  iterationsArmijo: 50
-  sensitivityArmijo: 0.01
+  iterations: 20
+  iterationsStepSize: 20
+  sensitivityArmijo: 0.04
   stepReduction: 0.5
   deltaDiffQuotient: 0.1
+  threshold:
+    abs: 10
+    rel: 0.005
 ...

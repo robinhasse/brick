@@ -17,6 +17,9 @@
 
 \item{dims}{character, dimensions of the optimization variable}
 }
+\value{
+data frame with the optimzation variable which was updated for the desired combinations
+}
 \description{
 Update the optimization variable 'x' for selected combinations only
 }

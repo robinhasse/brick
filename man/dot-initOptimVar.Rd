@@ -15,6 +15,9 @@
 
 \item{renAllowed}{data frame with allowed renovation transitions}
 }
+\value{
+data frame of desired dimension with x = 0 (column to contain the optimzation variable)
+}
 \description{
 Initialize the data frame for the optimization variables
 }

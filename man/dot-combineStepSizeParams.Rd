@@ -7,7 +7,10 @@
 .combineStepSizeParams(deviation)
 }
 \arguments{
-\item{deviation}{named list of data frames with deviation and adjustmeht term 'd' from all calibration variables}
+\item{deviation}{named list of data frames with deviation and adjustment term \code{d} from all calibration variables}
+}
+\value{
+data frame with step size adaptation parameters computed from all calibration variables
 }
 \description{
 Combine the step size paramters delta and phi-derivative from construction and renovation flows

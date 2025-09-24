@@ -10,18 +10,12 @@ regionmapping: ["regionmappingEU27asOne.csv", "mredgebuildings"]
 regions: EUR
 ignoreShell: TRUE
 statusQuoPreference: 0
-reportingTemplate: ignoreShell_onlyRes
+reportingTemplate: lowGran_ignoreShell
 ltEternalShare: 0.05
 # switches
 switches:
   RUNTYPE: calibration
   CALIBRATIONMETHOD: logit
   FIXEDBUILDINGS: TRUE
-  # CALIBRESOLUTION: identRepl
-# parameters for calibration
-calibrationParameters:
-  stepSizeInit: 80
-  iterations: 20
-  iterationsArmijo: 20
-  sensitivityArmijo: 0.04
+  SEQUENTIALREN: TRUE
 ...

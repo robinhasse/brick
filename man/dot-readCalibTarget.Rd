@@ -4,12 +4,15 @@
 \alias{.readCalibTarget}
 \title{Read calibration targets from input folder}
 \usage{
-.readCalibTarget(dims, tcalib)
+.readCalibTarget(dims, mInput)
 }
 \arguments{
 \item{dims}{named character, dimensions of each variable of the calibration}
 
-\item{tcalib}{numeric, calibration time periods}
+\item{mInput}{gamstransfer container with the input.gdx}
+}
+\value{
+list of data frames with calibration targets for each variable
 }
 \description{
 Read calibration targets from input folder

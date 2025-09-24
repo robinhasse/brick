@@ -4,7 +4,13 @@
 \alias{.updateStepSize}
 \title{Update the step size for the selected combinations}
 \usage{
-.updateStepSize(totalStep, stepSizeParams, outerObjective, stepReduction)
+.updateStepSize(
+  totalStep,
+  stepSizeParams,
+  outerObjective,
+  stepReduction,
+  lastIteration
+)
 }
 \arguments{
 \item{totalStep}{data frame with combinations to perform the adjustment ot the step size on}
@@ -14,6 +20,12 @@
 \item{outerObjective}{data frame containing the value of the outer objective function.}
 
 \item{stepReduction}{numeric, factor applied to stepSize to reduce the step size. Should be < 1.}
+
+\item{lastIteration}{logical, if this is the last iteration of the step size adaptation}
+}
+\value{
+data frame with the current step size and all related parameters.
+  The step size and the minimum outer objective and minimum step size are updated for selected combinations only.
 }
 \description{
 Update the step size for the selected combinations
