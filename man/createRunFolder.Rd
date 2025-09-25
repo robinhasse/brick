@@ -13,15 +13,15 @@ createRunFolder(
 )
 }
 \arguments{
-\item{path}{character vector, containing}
+\item{path}{character vector, containing the path(s) to the folder(s) to be created.}
 
 \item{config}{list with run configuration}
 
-\item{overwrite}{logical; Should exiting folders be overwritten?}
+\item{overwrite}{logical, should existing folders be overwritten?}
 
-\item{recursive}{logical; Should exiting folders be overwritten?}
+\item{recursive}{logical, should elements of the path other than the last be created?}
 
-\item{showWarnings}{logical; Should exiting folders be overwritten?}
+\item{showWarnings}{logical, should a warning on not created paths be shown?}
 }
 \description{
 Create a folder for the model to run in and copy required gams files there.

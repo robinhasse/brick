@@ -2,11 +2,11 @@
 #'
 #' Create a folder for the model to run in and copy required gams files there.
 #'
-#' @param path character vector, containing
+#' @param path character vector, containing the path(s) to the folder(s) to be created.
 #' @param config list with run configuration
-#' @param overwrite logical; Should exiting folders be overwritten?
-#' @param recursive logical; Should exiting folders be overwritten?
-#' @param showWarnings logical; Should exiting folders be overwritten?
+#' @param overwrite logical, should existing folders be overwritten?
+#' @param recursive logical, should elements of the path other than the last be created?
+#' @param showWarnings logical, should a warning on not created paths be shown?
 #'
 #' @author Robin Hasse
 #'

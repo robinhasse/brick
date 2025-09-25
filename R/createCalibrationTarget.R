@@ -128,18 +128,6 @@ createCalibrationTarget <- function(path,
 
 
 
-
-
-  # CONFIG ---------------------------------------------------------------------
-
-  cfgCalib <- readConfig(calibConfig)
-  cfgMatching <- readConfig(file.path(path, "config", "config_COMPILED.yaml"), readDirect = TRUE)
-
-  periodMap <- .buildPeriodMap(cfgCalib, cfgMatching)
-  regionMap <- .buildRegionMap(cfgCalib, cfgMatching)
-
-
-
   # READ MATCHING --------------------------------------------------------------
 
   matchingGdx <- file.path(path, "output.gdx")
