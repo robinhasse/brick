@@ -836,7 +836,7 @@ runCalibrationOptim <- function(path,
       )),
       "bothZero" ~ 0
     )) %>%
-    select(dims, "dev", "d")
+    select(dims, "dCase", "dev", "d")
 }
 
 #' Compute the descent direction from Brick results
