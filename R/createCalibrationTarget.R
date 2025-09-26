@@ -46,7 +46,7 @@ createCalibrationTarget <- function(path,
 
   # build mapping between matching and calibration periods
   .buildPeriodMap <- function(cfgCalib, cfgMatching) {
-    periods <- cfgCalib$periods
+    periods <- cfgCalib$calibperiods
 
     dt <- data.frame(ttotAgg = periods, dt = c(NA, diff(periods)))
 
@@ -115,18 +115,6 @@ createCalibrationTarget <- function(path,
         filter(row_number() <= 3)
     })
   }
-
-
-
-  # CONFIG ---------------------------------------------------------------------
-
-  cfgCalib <- readConfig(calibConfig)
-  cfgMatching <- readConfig(file.path(path, "config", "config_COMPILED.yaml"), readDirect = TRUE)
-
-  periodMap <- .buildPeriodMap(cfgCalib, cfgMatching)
-  regionMap <- .buildRegionMap(cfgCalib, cfgMatching)
-
-
 
 
 
@@ -217,7 +205,7 @@ createCalibrationTarget <- function(path,
   # create run config based on calibration config
   cfgCalib[["switches"]][["RUNTYPE"]] <- "renCorrect"
   cfgCalib[["switches"]][["CALIBRATIONMETHOD"]] <- NULL
-  cfgCalib[["title"]] <- paste(basename(path), "for", calibConfig, sep = "_")
+  cfgCalib[["title"]] <- paste(basename(path), "for", basename(calibConfig), sep = "_")
   cfgCalib[["matchingRun"]] <- normalizePath(path)
 
   runPath <- initModel(config = cfgCalib,
