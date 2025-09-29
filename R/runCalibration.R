@@ -829,11 +829,9 @@ runCalibrationOptim <- function(path,
     mutate(d = case_match(
       .data$dCase,
       "standard" ~ log(.data$dev),
-      "oneZero" ~ (.data$value - .data$target) * (0.5 * abs(.data$intangible) + ifelse(
-        .data$intangible <= 1E-6,
-        0.1 * .data$tangible,
-        0
-      )),
+      "oneZero" ~ (.data$value - .data$target) * ifelse(abs(.data$intangible) > 1E-6,
+                                                        0.5 * abs(.data$intangible),
+                                                        0.1 * .data$tangible),
       "bothZero" ~ 0
     )) %>%
     select(dims, "dCase", "dev", "d")
