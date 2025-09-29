@@ -2,18 +2,21 @@
 % Please edit documentation in R/helpers.R
 \name{.pick}
 \alias{.pick}
-\title{Pick lines from data.frame by indentifiers}
+\title{Pick lines from data.frame by identifiers}
 \usage{
-.pick(x, ...)
+.pick(x, ..., .colsMustExist = TRUE)
 }
 \arguments{
 \item{x}{data.frame}
 
 \item{...}{<column> = <selectionElement>}
+
+\item{.colsMustExist}{logical, if \code{TRUE}, an error is thrown for missing
+columns}
 }
 \value{
 data.frame with filtered rows without identifier columns
 }
 \description{
-Pick lines from data.frame by indentifiers
+Pick lines from data.frame by identifiers
 }
