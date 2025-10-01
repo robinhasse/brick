@@ -21,14 +21,18 @@
 checkGamsSuccess <- function(path, silent = FALSE) {
 
   .extractGdxPath <- function(lines, pattern) {
-    sub(paste0(".*", pattern, "\\s"), "", lines)
+    sub(paste0(".*", pattern), "", lines)
   }
 
-  .checkModelRunStatus <- function(p_repy, desiredSolverStatus = 1, desiredModelStatus = c(1, 2)) {
-    p_repy %>%
-      pivot_wider(names_from = "solveinfo") %>%
-      mutate(success = .data$solvestat %in% desiredSolverStatus & .data$modelstat %in% desiredModelStatus) %>%
-      select(-any_of(c("solvestat", "modelstat", "resusd", "objval")))
+  .checkModelWasSuccessful <- function(p_repy, desiredSolverStatus = 1, desiredModelStatus = c(1, 2)) {
+    if (nrow(p_repy) > 0) {
+      p_repy %>%
+        pivot_wider(names_from = "solveinfo") %>%
+        mutate(success = .data$solvestat %in% desiredSolverStatus & .data$modelstat %in% desiredModelStatus) %>%
+        select(-any_of(p_repy$solveinfo))
+    } else {
+      NULL
+    }
   }
 
   # Check for gdx written in latest main.log
@@ -37,7 +41,7 @@ checkGamsSuccess <- function(path, silent = FALSE) {
     stop("Gams seems to not have run: 'main.log' does not exist")
   }
   mainLog <- readLines(mainLogFile)
-  gdxOutPattern <- "GDX File \\(execute_unload\\)"
+  gdxOutPattern <- "GDX File \\(execute_unload\\)\\s"
   gdxOutLines <- grep(gdxOutPattern, mainLog, value = TRUE)
 
   gdxPath <- .extractGdxPath(gdxOutLines, gdxOutPattern)
@@ -47,12 +51,12 @@ checkGamsSuccess <- function(path, silent = FALSE) {
          "Check the files 'main.log' and 'main.lst' for more details.")
   } else if (length(gdxPath) == 1) {
     if (file.exists(gdxPath)) {
-      message("Gams wrote a GDX file to ", gdxPath, " .")
+      message("Gams wrote a GDX file to ", gdxPath, ".")
     } else {
       stop("According to 'main.log', Gams wrote a GDX file to ", gdxPath, ", but this file does not exist.")
     }
   } else {
-    stop("Gams wrote more than one GDX file: ", gdxPath, " .")
+    stop("Gams wrote more than one GDX file: ", gdxPath, ".")
   }
 
   # Read out run status from gdx
@@ -67,9 +71,21 @@ checkGamsSuccess <- function(path, silent = FALSE) {
     print(p_repyFullSysNLP)
   }
 
-  # Return success status if LP and NLP finished successfully
-  successLP <- .checkModelRunStatus(p_repyFullSysLP) # nolint:object_usage_linter
-  successNLP <- .checkModelRunStatus(p_repyFullSysNLP)
+  if (basename(gdxPath) == "abort.gdx") {
+    stop("Gams aborted with \"abort.gdx\" due to errors in at least one variable.")
+  }
 
-  successNLP
+  # Return success status if NLP finished successfully (or if LP finished successfully in case NLp does not exist)
+  successLP <- .checkModelWasSuccessful(p_repyFullSysLP)
+  successNLP <- .checkModelWasSuccessful(p_repyFullSysNLP)
+
+  if (!is.null(successNLP)) {
+    successNLP
+  } else if (!is.null(successLP)) {
+    message("Solver and run status for the non-linear problem does not exist. ",
+            "Returning the success of the linear problem.")
+    successLP
+  } else {
+    FALSE
+  }
 }
