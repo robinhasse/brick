@@ -69,7 +69,7 @@ startModel <- function(path, runReporting = TRUE) {
                                        "ignoreShell")]),
             gamsCall = cfg[["gamsCall"]])
 
-    gamsSuccess <- checkGamsSuccess(path)
+    gamsSuccess <- checkGamsSuccess(path, cfg[["switches"]][["RUNTYPE"]])
 
     if (isTRUE(all(gamsSuccess$success))) {
       message("Gams was succesful for all subsets.")

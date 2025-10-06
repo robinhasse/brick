@@ -4,10 +4,12 @@
 \alias{checkGamsSuccess}
 \title{Check whether Gams finished successfully}
 \usage{
-checkGamsSuccess(path, silent = FALSE)
+checkGamsSuccess(path, runType = "scenario", silent = FALSE)
 }
 \arguments{
 \item{path}{character, path to search for gams output files}
+
+\item{runType}{character, type of this run}
 
 \item{silent}{logical, whether no messages should be printed.}
 }

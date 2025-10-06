@@ -11,6 +11,7 @@
 #' @author Ricarda Rosemann
 #'
 #' @param path character, path to search for gams output files
+#' @param runType character, type of this run
 #' @param silent logical, whether no messages should be printed.
 #'
 #' @returns logical, whether GAMS was successful for all subsets
@@ -18,7 +19,7 @@
 #' @importFrom dplyr %>% .data mutate
 #' @importFrom tidyr pivot_wider
 #'
-checkGamsSuccess <- function(path, silent = FALSE) {
+checkGamsSuccess <- function(path, runType = "scenario", silent = FALSE) {
 
   .extractGdxPath <- function(lines, pattern) {
     sub(paste0(".*", pattern), "", lines)
@@ -60,32 +61,45 @@ checkGamsSuccess <- function(path, silent = FALSE) {
   }
 
   # Read out run status from gdx
-  p_repyFullSysLP <- readSymbol(gdxPath, symbol = "p_repyFullSysLP")
-  p_repyFullSysNLP <- readSymbol(gdxPath, symbol = "p_repyFullSysNLP")
+  p_repyNames <- switch(
+    runType,
+    matching = "MatchingQCP",
+    renCorrect = "RenCorrectQCP",
+    c("FullSysLP", "FullSysNLP")
+  )
+
+  p_repy <- .namedLapply(p_repyNames, function(nm) {
+    readSymbol(gdxPath, symbol = paste0("p_repy", nm))
+  })
 
   if (isFALSE(silent)) {
-    message("Model and solver summary of the linear problem:")
-    print(p_repyFullSysLP)
-
-    message("Model and solver summary of the non-linear problem:")
-    print(p_repyFullSysNLP)
+    lapply(p_repyNames, function(nm) {
+      message("Model and solver summary of ", nm, ":")
+      print(p_repy[[nm]])
+    })
   }
 
   if (basename(gdxPath) == "abort.gdx") {
     stop("Gams aborted with \"abort.gdx\" due to errors in at least one variable.")
   }
 
-  # Return success status if NLP finished successfully (or if LP finished successfully in case NLp does not exist)
-  successLP <- .checkModelWasSuccessful(p_repyFullSysLP)
-  successNLP <- .checkModelWasSuccessful(p_repyFullSysNLP)
+  # Return success status
+  success <- lapply(p_repy, .checkModelWasSuccessful)
 
-  if (!is.null(successNLP)) {
-    successNLP
-  } else if (!is.null(successLP)) {
-    message("Solver and run status for the non-linear problem does not exist. ",
-            "Returning the success of the linear problem.")
-    successLP
+  if (identical(p_repyNames, c("FullSysLP", "FullSysNLP"))) {
+
+    # Set success to success of NLP if NLP exists, otherwise to LP
+    success <- if (!is.null(success$FullSysNLP)) {
+      success$FullSysNLP
+    } else if (!is.null(success$FullSysLP)) {
+      message("Solver and run status for the non-linear problem does not exist. ",
+              "Returning the success of the linear problem.")
+      success$FullSysLP
+    }
   } else {
-    FALSE
+    success <- success[[1]]
   }
+
+  # If no parameter containing success status was found return zero
+  if (!is.null(success)) success else FALSE
 }

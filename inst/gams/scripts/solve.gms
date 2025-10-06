@@ -649,6 +649,11 @@ loop(region,
 
   reg(region) = no;
   subs(region,loc,typ,inc) = no;
+
+  p_repyMatchingQCP(region, 'solvestat') = matching.solvestat;
+  p_repyMatchingQCP(region, 'modelstat') = matching.modelstat;
+  p_repyMatchingQCP(region, 'resusd')    = matching.resusd;
+  p_repyMatchingQCP(region, 'objval')    = matching.objval;
 );
 
 reg(region) = yes;
@@ -666,6 +671,11 @@ q(qty) = yes;
 q("num") = no;
 
 solve renCorrect minimizing v_renCorrectObj using qcp;
+
+p_repyRenCorrectQCP('solvestat') = renCorrect.solvestat;
+p_repyRenCorrectQCP('modelstat') = renCorrect.modelstat;
+p_repyRenCorrectQCP('resusd')    = renCorrect.resusd;
+p_repyRenCorrectQCP('objval')    = renCorrect.objval;
 
 $endif.renCorrect
 
