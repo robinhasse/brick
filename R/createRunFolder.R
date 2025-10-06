@@ -33,19 +33,12 @@ createRunFolder <- function(path,
   }
 
 
+  ## configs ====
 
-
-  ## config ====
-
-  configFile <- attr(config, "file", exact = TRUE)
   configFolder <- file.path(newPaths, "config")
-  if (!dir.exists(configFolder)) {
-    dir.create(configFolder)
-  }
-  if (file.exists(configFile)) {
-    file.copy(configFile, configFolder, overwrite = overwrite)
-  }
-  write_yaml(config, file.path(configFolder, "config_COMPILED.yaml"))
+  saveConfig(config, configFolder, overwrite = overwrite)
+  writeNextConfigs(attr(config, "nextConfigs", exact = TRUE),
+                   file.path(configFolder, "nextRuns"))
 
 
   ## reporting template ====

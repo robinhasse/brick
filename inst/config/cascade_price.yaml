@@ -1,0 +1,4 @@
+basedOn: cascade_base.yaml
+startyear: 2030
+historic: cascade_base
+carbonPrice: some price

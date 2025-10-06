@@ -1,7 +1,4 @@
 ---
-title: "default"
-
-
 # scope and resolution ---------------------------------------------------------
 
 ### time steps ###
@@ -51,11 +48,6 @@ regions: NULL
   # TRUE
   # FALSE
 ignoreShell: FALSE
-
-### status quo preference ###
-# preference to replace heating system by the same technology during renovation
-# investment cost mark up on the choice of a different technology in USD/m2
-statusQuoPreference: 20
 
 ### calibration ###
 # intangible cost assumption files
@@ -140,6 +132,11 @@ popScenario: SSP2
   # SSP1 - SSP5
   # SDP_EI, SDP_MC, SDP_RC
 fsScenario: SSP2
+
+### status quo preference ###
+# preference to replace heating system by the same technology during renovation
+# investment cost mark up on the choice of a different technology in USD/m2
+statusQuoPreference: 20
 
 ### ban heating systems ###
 # named list with last period of allowed installation

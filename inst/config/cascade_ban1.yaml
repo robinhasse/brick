@@ -1,0 +1,4 @@
+basedOn: cascade_base.yaml
+startyear: 2025
+historic: cascade_base
+boilerBan: {construction: 2030}

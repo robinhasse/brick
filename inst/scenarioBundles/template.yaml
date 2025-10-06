@@ -1,0 +1,9 @@
+newRunAlways: no
+run:
+  config1: runfolder1
+  config2: runfolder2
+newRunNext:
+  config1: no
+  config2: no
+configFolder: ./config
+outputFolder: ./output

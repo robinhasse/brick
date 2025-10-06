@@ -121,7 +121,7 @@ createCalibrationTarget <- function(path,
   # CONFIG ---------------------------------------------------------------------
 
   cfgCalib <- readConfig(calibConfig)
-  cfgMatching <- readConfig(file.path(path, "config", "config_COMPILED.yaml"), readDirect = TRUE)
+  cfgMatching <- readConfig(file.path(path, "config", CONFIG_COMPILED), readDirect = TRUE)
 
   periodMap <- .buildPeriodMap(cfgCalib, cfgMatching)
   regionMap <- .buildRegionMap(cfgCalib, cfgMatching)

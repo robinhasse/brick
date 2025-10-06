@@ -156,6 +156,7 @@
 }
 
 
+
 #' Add time stamp
 #'
 #' Append current date and time
@@ -206,4 +207,41 @@
   }
 
   toolGetMapping(name, "regional", where)
+}
+
+
+
+#' Get file name without ending
+#'
+#' @param filePath character vector, file path including file ending
+#' @returns file name without ending and directory
+
+.getFileName <- function(filePath) {
+  sub("^(.*)\\.(.*)$", "\\1", basename(filePath))
+}
+
+
+
+#' Check if file exists
+#'
+#' Wrapper around \code{base::file.exists} with special treatment of \code{NULL}
+#'
+#' @returns logical, \code{NULL} for \code{NULL}
+
+.fileExists <- function(...) {
+  if (is.null(...)) {
+    return(FALSE)
+  }
+  file.exists(...)
+}
+
+
+
+#' Check if an object is a BRICK config
+#'
+#' @param x any R object (should be a named list if you expect a config)
+#' @returns logical
+
+.isConfig <- function(x) {
+  isTRUE(attr(x, "isConfig"))
 }

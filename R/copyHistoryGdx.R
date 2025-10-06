@@ -82,7 +82,7 @@ copyHistoryGdx <- function(path,
     }
   }
   if (!is.null(outputFolder)) {
-    # look for latest run in the output folder that hase the given name
+    # look for latest run in the output folder that has the given name
     previousRuns <- grep(
       pattern = paste0("^", originGdx, "_\\d{4}-\\d{2}-\\d{2}_\\d{2}\\.\\d{2}\\.\\d{2}$"),
       x = list.dirs(outputFolder, full.names = FALSE, recursive = FALSE),

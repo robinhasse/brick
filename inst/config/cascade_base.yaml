@@ -1,0 +1,3 @@
+basedOn: minimal
+switches:
+  FIXEDBUILDINGS: TRUE

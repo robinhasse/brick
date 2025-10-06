@@ -1,0 +1,28 @@
+---
+title: "calibration"
+basedOn: "default.yaml"
+# scope and resolution
+granularity: lowGran
+periods: [2000, 2005, 2010]
+startyear: 2005
+calibperiods: 2005
+regionmapping: ["regionmappingEU27as9.csv", "mredgebuildings"]
+regions: [DEU, ECE, ECS, ENC, ESC, ESW, EWN, FRA, IRL] # EU27: REMIND EUR regions without UK
+ignoreShell: TRUE
+reportingTemplate: ignoreShell_onlyRes
+ltEternalShare: 0.05
+# switches
+switches:
+  RUNTYPE: calibration
+  CALIBRATIONMETHOD: logit
+  FIXEDBUILDINGS: TRUE
+  SEQUENTIALREN: TRUE
+  # CALIBRESOLUTION: identRepl
+  # AGGREGATEDIM: vin
+# parameters for calibration
+calibrationParameters:
+  stepSizeInit: 80
+  iterations: 10
+  iterationsArmijo: 20
+  sensitivityArmijo: 0.04
+...

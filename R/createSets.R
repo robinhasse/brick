@@ -161,7 +161,7 @@ createSets <- function(m, config) {
 
   ## heating system ====
 
-  hsMap <- getBrickMapping("dim_hs.csv", "sectoral")
+  hsMap <- getBrickMapping("dim_hs.csv")
 
   hs <- hsMap %>%
     getElement("hs") %>%

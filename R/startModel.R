@@ -16,13 +16,9 @@
 #'
 startModel <- function(path, runReporting = TRUE) {
 
-  cfg <- readConfig(file.path(path, "config", "config_COMPILED.yaml"), readDirect = TRUE)
+  cfg <- readConfig(file.path(path, "config", CONFIG_COMPILED), readDirect = TRUE)
 
-  if (file.exists(file.path(path, "config", "restartOptions.csv"))) {
-    restart <- read.csv2(file.path(path, "config", "restartOptions.csv"))[["restart"]]
-  } else {
-    restart <- FALSE
-  }
+  restart <- .readInitArgs(path)$restart
 
   if (isFALSE(restart) || "createInput" %in% restart) {
     createInputData(path, cfg, overwrite = !isFALSE(restart))
@@ -92,4 +88,33 @@ startModel <- function(path, runReporting = TRUE) {
     try(reportMif(path))
   }
 
+  # if (isFALSE(restart)) {
+    .startNextScens(path)
+  # }
+
+}
+
+
+
+#' Read model initialisation arguments
+#'
+#' Since its function call, \code{initModel} might have changed arguments,
+#' namely the restart options.
+#'
+#' @param path character, path to run folder
+#' @returns named list of arguments to \code{initModel}
+.readInitArgs <- function(path) {
+  yaml::read_yaml(file.path(path, "config", "init.args"))
+}
+
+
+.startNextScens <- function(path) {
+  pathNextConfigs <- file.path(path, "config", "nextRuns")
+  if (dir.exists(pathNextConfigs)) {
+    nextConfigs <- readNextConfigs(pathNextConfigs)
+    args <- .readInitArgs(path)
+    args$config <- nextConfigs
+    args$path <- NULL
+    do.call(initModel, args)
+  }
 }
