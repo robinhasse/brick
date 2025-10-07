@@ -4,23 +4,27 @@
 \alias{checkGamsSuccess}
 \title{Check whether Gams finished successfully}
 \usage{
-checkGamsSuccess(path, isCalibration = FALSE)
+checkGamsSuccess(path, runType = "scenario", silent = FALSE)
 }
 \arguments{
 \item{path}{character, path to search for gams output files}
 
-\item{isCalibration}{logical, whether this is a calibration run}
+\item{runType}{character, type of this run}
+
+\item{silent}{logical, whether no messages should be printed.}
+}
+\value{
+logical, whether GAMS was successful for all subsets
 }
 \description{
-Check which output file was written and derive state of Gams run
+Check which file is the gdx file written by Gams from main.log.
+Read model and solver status from this gdx file and print.
 }
 \details{
-If \code{output.gdx} was written, give success message.
-If \code{abort.gdx} was written or no output file exists, stop with error message.
-For calibration runs:
-If any file with \code{calibration_<iteration>.gdx} was written, give success message
-including the number of iterations.
-If no file was written, stop with error message.
+Stop with error message if:
+  - \code{main.log} does not exist
+  - the gdx file does not exist
+  - more than one gdx file was written.
 }
 \author{
 Ricarda Rosemann

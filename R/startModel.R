@@ -68,10 +68,15 @@ startModel <- function(path, runReporting = TRUE) {
             c(cfg[["switches"]], cfg[c("solverLP", "solverNLP", "solverQCP",
                                        "ignoreShell")]),
             gamsCall = cfg[["gamsCall"]])
+
+    gamsSuccess <- checkGamsSuccess(path, cfg[["switches"]][["RUNTYPE"]])
+
+    if (isTRUE(all(gamsSuccess$success))) {
+      message("Gams was succesful for all subsets.")
+    } else {
+      stop("Gams failed for at least one subset. For details, see the model and solver summaries.")
+    }
   }
-
-  checkGamsSuccess(path, isCalibration = cfg[["switches"]][["RUNTYPE"]] == "calibration")
-
 
 
   if (isTRUE(runReporting)) {

@@ -50,6 +50,8 @@ p_handle(region,loc,typ,inc)                   "parallel model handle parameter"
 p_handle2(region)                              "parallel model handle parameter"
 p_repyFullSysLP(solveinfo)                     "model and solver summary: fullSysLP"
 p_repyFullSysNLP(region,loc,typ,inc,solveinfo) "model and solver summary: fullSysNLP"
+p_repyMatchingQCP(region,solveinfo)            "model and solver summary: matching"
+p_repyRenCorrectQCP(solveinfo)                 "model and solver summary: renCorrect"
 
 p_flowVariationWeight               "weight of flow variation in matching objective"
 p_slackRenWeight                    "weight of building shell and heating system replacement slack in matching objective"

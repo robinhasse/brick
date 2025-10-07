@@ -223,6 +223,7 @@ switches:
     # scenario:    run of future scenario
     # calibration: calibration to historic stock or flows
     # matching:    matching historic stocks and flows to sources
+    # renCorrect:  Aggregation of matching results
   RUNTYPE: scenario
 
   ### type of calibration run ###

@@ -48,6 +48,7 @@ runCalibration <- function(path,
                            fileName = "main.gms",
                            gamsCall = "gams") {
 
+  dir.create(file.path(path, "failedRuns"))
 
   dims <- list(
     stock        = c("bs", "hs", "vin", "region", "loc", "typ", "inc", "ttot"),
@@ -171,6 +172,11 @@ runCalibrationLogit <- function(path,
 
   # Initial Brick run
   runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
+  gamsSuccess <- checkGamsSuccess(path)
+  if (isFALSE(all(gamsSuccess$success))) {
+    stop("Gams failed for at least one subset in calibration iteration 0, aborting. ",
+         "For details, refer to the model and solver summaries.")
+  }
 
   # Compute (virtual) objective function
   gdx <- file.path(path, paste0("calibration_0.gdx"))
@@ -228,6 +234,7 @@ runCalibrationLogit <- function(path,
       ## Evaluate outer objective of Brick results ====
 
       runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
+      gamsSuccess <- checkGamsSuccess(path, silent = TRUE)
 
       gdxA <- file.path(path, "calibrationA.gdx")
       file.copy(from = gdxOutput, to = gdxA, overwrite = TRUE)
@@ -236,6 +243,9 @@ runCalibrationLogit <- function(path,
       outerObjective <- .combineOuterObjective(mA, outerObjective, p_calibTarget,
                                                tcalib, dims,
                                                varName = "fA", agg = switches[["AGGREGATEDIM"]])
+
+      # If Gams was not successful for a subset, reject this step size and save all run files
+      outerObjective <- .rejectErrorRun(path, outerObjective, gamsSuccess, i, j)
 
 
       ## Check step size conditions and update the step size ====
@@ -294,6 +304,7 @@ runCalibrationLogit <- function(path,
     # we never computed with before. To obtain a clean calibration.gdx, we need to recalculate.
 
     runGams(path, gamsOptions = gamsOptions, switches = switches, gamsCall = gamsCall)
+    gamsSuccess <- checkGamsSuccess(path)
 
     # Store results with final step sizes in calibration iteration gdx
     gdx <- file.path(path, paste0("calibration_", i, ".gdx"))
@@ -311,6 +322,14 @@ runCalibrationLogit <- function(path,
     diagnostics <- .namedLapply(names(diagObj), function(nm) {
       rbind(diagnostics[[nm]], mutate(diagObj[[nm]], iteration = i))
     })
+
+    if (isFALSE(all(gamsSuccess$success))) {
+      message("Gams failed for at least one subset in calibration iteration", i, ", aborting. ",
+              "For details, refer to the model and solver summaries. ",
+              "Diagnostics and output is still printed. If convergence is already satisfactory, ",
+              "you might want to restart with fewer iterations.")
+      break
+    }
 
     if (.checkStoppingCriterion(outerObjective, p_calibTarget, parameters[["threshold"]])) {
       .printConvergenceMessage(i, parameters[["threshold"]])
@@ -1225,6 +1244,43 @@ runCalibrationOptim <- function(path,
                  select(-any_of(varName)),
                by = c("region", "loc", "typ", "inc"))
 
+}
+
+#' Reject step sizes with unsuccesful Gams run
+#'
+#' If Gams was not successful, set the outer objective to infinity
+#' so that it cannot be accepted by the step size adaptation.
+#' Copy relevant files to trace the error (gdx, main.log and main.lst)
+#'
+#' @param path character, run path where all files, in particular Gams files, are stored
+#' @param outerObjective data frame with data on outer objective
+#' @param gamsSuccess data frame containing whether Gams was successful for each subset
+#' @param iteration numeric, current calibration iteration
+#' @param iterationStepSize numeric, current iteration of step size adaptation
+#' @param varName character, column of outer objective to be modified
+#' @param gdxName character, name of the gdx file to be copied.
+#'
+#' @returns data frame, outer objective with modifications in the column given by \code{varName}
+#'
+#' @importFrom dplyr %>% .data left_join mutate rename_with
+#'
+.rejectErrorRun <- function(path, outerObjective, gamsSuccess, iteration, iterationStepSize,
+                            varName = "fA", gdxName = "calibrationA.gdx") {
+  # Save gdx, main.log and main.lst if gams was not successful for all subsets
+  if (isFALSE(all(gamsSuccess$success))) {
+    lapply(c(gdxName, "main.log", "main.lst"), function(f) {
+      fileSplit <- strsplit(f, ".", fixed = TRUE)[[1]]
+      fileName <- paste0(fileSplit[1], "_", iteration, "_A", iterationStepSize, ".", fileSplit[2])
+      file.copy(from = file.path(path, f), to = file.path(path, "failedRuns", fileName), overwrite = TRUE)
+    })
+  }
+
+  # Reject this step size by setting the outer objective to infinity
+  outerObjective %>%
+    left_join(gamsSuccess, by = c("region", "loc", "typ", "inc")) %>%
+    mutate(fNew = ifelse(.data$success, .data[[varName]], Inf), .keep = "unused") %>%
+    select(-any_of(varName)) %>%
+    rename_with(~ varName, .cols = "fNew")
 }
 
 #' Determine the so far minimum step size.
