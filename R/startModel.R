@@ -88,9 +88,9 @@ startModel <- function(path, runReporting = TRUE) {
     try(reportMif(path))
   }
 
-  # if (isFALSE(restart)) {
-    .startNextScens(path)
-  # }
+  if (isFALSE(restart)) {
+    .initNextScens(path)
+  }
 
 }
 
@@ -108,10 +108,18 @@ startModel <- function(path, runReporting = TRUE) {
 }
 
 
-.startNextScens <- function(path) {
+
+#' Initialise next scenarios
+#'
+#' Initialise the runs that start from a given run as historic run
+#'
+#' @param path character, path to the historic run folder
+
+.initNextScens <- function(path) {
   pathNextConfigs <- file.path(path, "config", "nextRuns")
   if (dir.exists(pathNextConfigs)) {
     nextConfigs <- readNextConfigs(pathNextConfigs)
+    nextConfigs <- .setSwitch(nextConfigs, startingPoint = path)
     args <- .readInitArgs(path)
     args$config <- nextConfigs
     args$path <- NULL

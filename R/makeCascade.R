@@ -28,6 +28,7 @@ makeCascade <- function(configs, configFolder) {
         configs[[scen]] <- config
       }
     }
+    attr(configs, "isCascade") <- TRUE
     return(configs)
   }
 

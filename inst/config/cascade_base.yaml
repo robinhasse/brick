@@ -1,3 +1,5 @@
 basedOn: minimal
+startingPoint: C:/Users/krekeler/Repos/brick/output/cascade_base_2025-10-06_13.28.55
 switches:
   FIXEDBUILDINGS: TRUE
+  SOLVEPROBLEM: auto

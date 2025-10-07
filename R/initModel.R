@@ -61,7 +61,8 @@ initModel <- function(config = NULL,
     vapply(x, function(item) isFALSE(item), logical(1))
   }
 
-  if (!.isConfig(config) && (length(path) > 1 || length(config) > 1)) {
+  if (!.isConfig(config) &&
+        (length(path) > 1 || is.list(path) || length(config) > 1 || is.list(config))) {
 
     return(invisible(
       if (all(!.isFALSE(restart))) {
@@ -82,27 +83,15 @@ initModel <- function(config = NULL,
         .path = path,
         .restart = restart
         )
-      } else if (all(.isFALSE(restart))) {
+      } else if (all(.isFALSE(restart)) ) {
         ## model cascade ====
-        config <- makeCascade(config, configFolder)
-        # Map(function(.config) {
-        #   initModel(config = .config,
-        #             path = path,
-        #             configFolder = configFolder,
-        #             outputFolder = outputFolder,
-        #             references = references,
-        #             restart = restart,
-        #             runReporting = runReporting,
-        #             sendToSlurm = sendToSlurm,
-        #             slurmQOS = slurmQOS,
-        #             tasksPerNode = tasksPerNode,
-        #             timeLimit = timeLimit,
-        #             tasks32 = tasks32)
-        # },
-        # config,
-        # )
+        cascade <- if (.isCascade(config)) {
+          config
+        } else {
+          makeCascade(config, configFolder)
+        }
         mapply(initModel,
-               config = config,
+               config = cascade,
                MoreArgs = list(path = path,
                                configFolder = configFolder,
                                outputFolder = outputFolder,
@@ -185,7 +174,7 @@ initModel <- function(config = NULL,
       stop("You passed an existing path, but did not set this as a restart run. Stopping.")
     }
 
-    cfg <- if (is.list(config)) {
+    cfg <- if (.isConfig(config)) {
       config
     } else {
       readConfig(config = config,
@@ -272,11 +261,4 @@ initModel <- function(config = NULL,
   }
 
   invisible(path)
-}
-
-.Map <- function(f, ...) {
-  args <- list(...)
-  n <- max(unlist(lapply(args, length)))
-  args <- lapply(args, function(x) if (is.null(x)) vector("list", n) else x)
-  do.call(f, args)
 }

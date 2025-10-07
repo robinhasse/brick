@@ -2,6 +2,10 @@ writeNextConfigs <- function(configs, path) {
   if (is.null(configs)) {
     return(invisible(NULL))
   }
+  if (!.isCascade(configs)) {
+    browser()
+    # stop("'configs' has to be a cascade of configs.")
+  }
   if (!dir.exists(path)) {
     dir.create(path)
   }
@@ -19,7 +23,7 @@ readNextConfigs <- function(path) {
   if (length(nextScens) == 0) {
     return(NULL)
   }
-  lapply(stats::setNames(nm = nextScens), function(scen) {
+  configs <- lapply(stats::setNames(nm = nextScens), function(scen) {
     scenPath <- file.path(path, scen)
     yamls <- list.files(scenPath, "\\.yaml$")
     if (length(yamls) == 2 && CONFIG_COMPILED %in% yamls) {
@@ -28,10 +32,10 @@ readNextConfigs <- function(path) {
       stop("Can't read next config from here: ", scenPath,
            "\nUnexpected yaml files found: ", paste(yamls, collapse = ", "))
     }
-    nextConfigs <- lapply(stats::setNames(nm = nextScens), function(scen) {
-      readNextConfigs(scenPath)
-    })
+    nextConfigs <- readNextConfigs(scenPath)
     attr(config, "nextConfigs") <- nextConfigs
     config
   })
+  attr(configs, "isCascade") <- TRUE
+  configs
 }
