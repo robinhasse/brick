@@ -446,7 +446,7 @@ q_stockBal3(q,bs,hs,vin,subs,t)$vinExists(t,vin)..
 * calculation of floor space demand
 * TODO: move this calculation to mredgebuildings
 
-q_housingDemand(subs(reg,loc,typ,inc),t)$typInSec(typ,"Res")..
+q_housingDemand(subs(reg,loc,typ,inc),t)..
   p_population(subs,t) * p_floorPerCap(subs,t)
   =l=
   sum(state,
@@ -530,8 +530,8 @@ q_lifeTimeHS(q,hs,vin,subs(reg,loc,typ,inc),ttot)$(    vinExists(ttot,vin)
                                                    and t(ttot))..
   sum(bs,
     sum(ttotOut$(    ttotOut.val le ttot.val
-               !!and p_shareRenHS(hs,reg,typ,ttotOut + 1,ttot) < 1
-               and vinExists(ttotOut,vin)),
+                 !!and p_shareRenHS(hs,reg,typ,ttotOut + 1,ttot) < 1
+                 and vinExists(ttotOut,vin)),
       p_dt(ttotOut)
       * (
         v_demolition(q,bs,hs,vin,subs,ttotOut)
