@@ -791,7 +791,7 @@ q_minStatusQuo(bs,hs,vin,reg,loc,typ,inc,t)$vinExists(t,vin)..
   v_renovationHS("area",bs,hs,hs,vin,reg,loc,typ,inc,t)
   =g=
   (  %MINSTATUSQUORES%$typInSec(typ,"Res")
-   + %MINSTATUSQUOCOM%$typInSec(typ,"Com"))
+   + %MINSTATUSQUOCOM%$sameas(typ,"Com"))
   * p_statusQuoShare(hs)
   * sum(hsr$(    renAllowedHS(bs,hs,hsr)
              and hs2(hsr)),
