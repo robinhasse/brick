@@ -39,7 +39,7 @@ reweightMatchingReferences <- function(path) {
   # READ REFERENCE CONFIG ------------------------------------------------------
 
   refConfigFile <- file.path(path, "config", "references.csv")
-  refConfig <- read.csv2(refConfigFile)
+  refConfig <- read.csv2(refConfigFile, comment.char = "#")
 
   newRef <- refConfig[.isTRUE(refConfig$isUsed), "reference"]
   newRefWeight <- refConfig %>%
@@ -51,8 +51,8 @@ reweightMatchingReferences <- function(path) {
   # UPDATE GDX -----------------------------------------------------------------
 
   if (!all(newRef %in% reference$records[[1]])) {
-    stop("On or more references used in ", refConfigFile,
-         "are not in the gdx ", refGdx)
+    stop("One or more references used in ", refConfigFile,
+         " are not in the gdx ", refGdx)
   }
   ref <- ref$setRecords(reference$records %>%
                           filter(.data$uni %in% newRef))
