@@ -89,11 +89,20 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
                    where = "mredgebuildings",
                    returnPathOnly = TRUE) %>%
       read.csv(comment.char = "#", check.names = FALSE) %>%
-      select(-matches("^\\.")) %>%
+      select(-matches("^\\."), any_of(".color")) %>%
       rename(refVar = "variable") %>%
       unique()
   }
 
+
+  getColorDescription <- function(refMapsFull) {
+    do.call(bind_rows, lapply(names(refMapsFull), function(ref) {
+      refMapsFull[[ref]] %>%
+        select("refVar", any_of(c(description = ".color"))) %>%
+        unique() %>%
+        mutate(reference = ref)
+    }))
+  }
 
   getBasicMapping <- function(refMaps) {
     do.call(rbind, lapply(names(refMaps), function(ref) {
@@ -156,6 +165,8 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
   ## reference mappings ====
 
   refMapsFull <- lapply(setNames(nm = references), getRefMap)
+  refVarColors <- getColorDescription(refMapsFull)
+  refMapsFull <- lapply(refMapsFull, select, ... = -any_of(".color"))
   refMaps <- lapply(refMapsFull, tidyRefMap)
   refVarBasic <- getBasicMapping(refMapsFull[referencesRel])
   refVarGroup <- .unique(refVarBasic[["refVarGroup"]])
@@ -200,7 +211,8 @@ createMatchingData <- function(path, config, overwrite = FALSE) {
   # mapping references to refVals
   refVarRef <- refVals %>%
     select("reference", "refVar") %>%
-    .unique()
+    .unique() %>%
+    left_join(refVarColors, by = c("reference", "refVar"))
 
   # ignore refVars starting with _
   refVarConsidered <- refVarRef %>%
