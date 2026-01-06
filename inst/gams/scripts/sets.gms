@@ -31,15 +31,34 @@ thist(ttot) "historic time steps"
 tinit(ttot) "initial modelling time step"
 
 *** model fundamentals
-cost "type of cost"
-  /
-  tangible   "tangible cost (exogenous)"
-  intangible "intangible cost (identified in calibration)"
-  /
 var "major variables of the model"
   / stock, construction, renovation, renovationBS, renovationHS, demolition /
 varFlow(var) "flow variables of the model"
   / construction, renovation, renovationBS, renovationHS, demolition /
+
+cost "cost components"
+  /
+  building       "physical building structure"
+  capitalBS      "purchasing building envelope material"
+  capitalHS      "purchasing heating system equipment"
+  installationBS "labour for building shell installation"
+  installationHS "labour for heating system installation"
+  maintenance    "operation and maintenance"
+  carrier        "purchase energy carrier at consumer level (incl. fees, taxes and VAT)"
+  carbon         "carbon pricing"
+  incentive      "policy mark-up (negative value in case of subsidies)"
+  intangible     "intangible cost (identified in calibration)"
+  /
+costCon(cost) "construction cost components"
+  / building, capitalBS, capitalHS, installationBS, installationHS, incentive, intangible /
+costRen(cost) "building shell retrofit cost components"
+  / capitalBS, capitalHS, installationBS, installationHS, incentive, intangible /
+costRenBS(cost) "building shell retrofit cost components"
+  / capitalBS, installationBS, incentive, intangible /
+costRenHS(cost) "heating system replacement cost components"
+  / capitalHS, installationHS, incentive, intangible /
+costOpe(cost) "operational cost components"
+  / carrier, carbon /
 
 *** model analytics
 solveinfo	"model and solver stats"

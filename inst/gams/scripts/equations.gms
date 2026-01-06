@@ -71,21 +71,23 @@ q_renCost(subs,t)..
   =e=
   sum(vin$vinExists(t,vin),
 $ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE" !! TODO: this might be generalisable
-    sum(cost,
+    sum(costRenBS,
       sum(renAllowedBS,
         v_renovationBS("area",renAllowedBS,vin,subs,t)
-        * p_specCostRenBS(cost,renAllowedBS,vin,subs,t)
+        * p_specCostRenBS(costRenBS,renAllowedBS,vin,subs,t)
       )
-      +
+    )
+    +
+    sum(costRenHS,
       sum(renAllowedHS,
         v_renovationHS("area",renAllowedHS,vin,subs,t)
-        * p_specCostRenHS(cost,renAllowedHS,vin,subs,t)
+        * p_specCostRenHS(costRenHS,renAllowedHS,vin,subs,t)
       )
     )
 $else.sequentialRen
-    sum((renAllowed, cost),
+    sum((renAllowed, costRen),
       v_renovation("area",renAllowed,vin,subs,t)
-      * p_specCostRen(cost,renAllowed,vin,subs,t)
+      * p_specCostRen(costRen,renAllowed,vin,subs,t)
     )
 $endif.sequentialRen
   )
@@ -106,7 +108,9 @@ q_opeCost(subs(reg,loc,typ,inc),ttot)$(t(ttot))..
     sum(ttot2$((sameas(ttot2,ttot) or sameas(ttot2,ttot-1)) and vinExists(ttot2,vin)),
       v_stock("area",state,vin,subs,ttot2)
     ) / 2
-    * p_specCostOpe(state,vin,reg,loc,typ,ttot)
+    * sum(costOpe,
+      p_specCostOpe(costOpe,state,vin,reg,loc,typ,ttot)
+    )
   )
 ;
 

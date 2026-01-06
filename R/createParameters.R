@@ -89,20 +89,20 @@ createParameters <- function(m, config, inputDir) {
 
   ## construction ====
 
-  p_specCostConTang <- readInput("f_costConstruction.cs4r",
-                                 c("ttot", "region", "bs", "hs", "typ"),
-                                 inputDir) %>%
+  p_specCostCon_tang <- readInput("f_costConstruction.cs4r",
+                                  c("ttot", "region", "bs", "hs", "typ"),
+                                  inputDir) %>%
     toModelResolution(m)
   p_specCostCon <- expandSets("cost", "bs", "hs", "region", "loc", "typ", "inc", "ttot",
                               .m = m)
-  p_specCostConTang <- p_specCostCon %>%
-    filter(.data[["cost"]] == "tangible") %>%
-    left_join(p_specCostConTang,
-              by = c("bs", "hs", "region", "typ", "ttot"))
-  p_specCostConIntang <- p_specCostCon %>%
+  p_specCostCon_tang <- p_specCostCon %>%
+    filter(.data[["cost"]] != "intangible") %>%
+    left_join(p_specCostCon_tang,
+              by = c("cost", "bs", "hs", "region", "typ", "ttot"))
+  p_specCostCon_intang <- p_specCostCon %>%
     filter(.data[["cost"]] == "intangible") %>%
     addAssump(intangCostFiles[["con"]])
-  p_specCostCon <- rbind(p_specCostConTang, p_specCostConIntang)
+  p_specCostCon <- rbind(p_specCostCon_tang, p_specCostCon_intang)
   p_specCostCon <- m$addParameter(
     name = "p_specCostCon",
     domain = c("cost", state, "region", "loc", "typ", "inc", "ttot"),
@@ -114,28 +114,26 @@ createParameters <- function(m, config, inputDir) {
   ## renovation ====
 
   p_specCostRenBS_tang <- readInput("f_costRenovationBS.cs4r",
-                                    c("ttot", "region", "typ", "bs", "bsr", "vin"),
+                                    c("ttot", "region", "cost", "typ", "bs", "bsr", "vin"),
                                     inputDir) %>%
     toModelResolution(m) %>%
     .explicitZero()
-  p_specCostRenBS_tang <- expandSets("bs", "hs", "bsr", "vin", "region",
+  p_specCostRenBS_tang <- expandSets("cost", "bs", "hs", "bsr", "vin", "region",
                                      "loc", "typ", "inc", "ttot", .m = m) %>%
     .filter(readSymbol(m, "renAllowedBS")) %>%
-    mutate(cost = "tangible", .before = 1) %>%
     left_join(p_specCostRenBS_tang,
-              by = c("bs", "bsr", "vin", "region", "typ", "ttot"))
+              by = c("cost", "bs", "bsr", "vin", "region", "typ", "ttot"))
 
   p_specCostRenHS_tang <- readInput("f_costRenovationHS.cs4r",
-                                    c("ttot", "region", "hs", "hsr", "bs", "typ", "vin"),
+                                    c("ttot", "region", "cost", "hs", "hsr", "bs", "typ", "vin"),
                                     inputDir) %>%
     toModelResolution(m) %>%
     .explicitZero()
-  p_specCostRenHS_tang <- expandSets("bs", "hs", "hsr", "vin", "region",
+  p_specCostRenHS_tang <- expandSets("cost", "bs", "hs", "hsr", "vin", "region",
                                      "loc", "typ", "inc", "ttot", .m = m) %>%
     .filter(readSymbol(m, "renAllowedHS")) %>%
-    mutate(cost = "tangible", .before = 1) %>%
     left_join(p_specCostRenHS_tang,
-              by = c("bs", "hs", "hsr", "vin", "region", "typ", "ttot"))
+              by = c("cost", "bs", "hs", "hsr", "vin", "region", "typ", "ttot"))
 
   if (isTRUE(config[["identVinCharact"]])) {
     p_specCostRenBS_tang <- .makeIdentVin(p_specCostRenBS_tang)
@@ -280,6 +278,19 @@ createParameters <- function(m, config, inputDir) {
     description = "technical efficiency of space heating technologies"
   )
 
+  ### maintenance ####
+  p_maintenanceCost <- readInput("f_maintenanceCost.cs4r",
+                                 c("region", "bs", "hs", "loc", "typ"),
+                                 inputDir) %>%
+    select("bs", "hs", "region", "loc", "typ", "value") %>%
+    toModelResolution(m)
+  p_maintenanceCost <- m$addParameter(
+    name = "p_maintenanceCost",
+    domain = c("bs", "hs", "region", "loc", "typ"),
+    records = p_maintenanceCost,
+    description = paste("floor-space specific operation and maintenance cost",
+                        "(excl. energy carrier and carbon price) [USD/m2/yr]")
+  )
 
   ## demolition ====
 

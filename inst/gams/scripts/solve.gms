@@ -494,13 +494,15 @@ p_xinitRenHS(state, hsr, vin, subs, t)$renAllowedHS(state, hsr) = p_specCostRenH
 
 * Compute the gradient for building shell renovation
 loop(gradientVarsRenBS(bsr3, vin2, tcalib2),
-  p_xDiffRenBS(bsr, vin, subs, tcalib)$(gradientVarsRenBS(bsr, vin, tcalib)
-                                                            and (not sameas(bsr, bsr3)
-                                                                 or not sameas(vin, vin2) or not sameas(tcalib, tcalib2)))
+  p_xDiffRenBS(bsr, vin, subs, tcalib)$(    gradientVarsRenBS(bsr, vin, tcalib)
+                                        and (   not sameas(bsr, bsr3)
+                                             or not sameas(vin, vin2)
+                                             or not sameas(tcalib, tcalib2)))
                                                           = 0;
-  p_xDiffRenBS(bsr, vin, subs, tcalib)$(gradientVarsRenBS(bsr, vin, tcalib)
-                                                            and (sameas(bsr, bsr3)
-                                                                 and sameas(vin, vin2) and sameas(tcalib, tcalib2)))
+  p_xDiffRenBS(bsr, vin, subs, tcalib)$(    gradientVarsRenBS(bsr, vin, tcalib)
+                                        and (    sameas(bsr, bsr3)
+                                             and sameas(vin, vin2)
+                                             and sameas(tcalib, tcalib2)))
                                                           = p_diff;
   p_specCostCalibRenBS(bs, hs, bsr, vin, subs, tcalib)$(vinCalib(tcalib, vin)) = p_xDiffRenBS(bsr, vin, subs, tcalib);
 
@@ -532,22 +534,29 @@ $endif.nlp
 
 * Compute the gradient for heating system renovation
 loop(gradientVarsRenHS(renType2, hsr3, vin2, tcalib2),
-  p_xDiffRenHS(renType, hsr, vin, subs, tcalib)$(gradientVarsRenHS(renType, hsr, vin, tcalib)
-                                                            and (not sameas(renType, renType2)
-                                                                 or not sameas(hsr, hsr3)
-                                                                 or not sameas(vin, vin2) or not sameas(tcalib, tcalib2)))
-                                                          = 0;
-  p_xDiffRenHS(renType, hsr, vin, subs, tcalib)$(gradientVarsRenHS(renType, hsr, vin, tcalib)
-                                                            and (sameas(renType, renType2)
-                                                                 and sameas(hsr, hsr3)
-                                                                 and sameas(vin, vin2) and sameas(tcalib, tcalib2)))
-                                                          = p_diff;
+  p_xDiffRenHS(renType, hsr, vin, subs, tcalib)$(    gradientVarsRenHS(renType, hsr, vin, tcalib)
+                                                 and (   not sameas(renType, renType2)
+                                                      or not sameas(hsr, hsr3)
+                                                      or not sameas(vin, vin2)
+                                                      or not sameas(tcalib, tcalib2)))
+    = 0;
+  p_xDiffRenHS(renType, hsr, vin, subs, tcalib)$(    gradientVarsRenHS(renType, hsr, vin, tcalib)
+                                                 and (    sameas(renType, renType2)
+                                                      and sameas(hsr, hsr3)
+                                                      and sameas(vin, vin2)
+                                                      and sameas(tcalib, tcalib2)))
+    = p_diff;
   loop(renAllowedHS(bs, hs, hsr),
-    p_specCostCalibRenHS(bs, hs, hsr, vin, subs, tcalib)$(vinCalib(tcalib, vin) and sameas(hs, hsr))
-                                                                           = p_xDiffRenHS("identRepl", hsr, vin, subs, tcalib);
-    p_specCostCalibRenHS(bs, hs, hsr, vin, subs, tcalib)$(vinCalib(tcalib, vin) and not sameas(hs, hsr) and not sameas(hsr, "0"))
-                                                                           = p_xDiffRenHS("newSys", hsr, vin, subs, tcalib);
-    p_specCostCalibRenHS(bs, hs, hsr, vin, subs, tcalib)$(vinCalib(tcalib, vin) and sameas(hsr, "0")) = p_xDiffRenHS("0", hsr, vin, subs, tcalib);
+    p_specCostCalibRenHS(bs, hs, hsr, vin, subs, tcalib)$(    vinCalib(tcalib, vin)
+                                                          and sameas(hs, hsr))
+      = p_xDiffRenHS("identRepl", hsr, vin, subs, tcalib);
+    p_specCostCalibRenHS(bs, hs, hsr, vin, subs, tcalib)$(    vinCalib(tcalib, vin)
+                                                          and not sameas(hs, hsr)
+                                                          and not sameas(hsr, "0"))
+      = p_xDiffRenHS("newSys", hsr, vin, subs, tcalib);
+    p_specCostCalibRenHS(bs, hs, hsr, vin, subs, tcalib)$(    vinCalib(tcalib, vin)
+                                                          and sameas(hsr, "0"))
+      = p_xDiffRenHS("0", hsr, vin, subs, tcalib);
   );
   display p_xDiffRenHS, p_specCostCalibRenHS;
 

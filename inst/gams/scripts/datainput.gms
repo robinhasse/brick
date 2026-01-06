@@ -9,6 +9,7 @@ $else.sequentialRen
 $load p_specCostRen
 $endif.sequentialRen
 $load priceSensBS priceSensHS p_statusQuoPref
+$load p_maintenanceCost
 $load p_carbonPrice p_carrierPrice p_carrierEmi p_ueDemand p_eff p_renDepth
 $load p_discountRate
 $load p_population
@@ -106,20 +107,29 @@ p_feDemand(hs,bs,vin,reg,typ,ttot) =
 
 * renovation cost (hierarchical renovation)
 $ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
-p_specCostRen(cost,state,bsr,hsr,vin,subs,ttot) =
-    p_specCostRenBS(cost,state,bsr,vin,subs,ttot)
-  + p_specCostRenHS(cost,state,hsr,vin,subs,ttot)
+p_specCostRen(costRen,state,bsr,hsr,vin,subs,ttot) =
+    p_specCostRenBS(costRen,state,bsr,vin,subs,ttot)
+  + p_specCostRenHS(costRen,state,hsr,vin,subs,ttot)
 ;
 $endIf.sequentialRen
 
 $ifThen.lowop "%CALIBRATIONLOWOP%" == "FALSE"
 * floor-space specific operation cost
-p_specCostOpe(bs,hs,vin,reg,loc,typ,ttot) =
+p_specCostOpe("maintenance",bs,hs,vin,reg,loc,typ,ttot) =
+  p_maintenanceCost(bs,hs,reg,loc,typ)
+;
+p_specCostOpe("carrier",bs,hs,vin,reg,loc,typ,ttot) =
   p_feDemand(hs,bs,vin,reg,typ,ttot)
   * sum(hsCarrier(hs,carrier),
-      p_carrierPrice(carrier,reg,ttot)
-      + p_carbonPrice(carrier,ttot) * p_carrierEmi(carrier,reg,ttot)
-    ) * 1.2 !! coarse accounting for VAT
+    p_carrierPrice(carrier,reg,ttot)
+  )
+;
+p_specCostOpe("carbon",bs,hs,vin,reg,loc,typ,ttot) =
+  p_feDemand(hs,bs,vin,reg,typ,ttot)
+  * sum(hsCarrier(hs,carrier),
+    p_carbonPrice(carrier,ttot) * p_carrierEmi(carrier,reg,ttot)
+  )
+  * 1.2 !! coarse accounting for VAT
 ;
 display "Compute operational costs in GAMS code";
 $endIf.lowop
@@ -143,13 +153,12 @@ p_lccCon(cost,var,bs,hs,reg,loc,typ,inc,ttot) =
     *
     (
       p_specCostCon(cost,bs,hs,reg,loc,typ,inc,ttot2)$(    sameas(var,"construction")
-                                                     and sameas(ttot,ttot2))
+                                                       and sameas(ttot,ttot2))
       + sum(vin$vinExists(ttot2,vin),
           p_dtVin(ttot,vin)
           / p_dt(ttot)
           * (
-              p_specCostOpe(bs,hs,vin,reg,loc,typ,ttot)$(    sameas(var,"stock")
-                                                       and sameas(cost,"tangible"))
+              p_specCostOpe(cost,bs,hs,vin,reg,loc,typ,ttot)$sameas(var,"stock")
             + p_specCostRen(cost,bs,hs,bs,"0",vin,reg,loc,typ,inc,ttot)$sameas(var,"renovation")
               / p_lifeTimeBS(reg)
             + p_specCostRen(cost,bs,hs,"0",hs,vin,reg,loc,typ,inc,ttot)$sameas(var,"renovation")
@@ -158,7 +167,7 @@ p_lccCon(cost,var,bs,hs,reg,loc,typ,inc,ttot) =
           * (1 - p_probDem(reg,typ,ttot2,ttot))
       ) * p_dt(ttot2)
       + p_specCostDem$(    sameas(var,"demolition")
-                       and sameas(cost,"tangible"))
+                       and sameas(cost,"building"))
         * (p_probDem(reg,typ,ttot2,ttot) - p_probDem(reg,typ,ttot2-1,ttot))
     )
   )

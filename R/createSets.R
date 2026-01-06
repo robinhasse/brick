@@ -16,8 +16,15 @@ createSets <- function(m, config) {
 
   invisible(m$addSet(
     name = "cost",
-    records = c("tangible", "intangible"),
-    description = "type of cost"
+    records = c("building",
+                "capitalBS", "capitalHS",
+                "installationBS", "installationHS",
+                "maintenance",
+                "carrier",
+                "carbon",
+                "incentive",
+                "intangible"),
+    description = "cost components"
   ))
   var <- m$addSet(
     name = "var",

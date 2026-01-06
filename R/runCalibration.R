@@ -865,11 +865,11 @@ runCalibrationOptim <- function(path,
     filter(.data[["ttot"]] %in% tcalib)
   # Set tangible cost of zero renovation to zero
   if (identical(flow, "renovationBS")) {
-    deviation[deviation$bsr == 0, "tangible"] <- 0
+    deviation[deviation$bsr == 0, c("capitalBS", "installationBS", "incentive")] <- 0
   } else if (identical(flow, "renovationHS")) {
-    deviation[deviation$hsr == 0, "tangible"] <- 0
+    deviation[deviation$bsr == 0, c("capitalHS", "installationHS", "incentive")] <- 0
   } else if (identical(flow, "renovation")) {
-    deviation[deviation$bsr == 0 & deviation$hsr == 0, "tangible"] <- 0
+    deviation[deviation$bsr == 0 & deviation$hsr == 0, c("capitalBS", "capitalHS", "installationBS", "installationHS", "incentive")] <- 0
   }
   deviation %>%
     replace_na(list(intangible = 0)) %>% # Set missing intangible costs to 0
@@ -1151,7 +1151,7 @@ runCalibrationOptim <- function(path,
   })
 
   p_specCostTang <- .namedLapply(variables, function(var) {
-    filter(readSymbol(m, symbol = costSym[[var]]), .data$cost == "tangible")
+    filter(readSymbol(m, symbol = costSym[[var]]), .data$cost != "intangible")
   })
 
   p_specCostData <- .namedLapply(variables, function(var) {
