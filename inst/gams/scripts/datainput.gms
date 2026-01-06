@@ -9,7 +9,7 @@ $else.sequentialRen
 $load p_specCostRen
 $endif.sequentialRen
 $load priceSensBS priceSensHS p_statusQuoPref
-$load p_maintenanceCost
+* $load p_maintenanceCost
 $load p_carbonPrice p_carrierPrice p_carrierEmi p_ueDemand p_eff p_renDepth
 $load p_discountRate
 $load p_population
@@ -115,9 +115,9 @@ $endIf.sequentialRen
 
 $ifThen.lowop "%CALIBRATIONLOWOP%" == "FALSE"
 * floor-space specific operation cost
-p_specCostOpe("maintenance",bs,hs,vin,reg,loc,typ,ttot) =
-  p_maintenanceCost(bs,hs,reg,loc,typ)
-;
+* p_specCostOpe("maintenance",bs,hs,vin,reg,loc,typ,ttot) =
+*   p_maintenanceCost(bs,hs,reg,loc,typ)
+* ;
 p_specCostOpe("carrier",bs,hs,vin,reg,loc,typ,ttot) =
   p_feDemand(hs,bs,vin,reg,typ,ttot)
   * sum(hsCarrier(hs,carrier),

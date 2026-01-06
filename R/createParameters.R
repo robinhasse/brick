@@ -96,9 +96,9 @@ createParameters <- function(m, config, inputDir) {
   p_specCostCon <- expandSets("cost", "bs", "hs", "region", "loc", "typ", "inc", "ttot",
                               .m = m)
   p_specCostCon_tang <- p_specCostCon %>%
-    filter(.data[["cost"]] != "intangible") %>%
+    filter(.data$cost == "building") %>%
     left_join(p_specCostCon_tang,
-              by = c("cost", "bs", "hs", "region", "typ", "ttot"))
+              by = c("bs", "hs", "region", "typ", "ttot"))
   p_specCostCon_intang <- p_specCostCon %>%
     filter(.data[["cost"]] == "intangible") %>%
     addAssump(intangCostFiles[["con"]])
@@ -114,24 +114,28 @@ createParameters <- function(m, config, inputDir) {
   ## renovation ====
 
   p_specCostRenBS_tang <- readInput("f_costRenovationBS.cs4r",
-                                    c("ttot", "region", "cost", "typ", "bs", "bsr", "vin"),
+                                    c("ttot", "region", "typ", "bs", "bsr", "vin"),
                                     inputDir) %>%
     toModelResolution(m) %>%
-    .explicitZero()
+    .explicitZero() %>%
+    mutate(cost = "capitalBS")
   p_specCostRenBS_tang <- expandSets("cost", "bs", "hs", "bsr", "vin", "region",
                                      "loc", "typ", "inc", "ttot", .m = m) %>%
     .filter(readSymbol(m, "renAllowedBS")) %>%
+    filter(.data$cost == "capitalBS") %>%
     left_join(p_specCostRenBS_tang,
               by = c("cost", "bs", "bsr", "vin", "region", "typ", "ttot"))
 
   p_specCostRenHS_tang <- readInput("f_costRenovationHS.cs4r",
-                                    c("ttot", "region", "cost", "hs", "hsr", "bs", "typ", "vin"),
+                                    c("ttot", "region", "hs", "hsr", "bs", "typ", "vin"),
                                     inputDir) %>%
     toModelResolution(m) %>%
-    .explicitZero()
+    .explicitZero() %>%
+    mutate(cost = "capitalHS")
   p_specCostRenHS_tang <- expandSets("cost", "bs", "hs", "hsr", "vin", "region",
                                      "loc", "typ", "inc", "ttot", .m = m) %>%
     .filter(readSymbol(m, "renAllowedHS")) %>%
+    filter(.data$cost == "capitalHS") %>%
     left_join(p_specCostRenHS_tang,
               by = c("cost", "bs", "hs", "hsr", "vin", "region", "typ", "ttot"))
 
@@ -279,11 +283,13 @@ createParameters <- function(m, config, inputDir) {
   )
 
   ### maintenance ####
-  p_maintenanceCost <- readInput("f_maintenanceCost.cs4r",
-                                 c("region", "bs", "hs", "loc", "typ"),
-                                 inputDir) %>%
-    select("bs", "hs", "region", "loc", "typ", "value") %>%
-    toModelResolution(m)
+  # p_maintenanceCost <- readInput("f_maintenanceCost.cs4r",
+  #                                c("region", "bs", "hs", "loc", "typ"),
+  #                                inputDir) %>%
+  #   select("bs", "hs", "region", "loc", "typ", "value") %>%
+  #   toModelResolution(m)
+  p_maintenanceCost <- expandSets("bs", "hs", "region", "loc", "typ", .m = m) %>%
+    mutate(value = 0)
   p_maintenanceCost <- m$addParameter(
     name = "p_maintenanceCost",
     domain = c("bs", "hs", "region", "loc", "typ"),
