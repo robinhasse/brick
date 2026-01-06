@@ -31,7 +31,7 @@ createParameters <- function(m, config, inputDir) {
     name = "p_dt",
     domain = "ttot",
     records = dt,
-    description = "length of time step in yr"
+    description = "length of time step [yr]"
   )
 
   vintages <- getDimMap("vin", config[["granularity"]])
@@ -49,7 +49,7 @@ createParameters <- function(m, config, inputDir) {
     name = "p_dtVin",
     domain = c("ttot", "vin"),
     records = p_dtVin,
-    description = "intersection of time step and vintage cohort in yr"
+    description = "intersection of time step and vintage cohort [yr]"
   )
 
   invisible(m$addParameter(
@@ -107,7 +107,7 @@ createParameters <- function(m, config, inputDir) {
     name = "p_specCostCon",
     domain = c("cost", state, "region", "loc", "typ", "inc", "ttot"),
     records = p_specCostCon,
-    description = "floor-space specific construction cost in USD/m2"
+    description = "floor-space specific construction cost [USD/m2]"
   )
 
 
@@ -219,7 +219,7 @@ createParameters <- function(m, config, inputDir) {
     name = "p_carbonPrice",
     domain = c("carrier", "ttot"),
     records = p_carbonPrice,
-    description = "Carbon price in USD/t_CO2eq"
+    description = "Carbon price [USD/t_CO2eq]"
   )
 
   ### energy carrier prices and emission intensities ####
@@ -236,7 +236,7 @@ createParameters <- function(m, config, inputDir) {
     name = "p_carrierPrice",
     domain = c("carrier", "region", "ttot"),
     records = p_carrierPrice,
-    description = "final energy carrier price in USD/kWh"
+    description = "final energy carrier price [USD/kWh]"
   )
 
   p_carrierEmi <- carrierData %>%
@@ -248,7 +248,7 @@ createParameters <- function(m, config, inputDir) {
     name = "p_carrierEmi",
     domain = c("carrier", "region", "ttot"),
     records = p_carrierEmi,
-    description = "energy carrier emission intensity in t_CO2/kWh"
+    description = "energy carrier emission intensity [t_CO2/kWh]"
   )
 
   ### useful energy demand for space heating ####
@@ -264,7 +264,7 @@ createParameters <- function(m, config, inputDir) {
     name = "p_ueDemand",
     domain = c("bs", "vin", "region", "typ"),
     records = p_ueDemand,
-    description = "floor-space specific useful energy demand for space heating in kWh/yr/m2"
+    description = "floor-space specific useful energy demand for space heating [kWh/yr/m2]"
   )
 
   ### FE-to-UE-efficiency of heating systems ####
@@ -286,7 +286,7 @@ createParameters <- function(m, config, inputDir) {
   invisible(m$addParameter(
     name = "p_specCostDem",
     records = 15,
-    description = "floor-space specific demolition cost in USD/m2"
+    description = "floor-space specific demolition cost [USD/m2]"
   ))
 
 
@@ -369,7 +369,7 @@ createParameters <- function(m, config, inputDir) {
     name = "p_lifeTimeBS",
     domain = "region",
     records = p_lifeTimeBS,
-    description = "life time of building shell in yr"
+    description = "life time of building shell [yr]"
   )
 
   p_shareRenBS <- computeShareRen(ltBs, m, cutOffShare) %>%
@@ -403,7 +403,7 @@ createParameters <- function(m, config, inputDir) {
     name = "p_lifeTimeHS",
     domain = c("hs", "region", "typ"),
     records = p_lifeTimeHS,
-    description = "life time of heating system in yr"
+    description = "life time of heating system [yr]"
   )
 
   p_shareRenHS <- computeShareRen(ltHs, m, cutOffShare) %>%
@@ -476,7 +476,7 @@ createParameters <- function(m, config, inputDir) {
     name = "p_discountRate",
     domain = c("typ", "ttot"),
     records = p_discountRate,
-    description = "discount rate (incl. implicit discount) in 1/yr"
+    description = "discount rate (incl. implicit discount) [1/yr]"
   )
 
 
@@ -521,7 +521,7 @@ createParameters <- function(m, config, inputDir) {
   invisible(m$addParameter(
     name = "p_statusQuoPref",
     records = config[["statusQuoPreference"]],
-    description = "preference for replacehing a heating system with the same technology in USD/m2"
+    description = "preference for replacehing a heating system with the same technology [USD/m2]"
   ))
 
 
@@ -554,7 +554,7 @@ createParameters <- function(m, config, inputDir) {
     name = "p_population",
     domain = c("region", "loc", "typ", "inc", "ttot"),
     records = p_population,
-    description = "number of people in million"
+    description = "number of people [million cap]"
   )
 
 
@@ -577,7 +577,7 @@ createParameters <- function(m, config, inputDir) {
     name = "p_floorPerCap",
     domain = c("region", "loc", "typ", "inc", "ttot"),
     records = p_floorPerCap,
-    description = "floor space per capita in m2"
+    description = "floor space per capita [m2/cap]"
   )
 
 
@@ -644,7 +644,7 @@ createParameters <- function(m, config, inputDir) {
     name = "p_stockHist",
     domain = c("qty", "bs", "hs", "vin", "region", "loc", "typ", "inc", "ttot"),
     records = p_stockHist,
-    description = "historic stock of buildings in million m2"
+    description = "historic stock of buildings [million m2]"
   )
 
 

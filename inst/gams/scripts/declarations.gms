@@ -1,9 +1,9 @@
 parameters
-p_dt(ttot)        "length of time step in yr"
-p_dtVin(ttot,vin) "intersection of time step and vintage cohort in yr"
+p_dt(ttot)        "length of time step [yr]"
+p_dtVin(ttot,vin) "intersection of time step and vintage cohort [yr]"
 
-p_householdSize(region,loc,typ,inc,ttot) "household size in cap"
-p_floorPerCap(region,loc,typ,inc,ttot)   "average floor space per capita in stock in m2/cap"
+p_householdSize(region,loc,typ,inc,ttot) "household size [cap]"
+p_floorPerCap(region,loc,typ,inc,ttot)   "average floor space per capita in stock [m2/cap]"
 
 p_specCostCon(cost,bs,hs,region,loc,typ,inc,ttot)             "floor-space specific construction cost [USD/m2]"
 p_specCostRen(cost,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot) "floor-space specific renovation cost [USD/m2]"
@@ -12,25 +12,25 @@ p_specCostRenHS(cost,bs,hs,hsr,vin,region,loc,typ,inc,ttot)   "floor-space speci
 p_specCostOpe(bs,hs,vin,region,loc,typ,ttot)                  "floor-space specific operation cost [USD/m2/yr]"
 p_specCostDem                                                 "floor-space specific demolition cost [USD/m2]"
 
-p_carbonPrice(carrier,ttot)           "Carbon price in USD/t_CO2eq"
-p_carrierPrice(carrier,region,ttot)   "final energy carrier price in USD/kWh"
-p_carrierEmi(carrier,region,ttot)     "energy carrier emission intensity in t_CO2/kWh"
-p_ueDemand(bs,vin,region,typ)         "floor-space specific useful energy demand for space heating in kWh/yr/m2"
-p_feDemand(hs,bs,vin,region,typ,ttot) "floor-space specific final energy demand for space heating in kWh/yr/m2"
+p_carbonPrice(carrier,ttot)           "Carbon price [USD/t_CO2eq]"
+p_carrierPrice(carrier,region,ttot)   "final energy carrier price [USD/kWh]"
+p_carrierEmi(carrier,region,ttot)     "energy carrier emission intensity [t_CO2/kWh]"
+p_ueDemand(bs,vin,region,typ)         "floor-space specific useful energy demand for space heating [kWh/yr/m2]"
+p_feDemand(hs,bs,vin,region,typ,ttot) "floor-space specific final energy demand for space heating [kWh/yr/m2]"
 p_eff(hs,region,typ,ttot)             "technical efficiency of space heating technologies"
 p_renDepth(bs,bsr)                    "renovation depth"
 
-p_lccCon(cost,var,bs,hs,region,loc,typ,inc,ttot) "Estimate of life cycle cost of constructed housing in USD/m2"
+p_lccCon(cost,var,bs,hs,region,loc,typ,inc,ttot) "Estimate of life cycle cost of constructed housing [USD/m2]"
 p_probDem(region,typ,ttot2,ttot)                 "probability of a building having reached its end of life"
-p_lifeTimeBS(region)                             "life time of building shell system in yr"
-p_lifeTimeHS(hs,region,typ)                      "life time of heating system in yr"
+p_lifeTimeBS(region)                             "life time of building shell system [yr]"
+p_lifeTimeHS(hs,region,typ)                      "life time of heating system [yr]"
 
-p_population(region,loc,typ,inc,ttot)          "number of people in million"
-p_floorPerCap(region,loc,typ,inc,ttot)         "floor space per capita in m2"
+p_population(region,loc,typ,inc,ttot)          "number of people [million cap]"
+p_floorPerCap(region,loc,typ,inc,ttot)         "floor space per capita [m2/cap]"
 
-p_stockHist(qty,bs,hs,vin,region,loc,typ,inc,ttot)              "historic stock of buildings in [million m2]"
-p_constructionHist(qty,bs,hs,region,loc,typ,inc,ttot)           "historic flow of new buildings in [million m2/yr]"
-p_renovationHist(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot) "historic flow of renovated and untouched buildings in [million m2/yr]"
+p_stockHist(qty,bs,hs,vin,region,loc,typ,inc,ttot)              "historic stock of buildings [million m2]"
+p_constructionHist(qty,bs,hs,region,loc,typ,inc,ttot)           "historic flow of new buildings [million m2/yr]"
+p_renovationHist(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot) "historic flow of renovated and untouched buildings [million m2/yr]"
 p_renovationHistBS(qty,bs,hs,bsr,vin,region,loc,typ,inc,ttot)   "historic flow of buildings with building shell retrofit [million m2/yr]"
 p_renovationHistHS(qty,bs,hs,hsr,vin,region,loc,typ,inc,ttot)   "historic flow of buildings with heating system repacement [million m2/yr]"
 p_demolitionHist(qty,bs,hs,vin,region,loc,typ,inc,ttot)         "historic flow of demolished buildings [million m2/yr]"
@@ -41,7 +41,7 @@ p_shareRenHS(hs,region,typ,ttot,ttot)     "minimum share of renovation from the 
 p_shareRenBSinit(region,vin,ttot,ttot)        "minimum share of renovation from the building shell of initial stock reaching end of life"
 p_shareRenHSinit(hs,region,typ,vin,ttot,ttot) "minimum share of renovation from the heating system of initial stock reaching end of life"
 
-p_discountRate(typ,ttot) "discount rate (incl. implicit discount) in 1/yr"
+p_discountRate(typ,ttot) "discount rate (incl. implicit discount) [1/yr]"
 p_discountFac(typ,ttot)  "discount factor w.r.t. t0"
 
 p_runtime(region,loc,typ,inc)                  "model runtime"
@@ -63,7 +63,7 @@ p_refWeight(reference)                  "Weight of reference"
 priceSensBS(var, region, loc, typ, inc) "price sensitivity of building shell choice"
 priceSensHS(var, region, loc, typ, inc) "price sensitivity of heating system choice"
 
-p_statusQuoPref "preference for replacehing a heating system with the same technology in USD/m2"
+p_statusQuoPref "preference for replacehing a heating system with the same technology [USD/m2]"
 p_statusQuoShare(hs) "share of heating systems that are identically replaced"
 
 ;
@@ -102,16 +102,16 @@ v_refDeviationTot                               "total weighted squared deviatio
 v_refDeviationVar(reference,refVar,region,ttot) "deviation from each variable in reference sources"
 v_matchingObj                                   "matching objective: reference deviation and flow variation"
 
-v_flowVariation(varFLow,qty,region,loc,typ,inc,ttot)       "temporal variation of flows [million m2/yr/yr]"
-v_flowVariationCon(qty,bs,hs,region,loc,typ,inc,t)         "temporal variation of construction flow [million m2/yr/yr]"
-v_flowVariationRenBS(qty,bs,hs,bsr,region,loc,typ,inc,ttot)   "temporal variation of building shell retrofit flow"
-v_flowVariationRenHS(qty,bs,hs,hsr,region,loc,typ,inc,ttot)   "temporal variation of heating system replacement flow"
-v_flowVariationDem(qty,bs,hs,region,loc,typ,inc,t)         "temporal variation of demolition flow [million m2/yr/yr]"
+v_flowVariation(varFLow,qty,region,loc,typ,inc,ttot)        "temporal variation of flows [million m2/yr/yr]"
+v_flowVariationCon(qty,bs,hs,region,loc,typ,inc,t)          "temporal variation of construction flow [million m2/yr/yr]"
+v_flowVariationRenBS(qty,bs,hs,bsr,region,loc,typ,inc,ttot) "temporal variation of building shell retrofit flow [million m2/yr/yr]"
+v_flowVariationRenHS(qty,bs,hs,hsr,region,loc,typ,inc,ttot) "temporal variation of heating system replacement flow [million m2/yr/yr]"
+v_flowVariationDem(qty,bs,hs,region,loc,typ,inc,t)          "temporal variation of demolition flow [million m2/yr/yr]"
 $endif.matching
 
-v_sysCost(region,loc,typ,inc,ttot) "system cost cost cash flow in USD/yr"
-v_conCost(region,loc,typ,inc,ttot) "construction cost cash flow in USD/yr"
-v_renCost(region,loc,typ,inc,ttot) "renovation cost cash flow in USD/yr"
+v_sysCost(region,loc,typ,inc,ttot) "system cost cost cash flow [USD/yr]"
+v_conCost(region,loc,typ,inc,ttot) "construction cost cash flow [USD/yr]"
+v_renCost(region,loc,typ,inc,ttot) "renovation cost cash flow [USD/yr]"
 
 $ifthen.renCorrect "%RUNTYPE%" == "renCorrect"
 v_renCorrectObj                                                 "correction objective: renovation deviation"
@@ -125,15 +125,15 @@ $endif.renCorrect
 ;
 
 positive variables
-v_opeCost(region,loc,typ,inc,ttot) "operational cost cash flow in USD/yr"
-v_demCost(region,loc,typ,inc,ttot) "demolition cost cash flow in USD/yr"
+v_opeCost(region,loc,typ,inc,ttot) "operational cost cash flow [USD/yr]"
+v_demCost(region,loc,typ,inc,ttot) "demolition cost cash flow [USD/yr]"
 
-v_stock(qty,bs,hs,vin,region,loc,typ,inc,ttot)              "stock of buildings in [million m2/yr]"
-v_construction(qty,bs,hs,region,loc,typ,inc,ttot)           "flow of new buildings in [million m2/yr]"
+v_stock(qty,bs,hs,vin,region,loc,typ,inc,ttot)              "stock of buildings [million m2/yr]"
+v_construction(qty,bs,hs,region,loc,typ,inc,ttot)           "flow of new buildings [million m2/yr]"
 v_renovation(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot) "flow of renovated buildings (incl. untouched) [million m2/yr]"
 v_renovationBS(qty,bs,hs,bsr,vin,region,loc,typ,inc,ttot)   "flow of buildings with building shell retrofit (incl. untouched) [million m2/yr]"
 v_renovationHS(qty,bs,hs,hsr,vin,region,loc,typ,inc,ttot)   "flow of buildings with heating system repacement (incl. untouched) [million m2/yr]"
-v_demolition(qty,bs,hs,vin,region,loc,typ,inc,ttot)         "flow of demolished buildings in million m2/yr"
+v_demolition(qty,bs,hs,vin,region,loc,typ,inc,ttot)         "flow of demolished buildings [million m2/yr]"
 
 v_dwelSizeStock(vin,region,loc,typ,inc,ttot)        "average dwelling size of the stock [m2/dwel]"
 v_dwelSizeConstruction(region,loc,typ,inc,ttot)     "average dwelling size of newly constructed buildings [m2/dwel]"
@@ -142,7 +142,7 @@ v_dwelSizeRenovationHS(vin,region,loc,typ,inc,ttot) "average of dwelling size of
 v_dwelSizeDemolition(vin,region,loc,typ,inc,ttot)   "average dwelling size of demolished buildings [m2/dwel]"
 
 $ifthen.matching "%RUNTYPE%" == "matching"
-v_dwelSize_Odyssee(refVar,region,ttot) "dwelling size at the aggregation of Odyssee_dwelSize in m2/dwel"
+v_dwelSize_Odyssee(refVar,region,ttot) "dwelling size at the aggregation of Odyssee_dwelSize [m2/dwel]"
 v_renRate_EuropeanCommissionRenovation(refVar,region,ttot)
 $endif.matching
 ;
@@ -161,12 +161,12 @@ q_demCost(region,loc,typ,inc,ttot) "demolition cost"
 q_renovationBS(qty,bs,hs,bsr,vin,region,loc,typ,inc,ttot) "aggregate renovation to building shell retrofit"
 q_renovationHS(qty,bs,hs,hsr,vin,region,loc,typ,inc,ttot) "aggregate renovation to heating system replacement"
 
-q_renovationDiff(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot) "difference of renovated and untouched buildings [million m2/yr]"
-q_renovationBSDiff(qty,bs,hs,bsr,vin,region,loc,typ,inc,ttot)   "difference of building shell retrofitted and untouched buildings [million m2/yr]"
-q_renovationHSDiff(qty,bs,hs,hsr,vin,region,loc,typ,inc,ttot)   "difference of heating system replacement and untouched buildings [million m2/yr]"
-q_constructionDiff(qty,bs,hs,region,loc,typ,inc,ttot)           "difference of new buildings [million m2/yr]"
-q_demolitionDiff(qty,bs,hs,vin,region,loc,typ,inc,ttot)         "difference of demolished buildings [million m2/yr]"
-q_stockDiff(qty, bs, hs, vin, region, loc, typ, inc, ttot)      "difference in stock of buildings [million m2]"
+q_renovationDiff(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot) "difference of renovated and untouched buildings"
+q_renovationBSDiff(qty,bs,hs,bsr,vin,region,loc,typ,inc,ttot)   "difference of building shell retrofitted and untouched buildings"
+q_renovationHSDiff(qty,bs,hs,hsr,vin,region,loc,typ,inc,ttot)   "difference of heating system replacement and untouched buildings"
+q_constructionDiff(qty,bs,hs,region,loc,typ,inc,ttot)           "difference of new buildings"
+q_demolitionDiff(qty,bs,hs,vin,region,loc,typ,inc,ttot)         "difference of demolished buildings"
+q_stockDiff(qty, bs, hs, vin, region, loc, typ, inc, ttot)      "difference in stock of buildings"
 
 q_sysHeteroPref(region,loc,typ,inc,ttot)              "system-wide heterogeneity preference"
 q_heteroPrefCon(region,loc,typ,inc,ttot)              "diversity preference for construction"
@@ -190,11 +190,11 @@ q_buildingLifeTime(qty,bs,hs,vin,region,loc,typ,inc,ttot)   "minimum demolition 
 q_lifeTimeBS(qty,bs,vin,region,loc,typ,inc,ttot)            "minimum renovation from building shell life time"
 q_lifeTimeHS(qty,hs,vin,region,loc,typ,inc,ttot)            "minimum renovation from heating system life time"
 
-q_dwelSizeStock(vin,region,loc,typ,inc,ttot)      "dwelling size of the stock [m2/dwel]"
-q_dwelSizeConstruction(region,loc,typ,inc,ttot)   "dwelling size of newly constructed buildings [m2/dwel]"
-q_dwelSizeRenovationBS(vin,region,loc,typ,inc,ttot) "dwelling size of buildings with building shell retrofit [m2/dwel]"
-q_dwelSizeRenovationHS(vin,region,loc,typ,inc,ttot) "dwelling size of buildings with heating system replacement [m2/dwel]"
-q_dwelSizeDemolition(vin,region,loc,typ,inc,ttot) "dwelling size of demolished buildings [m2/dwel]"
+q_dwelSizeStock(vin,region,loc,typ,inc,ttot)      "dwelling size of the stock"
+q_dwelSizeConstruction(region,loc,typ,inc,ttot)   "dwelling size of newly constructed buildings"
+q_dwelSizeRenovationBS(vin,region,loc,typ,inc,ttot) "dwelling size of buildings with building shell retrofit"
+q_dwelSizeRenovationHS(vin,region,loc,typ,inc,ttot) "dwelling size of buildings with heating system replacement"
+q_dwelSizeDemolition(vin,region,loc,typ,inc,ttot) "dwelling size of demolished buildings"
 
 q_minDivConBS(bs,hsr,region,loc,typ,inc,t)             "minimum building shell diversity in construction"
 q_minDivConHS(bs,hsr,region,loc,typ,inc,t)             "minimum heating system diversity in construction"
@@ -215,7 +215,7 @@ q_flowVariationDem(qty,bs,hs,region,loc,typ,inc,ttot)         "temporal variatio
 
 
 $ifthen.matching "%RUNTYPE%" == "matching"
-q_dwelSize_Odyssee(refVar,region,ttot) "dwelling size at the aggregation of Odyssee_dwelSize in m2/dwel"
+q_dwelSize_Odyssee(refVar,region,ttot) "dwelling size at the aggregation of Odyssee_dwelSize"
 q_renRate_EuropeanCommissionRenovation(refVar,region,ttot)
 
 q_minStatusQuo(bs,hs,vin,region,loc,typ,inc,ttot) "minimum identical replacement from status quo bias"
@@ -236,16 +236,16 @@ $endif.renCorrect
 
 $ifthenE.calibration (sameas("%CALIBRATIONMETHOD%","optimization"))or(sameas("%CALIBRATIONMETHOD%","logit"))
 parameters
-p_stockCalibTarget(qty,bs,hs,vin,region,loc,typ,inc,ttot)              "historic stock of buildings in million m2 as calibration target"
-p_constructionCalibTarget(qty,bs,hs,region,loc,typ,inc,ttot)           "historic flow of new buildings as calibration target in million m2/yr"
-p_demolitionCalibTarget(qty,bs,hs,vin,region,loc,typ,inc,ttot)         "historic flow of demolished buildings as calibration target in million m2/yr"
+p_stockCalibTarget(qty,bs,hs,vin,region,loc,typ,inc,ttot)              "historic stock of buildings as calibration target [million m2]"
+p_constructionCalibTarget(qty,bs,hs,region,loc,typ,inc,ttot)           "historic flow of new buildings as calibration target [million m2/yr]"
+p_demolitionCalibTarget(qty,bs,hs,vin,region,loc,typ,inc,ttot)         "historic flow of demolished buildings as calibration target [million m2/yr]"
 $ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
-p_renovationBSCalibTarget(qty,bs,hs,bsr,vin,region,loc,typ,inc,ttot) "historic flow of shell renovation as calibration target in million m2/yr"
-p_renovationHSCalibTarget(qty,bs,hs,hsr,vin,region,loc,typ,inc,ttot) "historic flow of heating system renovation as calibration target in million m2/yr"
+p_renovationBSCalibTarget(qty,bs,hs,bsr,vin,region,loc,typ,inc,ttot) "historic flow of shell renovation as calibration target [million m2/yr]"
+p_renovationHSCalibTarget(qty,bs,hs,hsr,vin,region,loc,typ,inc,ttot) "historic flow of heating system renovation as calibration target [million m2/yr]"
 $else.sequentialRen
-p_renovationCalibTarget(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot) "historic flow of renovated and untouched buildings as calibration target in million m2/yr"
+p_renovationCalibTarget(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot) "historic flow of renovated and untouched buildings as calibration target [million m2/yr]"
 $endIf.sequentialRen
-p_f(region, loc, typ, inc)                                       "value of the objective function in the outer optimization of the calibration; unit depends on target choice"
+p_f(region, loc, typ, inc)                                       "value of the objective function in the outer optimization of the calibration (unit depends on target choice)"
 ;
 $endif.calibration
 
@@ -254,14 +254,14 @@ parameters
 p_diff                                                              "Difference in the argument of the outer objective function used in the difference quotient"
 
 p_xinitCon(bs, hs, region, loc, typ, inc, ttot)                        "Intangible costs of construction at the beginning of this calibration iteration"
-p_specCostCalibCon(bs, hs, region, loc, typ, inc, ttot)                "Intangible costs of construction after adding p_diff to one entry of the vectorized costs; duplicate of p_xDiffCon"
+p_specCostCalibCon(bs, hs, region, loc, typ, inc, ttot)                "Intangible costs of construction after adding p_diff to one entry of the vectorized costs (duplicate of p_xDiffCon)"
 p_xDiffCon(bs, hs, region, loc, typ, inc, ttot)                        "Intangible costs of construction after adding p_diff to one entry of the vectorized costs"
 p_fDiffCon(bs, hs, region, loc, typ, inc, ttot)                        "objective value computed with p_diff added to the respective entry of intangible construction costs"
-p_stock(qty, bs, hs, vin, region, loc, typ, inc, ttot)                 "stock of buildings in million m2; used to store v_stock after the initial model solve"
-p_construction(qty,bs,hs,region,loc,typ,inc,ttot)                      "flow of new buildings in million m2/yr; used to store v_construction after the initial model solve"
+p_stock(qty, bs, hs, vin, region, loc, typ, inc, ttot)                 "stock of buildings (used to store v_stock after the initial model solve) [million m2]"
+p_construction(qty,bs,hs,region,loc,typ,inc,ttot)                      "flow of new buildings (used to store v_construction after the initial model solve) [million m2/yr]"
 $ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
-p_renovationBS(qty,bs,hs,bsr,vin,region,loc,typ,inc,ttot)            "flow of renovated and untouched buildings in million m2/yr; used to store v_renovation after the initial model solve"
-p_renovationHS(qty,bs,hs,hsr,vin,region,loc,typ,inc,ttot)            "flow of renovated and untouched buildings in million m2/yr; used to store v_renovation after the initial model solve"
+p_renovationBS(qty,bs,hs,bsr,vin,region,loc,typ,inc,ttot)            "flow of renovated and untouched buildings (used to store v_renovation after the initial model solve) [million m2/yr]"
+p_renovationHS(qty,bs,hs,hsr,vin,region,loc,typ,inc,ttot)            "flow of renovated and untouched buildings (used to store v_renovation after the initial model solve) [million m2/yr]"
 p_xinitRenBS(bs, hs, bsr, vin, region, loc, typ, inc, ttot)         "Intangible costs of shell renovation at the beginning of this calibration iteration"
 p_xinitRenHS(bs, hs, hsr, vin, region, loc, typ, inc, ttot)         "Intangible costs of heating renovation at the beginning of this calibration iteration"
 p_specCostCalibRenBS(bs, hs, bsr, vin, region, loc, typ, inc, ttot) "Intangible costs of shell renovation after adding p_diff to one entry of the vectorized costs at full resolution"
@@ -271,7 +271,7 @@ p_xDiffRenHS(renType, hsr, vin, region, loc, typ, inc, ttot)        "Intangible 
 p_fDiffRenBS(bsr, vin, region, loc, typ, inc, ttot)        "objective value computed with p_diff added to the respective entry of intangible shell renovation costs"
 p_fDiffRenHS(renType, hsr, vin, region, loc, typ, inc, ttot)        "objective value computed with p_diff added to the respective entry of intangible heating renovation costs"
 $else.sequentialRen
-p_renovation(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot)            "flow of renovated and untouched buildings in million m2/yr; used to store v_renovation after the initial model solve"
+p_renovation(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot)            "flow of renovated and untouched buildings (used to store v_renovation after the initial model solve) [million m2/yr]"
 p_xinitRen(bs, hs, bsr, hsr, vin, region, loc, typ, inc, ttot)         "Intangible costs of renovation at the beginning of this calibration iteration"
 p_specCostCalibRen(bs, hs, bsr, hsr, vin, region, loc, typ, inc, ttot) "Intangible costs of renovation after adding p_diff to one entry of the vectorized costs at full resolution"
 p_xDiffRen(renType, bsr, hsr, vin, region, loc, typ, inc, ttot)        "Intangible costs of renovation after adding p_diff to one entry of the vectorized costs"
