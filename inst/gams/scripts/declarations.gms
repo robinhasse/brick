@@ -28,6 +28,13 @@ p_lifeTimeHS(hs,region,typ)                      "life time of heating system in
 p_population(region,loc,typ,inc,ttot)          "number of people in million"
 p_floorPerCap(region,loc,typ,inc,ttot)         "floor space per capita in m2"
 
+p_factorIntangParams(params)                   "parameters for adjustment of heat pump intangible costs"
+  / 
+  minshare 0.1
+  midpoint 0.3
+  scale 0.15
+  /
+
 p_stockHist(qty,bs,hs,vin,region,loc,typ,inc,ttot)              "historic stock of buildings in [million m2]"
 p_constructionHist(qty,bs,hs,region,loc,typ,inc,ttot)           "historic flow of new buildings in [million m2/yr]"
 p_renovationHist(qty,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot) "historic flow of renovated and untouched buildings in [million m2/yr]"
@@ -65,6 +72,9 @@ priceSensHS(var, region, loc, typ, inc) "price sensitivity of heating system cho
 
 p_statusQuoPref "preference for replacehing a heating system with the same technology in USD/m2"
 p_statusQuoShare(hs) "share of heating systems that are identically replaced"
+
+o_specCostRen(cost,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot) "floor-space specific renovation cost with heat pump intangible cost adjustment [USD/m2]"
+o_specCostRenHS(cost,bs,hs,hsr,vin,region,loc,typ,inc,ttot)   "floor-space specific heating system replacement cost with heat pump intangible cost adjustment [USD/m2]"
 
 ;
 
@@ -135,6 +145,9 @@ v_renovationBS(qty,bs,hs,bsr,vin,region,loc,typ,inc,ttot)   "flow of buildings w
 v_renovationHS(qty,bs,hs,hsr,vin,region,loc,typ,inc,ttot)   "flow of buildings with heating system repacement (incl. untouched) [million m2/yr]"
 v_demolition(qty,bs,hs,vin,region,loc,typ,inc,ttot)         "flow of demolished buildings in million m2/yr"
 
+v_factorIntangCostHeatPump(bs,vin,region,loc,typ,inc,ttot)  "factor to scale down intangible costs for heat pumps [1]"
+v_shareHeatPump(bs,vin,region,loc,typ,inc,ttot)             "Share of heat pumps in the stock"
+
 v_dwelSizeStock(vin,region,loc,typ,inc,ttot)        "average dwelling size of the stock [m2/dwel]"
 v_dwelSizeConstruction(region,loc,typ,inc,ttot)     "average dwelling size of newly constructed buildings [m2/dwel]"
 v_dwelSizeRenovationBS(vin,region,loc,typ,inc,ttot) "average of dwelling size of buildings with building shell retrofit [m2/dwel]"
@@ -155,8 +168,11 @@ q_obj(region,loc,typ,inc) "objective: discounted system cost + heterogeneity pre
 q_sysCost(region,loc,typ,inc,ttot) "system cost (con + ren + ope + dem)"
 q_conCost(region,loc,typ,inc,ttot) "construction cost"
 q_renCost(region,loc,typ,inc,ttot) "renovation cost"
+q_renCostLinear(region,loc,typ,inc,ttot) "linear renovation cost"
 q_opeCost(region,loc,typ,inc,ttot) "operation cost"
 q_demCost(region,loc,typ,inc,ttot) "demolition cost"
+q_factorIntangCostHeatPump(bs,vin,region,loc,typ,inc,ttot) "factor to scale down intangible costs for heat pumps"
+q_shareHeatPump(bs,vin,region,loc,typ,inc,ttot) "share of heat pumps in stock"
 
 q_renovationBS(qty,bs,hs,bsr,vin,region,loc,typ,inc,ttot) "aggregate renovation to building shell retrofit"
 q_renovationHS(qty,bs,hs,hsr,vin,region,loc,typ,inc,ttot) "aggregate renovation to heating system replacement"

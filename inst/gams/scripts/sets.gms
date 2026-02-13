@@ -29,6 +29,8 @@ ttot(tall)  "all modelling time steps"
 t(ttot)     "modelled time steps"
 thist(ttot) "historic time steps"
 tinit(ttot) "initial modelling time step"
+tcalib(ttot) "time steps considered by the calibration when minimising deviation from target trajectories"
+tcalibLast(ttot) "last time step of calibration or initial time step if tcalib is empty"
 
 *** model fundamentals
 cost "type of cost"
@@ -40,6 +42,14 @@ var "major variables of the model"
   / stock, construction, renovation, renovationBS, renovationHS, demolition /
 varFlow(var) "flow variables of the model"
   / construction, renovation, renovationBS, renovationHS, demolition /
+
+*** auxiliary sets
+params "parameters of intangible cost adjustment"
+  /
+  minshare "minimum share of intangible costs that always remains"
+  midpoint "point at which intangible costs are at 50% of toatal reduction"
+  scale "speed at which intangible costs drop"
+  /
 
 *** model analytics
 solveinfo	"model and solver stats"
@@ -90,7 +100,7 @@ alias(t,t2);
 $gdxin input.gdx
 $load bsr hsr bs hs
 $load region loc typ inc
-$load tall ttot t thist tinit
+$load tall ttot t thist tinit tcalib tcalibLast
 $load vin
 $load carrier
 $load sec
@@ -194,7 +204,6 @@ renEffective(bs,hs,bsr,hsr)$(not(sameas(bsr,"0") and sameas(hsr,"0"))) = yes;
 $ifthen.calibrationOptimization "%CALIBRATIONMETHOD%" == "optimization"
 
 sets
-tcalib(ttot) "time steps considered by the calibration when minimising deviation from target trajectories"
 *** Temporary: Store renovation combinations with at least one zero element
 $ifThen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
 zeroFlowBS(bs, hs, bsr)      "renovation combinations where the building shell is left untouched"
@@ -205,10 +214,6 @@ $endIf.sequentialRen
 ;
 
 alias(tcalib, tcalib2);
-
-$gdxin input.gdx
-$load tcalib
-$gdxin
 
 ***Determine sets of flows which are included in the stock calibration
 $ifThen.sequentialRen "%SEQUENTIALREN%" == "TRUE"

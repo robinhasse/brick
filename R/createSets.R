@@ -47,9 +47,10 @@ createSets <- function(m, config) {
     description = "all modelling time steps"
   )
 
+  tinit <- periodFromConfig(config, "tinit")
   invisible(m$addSet(
     name = "tinit",
-    records = periodFromConfig(config, "tinit"),
+    records = tinit,
     description = "initial modelling time step"
   ))
   invisible(m$addSet(
@@ -64,14 +65,39 @@ createSets <- function(m, config) {
     description = "historic time steps"
   ))
 
-  if (config[["switches"]][["RUNTYPE"]] == "calibration") {
+  if (!is.null(config[["calibperiods"]])) {
     tcalib <- periodFromConfig(config, "tcalib")
-    invisible(m$addSet(
-      "tcalib",
-      records = tcalib,
-      description = "time steps considered by the calibration when minimising deviation from target trajectories"
-    ))
+    tcalibLast <- tcalib[length(tcalib)]
+  } else {
+    if (config[["switches"]][["RUNTYPE"]] == "calibration") {
+      stop("Calibration time periods are missing from the calibration config.")
+    }
+    if (!is.null(config[["calibrationRun"]])
+        && file.exists(file.path(config[["calibrationRun"]], "config", "config_COMPILED.yaml"))) {
+      calibConfig <- readConfig(
+        file.path(config[["calibrationRun"]], "config", "config_COMPILED.yaml"),
+        readDirect = TRUE
+      )
+      tcalib <- periodFromConfig(calibConfig, "tcalib")
+      tcalibLast <- tcalib[length(tcalib)]
+    } else {
+      warning("Time steps of calibration are not given and could not be determined from calibration config.\n",
+              "Assuming no calibration time steps.")
+      tcalib <- vector(mode = "numeric", length = 0)
+      tcalibLast <- tinit[length(tinit)]
+    }
   }
+  invisible(m$addSet(
+    "tcalib",
+    records = tcalib,
+    description = "time steps considered by the calibration when minimising deviation from target trajectories"
+  ))
+  invisible(m$addSet(
+    "tcalibLast",
+    records = tcalibLast,
+    description = "last time step of calibration or initial time step if tcalib is empty"
+  ))
+
 
 
   # Vintages -------------------------------------------------------------------
