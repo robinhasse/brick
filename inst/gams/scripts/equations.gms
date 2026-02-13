@@ -77,18 +77,44 @@ $ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE" !! TODO: this might be genera
         * p_specCostRenBS(cost,renAllowedBS,vin,subs,t)
       )
       +
-      sum(renAllowedHS,
+      sum(renAllowedHS(bs, hs, hsr),
         v_renovationHS("area",renAllowedHS,vin,subs,t)
         * p_specCostRenHS(cost,renAllowedHS,vin,subs,t)
+        * (
+          v_factorIntangCostHeatPump(bs, vin, subs, t)$(sameas(hsr, "ehp1") and sameas(cost, "intangible"))
+          + 1$(not sameas(hsr, "ehp1") or not sameas(cost, "intangible"))
+        )
       )
     )
 $else.sequentialRen
-    sum((renAllowed, cost),
+    sum((renAllowed(bs, hs, bsr, hsr), cost),
       v_renovation("area",renAllowed,vin,subs,t)
       * p_specCostRen(cost,renAllowed,vin,subs,t)
+      * (
+          v_factorIntangCostHeatPump(bs, vin, subs, t)$(sameas(hsr, "ehp1") and sameas(cost, "intangible"))
+          + 1$(not sameas(hsr, "ehp1") or not sameas(cost, "intangible"))
+        )
     )
 $endif.sequentialRen
   )
+;
+
+q_factorIntangCostHeatPump(bs, vin, subs, t)..
+  v_factorIntangCostHeatPump(bs, vin, subs, t)
+  =e=
+  1 - (1 - p_factorIntangParams("minshare"))
+  * 1 / (
+    1 + exp(
+      -(v_shareHeatPump(bs, vin, subs, t) - p_factorIntangParams("midpoint"))
+      / p_factorIntangParams("scale")
+    )
+  )
+;
+
+q_shareHeatPump(bs, vin, subs, t)..
+  v_shareHeatPump(bs, vin, subs, t) * sum(hs, v_stock("area", bs, hs, vin, subs, t))
+  =e=
+  v_stock("area", bs, "ehp1", vin, subs, t)
 ;
 
 

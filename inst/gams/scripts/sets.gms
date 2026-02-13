@@ -41,6 +41,14 @@ var "major variables of the model"
 varFlow(var) "flow variables of the model"
   / construction, renovation, renovationBS, renovationHS, demolition /
 
+*** auxiliary sets
+params "parameters of intangible cost adjustment"
+  /
+  minshare "minimum share of intangible costs that always remains"
+  midpoint "point at which intangible costs are at 50% of toatal reduction"
+  scale "speed at which intangible costs drop"
+  /
+
 *** model analytics
 solveinfo	"model and solver stats"
   /
