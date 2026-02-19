@@ -73,6 +73,9 @@ priceSensHS(var, region, loc, typ, inc) "price sensitivity of heating system cho
 p_statusQuoPref "preference for replacehing a heating system with the same technology in USD/m2"
 p_statusQuoShare(hs) "share of heating systems that are identically replaced"
 
+o_specCostRen(cost,bs,hs,bsr,hsr,vin,region,loc,typ,inc,ttot) "floor-space specific renovation cost with heat pump intangible cost adjustment [USD/m2]"
+o_specCostRenHS(cost,bs,hs,hsr,vin,region,loc,typ,inc,ttot)   "floor-space specific heating system replacement cost with heat pump intangible cost adjustment [USD/m2]"
+
 ;
 
 scalars
@@ -165,6 +168,7 @@ q_obj(region,loc,typ,inc) "objective: discounted system cost + heterogeneity pre
 q_sysCost(region,loc,typ,inc,ttot) "system cost (con + ren + ope + dem)"
 q_conCost(region,loc,typ,inc,ttot) "construction cost"
 q_renCost(region,loc,typ,inc,ttot) "renovation cost"
+q_renCostLinear(region,loc,typ,inc,ttot) "linear renovation cost"
 q_opeCost(region,loc,typ,inc,ttot) "operation cost"
 q_demCost(region,loc,typ,inc,ttot) "demolition cost"
 q_factorIntangCostHeatPump(bs,vin,region,loc,typ,inc,ttot) "factor to scale down intangible costs for heat pumps"

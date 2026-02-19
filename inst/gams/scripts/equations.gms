@@ -81,8 +81,13 @@ $ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE" !! TODO: this might be genera
         v_renovationHS("area",renAllowedHS,vin,subs,t)
         * p_specCostRenHS(cost,renAllowedHS,vin,subs,t)
         * (
-          v_factorIntangCostHeatPump(bs, vin, subs, t)$(sameas(hsr, "ehp1") and sameas(cost, "intangible"))
-          + 1$(not sameas(hsr, "ehp1") or not sameas(cost, "intangible"))
+          (v_factorIntangCostHeatPump(bs, vin, subs, t)
+          / (sum(tcalibLast, v_factorIntangCostHeatPump(bs, vin, subs, tcalibLast)) + epsilon))$(sameas(hsr, "ehp1")
+                                                        and sameas(cost, "intangible")
+                                                        and not tcalib(t))
+          + 1$(not sameas(hsr, "ehp1")
+               or not sameas(cost, "intangible")
+               or tcalib(t))
         )
       )
     )
@@ -91,14 +96,20 @@ $else.sequentialRen
       v_renovation("area",renAllowed,vin,subs,t)
       * p_specCostRen(cost,renAllowed,vin,subs,t)
       * (
-          v_factorIntangCostHeatPump(bs, vin, subs, t)$(sameas(hsr, "ehp1") and sameas(cost, "intangible"))
-          + 1$(not sameas(hsr, "ehp1") or not sameas(cost, "intangible"))
+          (v_factorIntangCostHeatPump(bs, vin, subs, t)
+          / (sum(tcalibLast, v_factorIntangCostHeatPump(bs, vin, subs, tcalibLast)) + epsilon))$(sameas(hsr, "ehp1")
+                                                        and sameas(cost, "intangible")
+                                                        and not tcalib(t))
+          + 1$(not sameas(hsr, "ehp1")
+               or not sameas(cost, "intangible")
+               or tcalib(t))
         )
     )
 $endif.sequentialRen
   )
 ;
 
+* Compute factor to adjust intangible cost of heat pumps as S-curve of the current heat pump stock share
 q_factorIntangCostHeatPump(bs, vin, subs, t)..
   v_factorIntangCostHeatPump(bs, vin, subs, t)
   =e=
@@ -111,10 +122,37 @@ q_factorIntangCostHeatPump(bs, vin, subs, t)..
   )
 ;
 
+* Compute heat pump stock share
 q_shareHeatPump(bs, vin, subs, t)..
   v_shareHeatPump(bs, vin, subs, t) * sum(hs, v_stock("area", bs, hs, vin, subs, t))
   =e=
   v_stock("area", bs, "ehp1", vin, subs, t)
+;
+
+* Linear renovation cost without adjustment of intangible costs (lp)
+q_renCostLinear(subs,t)..
+  v_renCost(subs,t)
+  =e=
+  sum(vin$vinExists(t,vin),
+$ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE" !! TODO: this might be generalisable
+    sum(cost,
+      sum(renAllowedBS,
+        v_renovationBS("area",renAllowedBS,vin,subs,t)
+        * p_specCostRenBS(cost,renAllowedBS,vin,subs,t)
+      )
+      +
+      sum(renAllowedHS(bs, hs, hsr),
+        v_renovationHS("area",renAllowedHS,vin,subs,t)
+        * p_specCostRenHS(cost,renAllowedHS,vin,subs,t)
+      )
+    )
+$else.sequentialRen
+    sum((renAllowed(bs, hs, bsr, hsr), cost),
+      v_renovation("area",renAllowed,vin,subs,t)
+      * p_specCostRen(cost,renAllowed,vin,subs,t)
+    )
+$endif.sequentialRen
+  )
 ;
 
 
