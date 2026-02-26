@@ -47,15 +47,15 @@ createSets <- function(m, config) {
     description = "all modelling time steps"
   )
 
-  tinit <- periodFromConfig(config, "tinit")
   invisible(m$addSet(
     name = "tinit",
-    records = tinit,
+    records = periodFromConfig(config, "tinit"),
     description = "initial modelling time step"
   ))
+  tNum <- periodFromConfig(config, "t")
   invisible(m$addSet(
     name = "t",
-    records = periodFromConfig(config, "t"),
+    records = tNum,
     description = "modelled time steps"
   ))
 
@@ -67,7 +67,6 @@ createSets <- function(m, config) {
 
   if (!is.null(config[["calibperiods"]])) {
     tcalib <- periodFromConfig(config, "tcalib")
-    tcalibLast <- tcalib[length(tcalib)]
   } else {
     if (config[["switches"]][["RUNTYPE"]] == "calibration") {
       stop("Calibration time periods are missing from the calibration config.")
@@ -79,14 +78,14 @@ createSets <- function(m, config) {
         readDirect = TRUE
       )
       tcalib <- periodFromConfig(calibConfig, "tcalib")
-      tcalibLast <- tcalib[length(tcalib)]
     } else {
       warning("Time steps of calibration are not given and could not be determined from calibration config.\n",
-              "Assuming no calibration time steps.")
-      tcalib <- vector(mode = "numeric", length = 0)
-      tcalibLast <- tinit[length(tinit)]
+              "Assuming that the first model time step is the (only) calibration time step.")
+      tcalib <- tNum[1]
     }
   }
+  tcalibLast <- tcalib[length(tcalib)]
+
   invisible(m$addSet(
     "tcalib",
     records = tcalib,
