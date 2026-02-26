@@ -122,11 +122,14 @@ q_factorIntangCostHeatPump(bs, vin, subs, t)..
   )
 ;
 
-* Compute heat pump stock share
+* Compute heat pump renovation share
 q_shareHeatPump(bs, vin, subs, t)..
-  v_shareHeatPump(bs, vin, subs, t) * sum(hs, v_stock("area", bs, hs, vin, subs, t))
+  v_shareHeatPump(bs, vin, subs, t)
+  * sum((hs, hsr)$(renAllowedHS(bs, hs, hsr) and not sameas(hsr, "0")),
+    v_renovationHS("area", bs, hs, hsr, vin, subs, t-1)
+  )
   =e=
-  v_stock("area", bs, "ehp1", vin, subs, t)
+  sum(hs$renAllowedHS(bs, hs, "ehp1"), v_renovationHS("area", bs, hs, "ehp1", vin, subs, t-1))
 ;
 
 * Linear renovation cost without adjustment of intangible costs (lp)
