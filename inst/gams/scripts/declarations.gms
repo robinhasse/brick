@@ -32,7 +32,7 @@ p_factorIntangParams(params)                   "parameters for adjustment of hea
   / 
   minshare 0.1
   midpoint 0.3
-  scale 0.15
+  scale 0.06
   /
 
 p_stockHist(qty,bs,hs,vin,region,loc,typ,inc,ttot)              "historic stock of buildings in [million m2]"
