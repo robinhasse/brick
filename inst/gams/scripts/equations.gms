@@ -122,14 +122,11 @@ q_factorIntangCostHeatPump(bs, vin, subs, t)..
   )
 ;
 
-* Compute heat pump renovation share
+* Compute heat pump stock share
 q_shareHeatPump(bs, vin, subs, t)..
-  v_shareHeatPump(bs, vin, subs, t)
-  * sum((hs, hsr)$(renAllowedHS(bs, hs, hsr) and not sameas(hsr, "0")),
-    v_renovationHS("area", bs, hs, hsr, vin, subs, t-1)
-  )
+  v_shareHeatPump(bs, vin, subs, t) * sum(hs, v_stock("area", bs, hs, vin, subs, t))
   =e=
-  sum(hs$renAllowedHS(bs, hs, "ehp1"), v_renovationHS("area", bs, hs, "ehp1", vin, subs, t-1))
+  v_stock("area", bs, "ehp1", vin, subs, t)
 ;
 
 * Linear renovation cost without adjustment of intangible costs (lp)
@@ -137,7 +134,7 @@ q_renCostLinear(subs,t)..
   v_renCost(subs,t)
   =e=
   sum(vin$vinExists(t,vin),
-$ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE" !! TODO: this might be generalisable
+$ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
     sum(cost,
       sum(renAllowedBS,
         v_renovationBS("area",renAllowedBS,vin,subs,t)
