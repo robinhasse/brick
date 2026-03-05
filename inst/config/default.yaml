@@ -223,10 +223,10 @@ identVinCharact: FALSE
 priceSens:
   bs:
     construction: 0.1
-    renovation: 0.04
+    renovation: 0.03
   hs:
     construction: 0.1
-    renovation: 0.04
+    renovation: 0.03
 
 ### Freeze Parameters ###
 # select parameters and freeze them to the value in a selected period
