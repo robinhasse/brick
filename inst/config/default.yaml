@@ -233,6 +233,12 @@ priceSens:
   # {params: [p_carrierPrice, p_eff], period: 2020}
 freezeParams: []
 
+### share-dependent intangible cost parameters ###
+# Set parameters for the share dependent decline of heat pump intangible costs.
+# The decline follows an S-curve parametrized by <midpoint> and <scale>,
+# reaching a minimal share of the original intangible costs given by <minshare>
+shareHpIntangCost: {minshare: 0.1, midpoint: 0.2, scale: 0.07}
+
 ## model switches ====
 # passed to gams
 

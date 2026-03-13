@@ -81,8 +81,8 @@ $ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE" !! TODO: this might be genera
         v_renovationHS("area",renAllowedHS,vin,subs,t)
         * p_specCostRenHS(cost,renAllowedHS,vin,subs,t)
         * (
-          (v_factorIntangCostHeatPump(bs, vin, subs, t)
-          / (sum(tcalibLast, v_factorIntangCostHeatPump(bs, vin, subs, tcalibLast)) + epsilon))$(sameas(hsr, "ehp1")
+          (v_factorIntangCostHeatPump(subs, t)
+          / (sum(tcalibLast, v_factorIntangCostHeatPump(subs, tcalibLast)) + epsilon))$(sameas(hsr, "ehp1")
                                                         and sameas(cost, "intangible")
                                                         and not tcalib(t))
           + 1$(not sameas(hsr, "ehp1")
@@ -96,8 +96,8 @@ $else.sequentialRen
       v_renovation("area",renAllowed,vin,subs,t)
       * p_specCostRen(cost,renAllowed,vin,subs,t)
       * (
-          (v_factorIntangCostHeatPump(bs, vin, subs, t)
-          / (sum(tcalibLast, v_factorIntangCostHeatPump(bs, vin, subs, tcalibLast)) + epsilon))$(sameas(hsr, "ehp1")
+          (v_factorIntangCostHeatPump(subs, t)
+          / (sum(tcalibLast, v_factorIntangCostHeatPump(subs, tcalibLast)) + epsilon))$(sameas(hsr, "ehp1")
                                                         and sameas(cost, "intangible")
                                                         and not tcalib(t))
           + 1$(not sameas(hsr, "ehp1")
@@ -110,23 +110,23 @@ $endif.sequentialRen
 ;
 
 * Compute factor to adjust intangible cost of heat pumps as S-curve of the current heat pump stock share
-q_factorIntangCostHeatPump(bs, vin, subs, t)..
-  v_factorIntangCostHeatPump(bs, vin, subs, t)
+q_factorIntangCostHeatPump(subs, t)..
+  v_factorIntangCostHeatPump(subs, t)
   =e=
   1 - (1 - p_factorIntangParams("minshare"))
   * 1 / (
     1 + exp(
-      -(v_shareHeatPump(bs, vin, subs, t) - p_factorIntangParams("midpoint"))
+      -(v_shareHeatPump(subs, t-1) - p_factorIntangParams("midpoint"))
       / p_factorIntangParams("scale")
     )
   )
 ;
 
 * Compute heat pump stock share
-q_shareHeatPump(bs, vin, subs, t)..
-  v_shareHeatPump(bs, vin, subs, t) * sum(hs, v_stock("area", bs, hs, vin, subs, t))
+q_shareHeatPump(subs, t)..
+  v_shareHeatPump(subs, t) * sum((bs, hs, vin)$vinExists(t,vin), v_stock("area", bs, hs, vin, subs, t))
   =e=
-  v_stock("area", bs, "ehp1", vin, subs, t)
+  sum((bs, vin)$vinExists(t,vin), v_stock("area", bs, "ehp1", vin, subs, t))
 ;
 
 * Linear renovation cost without adjustment of intangible costs (lp)
@@ -141,13 +141,13 @@ $ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
         * p_specCostRenBS(cost,renAllowedBS,vin,subs,t)
       )
       +
-      sum(renAllowedHS(bs, hs, hsr),
+      sum(renAllowedHS,
         v_renovationHS("area",renAllowedHS,vin,subs,t)
         * p_specCostRenHS(cost,renAllowedHS,vin,subs,t)
       )
     )
 $else.sequentialRen
-    sum((renAllowed(bs, hs, bsr, hsr), cost),
+    sum((renAllowed, cost),
       v_renovation("area",renAllowed,vin,subs,t)
       * p_specCostRen(cost,renAllowed,vin,subs,t)
     )

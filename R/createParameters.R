@@ -611,6 +611,20 @@ createParameters <- function(m, config, inputDir) {
   )
 
 
+  # share-dependent intang cost parameters ====
+
+  p_factorIntangParams <- config[["shareHpIntangCost"]] %>%
+    as.data.frame() %>%
+    pivot_longer(everything(), names_to = "params")
+
+  p_factorIntangParams <- m$addParameter(
+    name = "p_factorIntangParams",
+    domain = c("params"),
+    records = p_factorIntangParams,
+    description = "parameters for adjustment of heat pump intangible costs"
+  )
+
+
 
   # Historic stock -------------------------------------------------------------
 

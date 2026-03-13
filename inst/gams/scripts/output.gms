@@ -33,8 +33,8 @@ if(card(ErrStock) + card(ErrConstruction) + card(ErrRenovation) + card(ErrRenova
 $ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
 o_specCostRenHS(cost, bs, hs, hsr, vin, subs, t) = p_specCostRenHS(cost,bs, hs, hsr, vin,subs,t)
         * (
-          (v_factorIntangCostHeatPump.l(bs, vin, subs, t)
-          / (sum(tcalibLast, v_factorIntangCostHeatPump.l(bs, vin, subs, tcalibLast)) + epsilon))$(sameas(hsr, "ehp1")
+          (v_factorIntangCostHeatPump.l(subs, t)
+          / (sum(tcalibLast, v_factorIntangCostHeatPump.l(subs, tcalibLast)) + epsilon))$(sameas(hsr, "ehp1")
                                                         and sameas(cost, "intangible")
                                                         and not tcalib(t))
           + 1$(not sameas(hsr, "ehp1")
@@ -44,8 +44,8 @@ o_specCostRenHS(cost, bs, hs, hsr, vin, subs, t) = p_specCostRenHS(cost,bs, hs, 
 $else.sequentialRen
 o_specCostRen(cost, bs, hs, bsr, hsr, vin, subs, t) = p_specCostRen(cost,bs,hs,bsr,hsr,vin,subs,t)
       * (
-          (v_factorIntangCostHeatPump.l(bs, vin, subs, t)
-          / (sum(tcalibLast, v_factorIntangCostHeatPump.l(bs, vin, subs, tcalibLast)) + epsilon))$(sameas(hsr, "ehp1")
+          (v_factorIntangCostHeatPump.l(subs, t)
+          / (sum(tcalibLast, v_factorIntangCostHeatPump.l(subs, tcalibLast)) + epsilon))$(sameas(hsr, "ehp1")
                                                         and sameas(cost, "intangible")
                                                         and not tcalib(t))
           + 1$(not sameas(hsr, "ehp1")

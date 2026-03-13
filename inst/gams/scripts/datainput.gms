@@ -17,6 +17,7 @@ $load p_shareDem p_shareRenBS p_shareRenHS p_shareRenBSinit p_shareRenHSinit
 $load p_floorPerCap
 $load p_probDem p_lifeTimeBS p_lifeTimeHS
 $load p_statusQuoShare
+$load p_factorIntangParams
 $gdxin
 
 $ifthen.matching "%RUNTYPE%" == "matching"
