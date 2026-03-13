@@ -29,11 +29,6 @@ p_population(region,loc,typ,inc,ttot)          "number of people in million"
 p_floorPerCap(region,loc,typ,inc,ttot)         "floor space per capita in m2"
 
 p_factorIntangParams(params)                   "parameters for adjustment of heat pump intangible costs"
-  / 
-  minshare 0.1
-  midpoint 0.3
-  scale 0.06
-  /
 
 p_stockHist(qty,bs,hs,vin,region,loc,typ,inc,ttot)              "historic stock of buildings in [million m2]"
 p_constructionHist(qty,bs,hs,region,loc,typ,inc,ttot)           "historic flow of new buildings in [million m2/yr]"

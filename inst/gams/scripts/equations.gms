@@ -141,13 +141,13 @@ $ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
         * p_specCostRenBS(cost,renAllowedBS,vin,subs,t)
       )
       +
-      sum(renAllowedHS(bs, hs, hsr),
+      sum(renAllowedHS,
         v_renovationHS("area",renAllowedHS,vin,subs,t)
         * p_specCostRenHS(cost,renAllowedHS,vin,subs,t)
       )
     )
 $else.sequentialRen
-    sum((renAllowed(bs, hs, bsr, hsr), cost),
+    sum((renAllowed, cost),
       v_renovation("area",renAllowed,vin,subs,t)
       * p_specCostRen(cost,renAllowed,vin,subs,t)
     )

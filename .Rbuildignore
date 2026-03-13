@@ -12,3 +12,5 @@
 ^.*CITATION.cff$
 ^codecov\.yml$
 ^inst/input$
+^\.claude$
+^_pkgdown\.yml$
