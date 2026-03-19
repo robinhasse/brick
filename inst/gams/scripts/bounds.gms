@@ -93,3 +93,22 @@ v_refDeviationVar.fx(ref,refVar,reg,t)$(    sameas(ref, "StatusQuo")
 $endif.forceSQ
 
 $endif.matching
+
+
+*** intangible cost adjustment
+* adjustment only for heat pumps
+$ifthen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
+v_specCostRenHS.fx(cost,renAllowedHS(state,hsr),vin,subs,t)$(    vinExists(t,vin)
+                                                             and (   not sameas(hsr,"ehp1")
+                                                                  or not sameas(cost,"intangible")
+                                                                  or tcalib(t)))
+  = p_specCostRenHS(cost,renAllowedHS,vin,subs,t)
+;
+$else.sequentialRen
+v_specCostRen.fx(cost,renAllowed(state,bsr,hsr),vin,subs,t)$(    vinExists(t,vin)
+                                                             and (   not sameas(hsr,"ehp1")
+                                                                  or not sameas(cost,"intangible")
+                                                                  or tcalib(t)))
+  = p_specCostRen(cost,renAllowed,vin,subs,t)
+;
+$endif.sequentialRen
