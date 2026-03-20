@@ -116,7 +116,7 @@ q_factorIntangCostHeatPump(subs, t)..
   1 - (1 - p_factorIntangParams("minshare"))
   * 1 / (
     1 + exp(
-      -(v_shareHeatPump(subs, t) - p_factorIntangParams("midpoint"))
+      -(v_shareHeatPump(subs, t-1) - p_factorIntangParams("midpoint"))
       / p_factorIntangParams("scale")
     )
   )
