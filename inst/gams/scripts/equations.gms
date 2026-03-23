@@ -77,12 +77,12 @@ $ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
         * p_specCostRenBS(cost,renAllowedBS,vin,subs,t)
       )
       +
-      sum(renAllowedHS(bs, hs, hsr),
+      sum(renAllowedHS,
         v_renovationHS("area",renAllowedHS,vin,subs,t)
         * v_specCostRenHS(cost,renAllowedHS,vin,subs,t)
       )
 $else.sequentialRen
-    sum(renAllowed(bs, hs, bsr, hsr),
+    sum(renAllowed,
       v_renovation("area",renAllowed,vin,subs,t)
       * v_specCostRen(cost,renAllowed,vin,subs,t)
     )
@@ -104,12 +104,12 @@ $ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
         * p_specCostRenBS(cost,renAllowedBS,vin,subs,t)
       )
       +
-      sum(renAllowedHS(bs, hs, hsr),
+      sum(renAllowedHS,
         v_renovationHS("area",renAllowedHS,vin,subs,t)
         * p_specCostRenHS(cost,renAllowedHS,vin,subs,t)
       )
 $else.sequentialRen
-    sum(renAllowed(bs, hs, bsr, hsr),
+    sum(renAllowed,
       v_renovation("area",renAllowed,vin,subs,t)
       * p_specCostRen(cost,renAllowed,vin,subs,t)
     )
@@ -147,7 +147,6 @@ q_factorIntangCostHeatPump(subs, ttot)..
 
 
 * scaling factor for intangible cost that can scale down intangible cost of heat pumps after calibration periods
-
 q_factorIntangCostHeatPumpNorm(subs, t)..
   v_factorIntangCostHeatPumpNorm(subs, t)
   * sum(tcalibLast, v_factorIntangCostHeatPump(subs, tcalibLast))
