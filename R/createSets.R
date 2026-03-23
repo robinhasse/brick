@@ -73,16 +73,21 @@ createSets <- function(m, config) {
     if (config[["switches"]][["RUNTYPE"]] == "calibration") {
       stop("Calibration time periods are missing from the calibration config.")
     }
-    if (!is.null(config[["calibrationRun"]])
-        && file.exists(file.path(config[["calibrationRun"]], "config", "config_COMPILED.yaml"))) {
-      calibConfig <- readConfig(
-        file.path(config[["calibrationRun"]], "config", "config_COMPILED.yaml"),
-        readDirect = TRUE
-      )
-      tcalib <- periodFromConfig(calibConfig, "tcalib")
+    if (!is.null(config[["calibrationRun"]])) {
+      if (file.exists(file.path(config[["calibrationRun"]], "config", "config_COMPILED.yaml"))) {
+        calibConfig <- readConfig(
+          file.path(config[["calibrationRun"]], "config", "config_COMPILED.yaml"),
+          readDirect = TRUE
+        )
+        tcalib <- periodFromConfig(calibConfig, "tcalib")
+      } else {
+        stop("The given calibration run does not contain a config file,",
+             "which is required to determine the calibration time periods.")
+      }
     } else {
       warning("Time steps of calibration are not given and could not be determined from calibration config.\n",
-              "Assuming that the first model time step is the (only) calibration time step.")
+              "Assuming that the first model time step is the (only) calibration time step.",
+              "If this is not a test run, please specify calibration time periods or a calibration run and restart.")
       tcalib <- min(tNum)
     }
   }
