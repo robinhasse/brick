@@ -29,6 +29,11 @@ createSets <- function(m, config) {
     records = c("area", "num"),
     description = "quantity unit to measure stocks and flows in"
   ))
+  invisible(m$addSet(
+    name = "level",
+    records = c("lower", "central", "upper", "matched"),
+    description = "level of replacement of heating systems of the initial stock"
+  ))
 
 
   # Temporal -------------------------------------------------------------------
@@ -103,6 +108,9 @@ createSets <- function(m, config) {
     records = tcalibLast,
     description = "last time step of calibration or initial time step if tcalib is empty"
   ))
+
+
+  invisible(m$addAlias("ttotOut", ttot))
 
 
 

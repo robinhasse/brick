@@ -22,7 +22,7 @@ toModelResolution <- function(x, m, value = "value", unfilteredDims = NULL) {
   }
 
   # all temporal periods that should be interpolated
-  periodDims <- setdiff("ttot", unfilteredDims)
+  periodDims <- setdiff(c("ttot", "ttotOut"), unfilteredDims)
 
   # drop lines with unknown dimension elements
   for (f in setdiff(colnames(x), c(value, periodDims, unfilteredDims))) {

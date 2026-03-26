@@ -42,6 +42,13 @@ var "major variables of the model"
   / stock, construction, renovation, renovationBS, renovationHS, demolition /
 varFlow(var) "flow variables of the model"
   / construction, renovation, renovationBS, renovationHS, demolition /
+level "level of replacement of heating systems of the initial stock"
+  /
+  lower   "initial stock has been built with increasing installations"
+  central "initial stock has been built with constant installations"
+  upper   "initial stock has been built with decreasing installations"
+  matched "initial stock replacement follows matching result (within lower and upper)"
+  /
 
 *** auxiliary sets
 params "parameters of intangible cost adjustment"
