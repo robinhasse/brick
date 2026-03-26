@@ -125,7 +125,8 @@ matchingRun: NULL
 
 ### calibration run ###
 # path to calibration run
-# intangible costs and initial stock are taken from this run
+# intangible costs and initial stock and renovation share for heating systems
+#  are taken from this run
 # If set, assumption files defined in the config are ignored
 calibrationRun: NULL
 

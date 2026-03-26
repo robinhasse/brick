@@ -79,6 +79,9 @@ startModel <- function(path, runReporting = TRUE) {
     }
   }
 
+  if (cfg[["switches"]][["RUNTYPE"]] == "matching") {
+    extrapolateShareRen(path)
+  }
 
   if (isTRUE(runReporting)) {
     plotSummary(path, NULL)

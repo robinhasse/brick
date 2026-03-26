@@ -3,32 +3,17 @@
 #' @author Ricarda Rosemann
 #'
 #' @param config named list with run configuration
-#' @returns directory of input folder
+#' @param inputDir directory of input folder
+#' @param path character, path to the run
 #'
-loadCalibrationTarget <- function(config) {
+loadCalibrationTarget <- function(config, inputDir, path) {
 
-  defaultTargetFolder <- file.path(madrat::getConfig("sourcefolder"), "BrickMatching")
-
-  # find package directory
-  inputDir <- brick.file("input", mustWork = FALSE)
+  .makeFileName <- function(x) {
+    paste0("f_", x, "CalibTarget.cs4r")
+  }
 
   # read path with calibration targets from switch
-  if (is.null(config$matchingRun) || !is.character(config$matchingRun)) {
-    targetPath <- NULL
-  } else if (dir.exists(config$matchingRun)) {
-    targetPath <- config$matchingRun
-  } else {
-    targetPath <- file.path(defaultTargetFolder, config$matchingRun)
-    if (dir.exists(targetPath)) {
-      message("You did not specify a full path as 'matchingRun'. ",
-              "Calibration targets are read from ", targetPath, ".")
-    } else {
-      warning("You did not specify an existing full path as 'matchingRun' ",
-              "and 'matchingRun' is not a subdirectory of the default matching folder\n",
-              defaultTargetFolder, ".")
-      targetPath <- NULL
-    }
-  }
+  targetPath <- .normaliseMatchingPath(config[["matchingRun"]])
 
   # set variables names of calibration targets
   sequentialRen <- isTRUE(config$switches$SEQUENTIALREN)
@@ -48,7 +33,7 @@ loadCalibrationTarget <- function(config) {
   # Do not copy files if matchingRun switch is NULL or specified path/folder does not exist
   if (is.null(targetPath)) {
     targetFilesExist <- lapply(vars, function(v) {
-      filePath <- file.path(inputDir, paste0("f_", v, "CalibTarget.cs4r"))
+      filePath <- file.path(inputDir, .makeFileName(v))
       file.exists(filePath)
     })
     if (all(targetFilesExist)) {
@@ -64,7 +49,7 @@ loadCalibrationTarget <- function(config) {
 
   # copy the calibration target files to the input directory
   lapply(vars, function(v) {
-    fileName <- paste0("f_", v, "CalibTarget.cs4r")
+    fileName <- .makeFileName(v)
     filePath <- file.path(targetPath, fileName)
     if (file.exists(filePath)) {
       file.copy(filePath, inputDir, overwrite = TRUE)
