@@ -43,7 +43,7 @@ readSymbol <- function(x, symbol = NULL, selectArea = TRUE,
     data <- data.frame(matrix(ncol = obj$dimension, nrow = 0))
   }
 
-  colnames(data)[1:obj$dimension] <- obj$domainNames
+  colnames(data)[1:obj$dimension] <- make.unique(obj$domainNames)
 
   # remove columns
   switch(class(obj)[1],

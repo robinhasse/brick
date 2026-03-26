@@ -20,6 +20,7 @@ createParameters <- function(m, config, inputDir) {
   ttotNum <- readSymbol(m, "ttot")
   vinExists <- readSymbol(m, "vinExists", stringAsFactor = FALSE)
   state <- c("bs", "hs")
+  levels <- readSymbol(m, "level")
 
 
 
@@ -406,8 +407,48 @@ createParameters <- function(m, config, inputDir) {
     description = "life time of heating system in yr"
   )
 
-  p_shareRenHS <- computeShareRen(ltHs, m, cutOffShare) %>%
+  # Temporal scope expanded by highly resolved time steps after installation
+  timePeriodsConfig <- expandSets(ttotIn = "ttot", ttotOut = "ttot", .m = m)
+  timePeriodsHighRes <- expandSets(ttotIn = "ttot", .m = m) %>%
+    tidyr::crossing(lt = seq(0, 60, 0.5)) %>%
+    mutate(ttotOut = .data$ttotIn + .data$lt) %>%
+    select(-"lt")
+  timePeriodsFull <- full_join(timePeriodsConfig, timePeriodsHighRes,
+                               by = c("ttotIn", "ttotOut"))
+  timePeriodsFullInit <- timePeriodsFull %>%
+    filter(.data$ttotIn == readSymbol(m, symbol = "tinit"))
+
+  p_shareRenHSfull <- computeShareRen(ltHs, m, cutOffShare, timePeriods = timePeriodsFull) %>%
     select("hs", "region", "typ", "ttotIn", "ttotOut", "value") %>%
+    toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
+  invisible(m$addParameter(
+    name = "p_shareRenHSfull",
+    domain = c("hs", "region", "typ", "ttotIn", "ttotOut"),
+    records = p_shareRenHSfull,
+    description = "distribution of hs renovation at high time resolution"
+  ))
+
+  # Share of heating systems in the standing stock at time ttotIn = tinit - standingLifeTimeHs
+  # to be replaced by time ttotOut.
+  p_shareRenHSfullInit <- computeShareRen(
+    ltHs,
+    m,
+    standingLifeTime = TRUE,
+    timePeriods = timePeriodsFullInit,
+    vintages = vintages,
+    levels = setdiff(levels, "matched")
+  ) %>%
+    select("level", "hs", "region", "typ", "vin", "ttotIn", "ttotOut", "value") %>%
+    toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
+  invisible(m$addParameter(
+    name = "p_shareRenHSfullInit",
+    domain = c("level", "hs", "region", "typ", "vin", "ttotIn", "ttotOut"),
+    records = p_shareRenHSfullInit,
+    description = "distribution of hs renovation for initial stock at high time resolution"
+  ))
+
+  p_shareRenHS <- p_shareRenHSfull %>%
+    semi_join(timePeriodsConfig, by = c("ttotIn", "ttotOut")) %>%
     toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
   p_shareRenHS <- m$addParameter(
     name = "p_shareRenHS",
@@ -416,52 +457,34 @@ createParameters <- function(m, config, inputDir) {
     description = "minimum share of renovation from the heating system reaching end of life"
   )
 
-  p_shareRenHSinit <- computeShareRen(ltHs, m, standingLifeTime = TRUE, vintages = vintages) %>%
-    select("hs", "region", "typ", "vin", "ttotIn", "ttotOut", "value") %>%
-    toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
-  p_shareRenHSinit <- m$addParameter(
-    name = "p_shareRenHSinit",
-    domain = c("hs", "region", "typ", "vin", "ttotIn", "ttotOut"),
-    records = p_shareRenHSinit,
-    description = "minimum share of renovation from the heating system of initial stock reaching end of life"
-  )
-
-  # Only for reporting: Weibull distribution with high time resolution
-  timePeriodsFull <- expandSets(ttotIn = "ttot", .m = m) %>%
-    tidyr::crossing(lt = seq(0, 60, 0.5)) %>%
-    mutate(ttotOut = .data$ttotIn + .data$lt) %>%
-    select(-"lt")
-
-  p_shareRenHSfull <- computeShareRen(ltHs, m, cutOffShare, timePeriods = timePeriodsFull) %>%
-    select("hs", "region", "typ", "ttotIn", "ttotOut", "value") %>%
-    toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
-  p_shareRenHSfull <- m$addParameter(
-    name = "p_shareRenHSfull",
-    domain = c("hs", "region", "typ", "ttotIn", "ttotOut"),
-    records = p_shareRenHSfull,
-    description = "distribution of hs renovation at high time resolution"
-  )
-
-  timePeriodsFullInit <- timePeriodsFull %>%
-    filter(.data$ttotIn == readSymbol(m, symbol = "tinit"))
-
-  # Share of heating systems in the standing stock at time ttotIn = tinit - standingLifeTimeHs
-  # to be renovated by time ttotOut.
-  p_shareRenHSfullInit <- computeShareRen(
-    ltHs,
-    m,
-    standingLifeTime = TRUE,
-    timePeriods = timePeriodsFullInit,
-    vintages = vintages
-  ) %>%
-    select("hs", "region", "typ", "vin", "ttotIn", "ttotOut", "value") %>%
-    toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
-  p_shareRenHSfullInit <- m$addParameter(
-    name = "p_shareRenHSfullInit",
-    domain = c("hs", "region", "typ", "vin", "ttotIn", "ttotOut"),
-    records = p_shareRenHSfullInit,
-    description = "distribution of hs renovation for initial stock at high time resolution"
-  )
+  if (config[["switches"]][["RUNTYPE"]] != "renCorrect") {
+    if (config[["switches"]][["RUNTYPE"]] == "matching") {
+      # matching runs get a corridor within which standing heating systems are replaced
+      p_shareRenHSinit <- p_shareRenHSfullInit %>%
+        semi_join(timePeriodsConfig, by = c("ttotIn", "ttotOut")) %>%
+        toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
+    } else {
+      # other runs use the result of a matching run
+      folder <- switch(config[["switches"]][["RUNTYPE"]],
+                       calibration = .normaliseMatchingPath(config[["matchingRun"]]),
+                       scenario = config[["calibrationRun"]],
+                       stop("Unexpected run type."))
+      p_shareRenHSinit <- read.csv(file.path(folder, "shareRenHSinit.csv"),
+                                   comment.char = "#") %>%
+        toModelResolution(m, unfilteredDims = "ttotIn")
+      p_shareRenHSinit <- expandSets("level", "hs", "region", "typ", "vin", ttotIn = "tinit", ttotOut = "ttot", .m = m) %>%
+        filter(.data$level == "matched") %>%
+        inner_join(vinExists, by = c("vin", ttotIn = "ttot")) %>%
+        left_join(p_shareRenHSinit, by = c("level", "hs", "region", "typ", "vin", "ttotIn", ttotOut = "ttot")) %>%
+        .explicitZero()
+    }
+    p_shareRenHSinit <- m$addParameter(
+      name = "p_shareRenHSinit",
+      domain = c("level", "hs", "region", "typ", "vin", "ttotIn", "ttotOut"),
+      records = p_shareRenHSinit,
+      description = "minimum share of renovation from the heating system of initial stock reaching end of life"
+    )
+  }
 
 
   # Other ----------------------------------------------------------------------

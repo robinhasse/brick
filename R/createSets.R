@@ -29,6 +29,11 @@ createSets <- function(m, config) {
     records = c("area", "num"),
     description = "quantity unit to measure stocks and flows in"
   ))
+  invisible(m$addSet(
+    name = "level",
+    records = c("lower", "central", "upper", "matched"),
+    description = "level of replacement of heating systems of the initial stock"
+  ))
 
 
   # Temporal -------------------------------------------------------------------
@@ -72,6 +77,9 @@ createSets <- function(m, config) {
       description = "time steps considered by the calibration when minimising deviation from target trajectories"
     ))
   }
+
+  invisible(m$addAlias("ttotOut", ttot))
+
 
 
   # Vintages -------------------------------------------------------------------

@@ -21,7 +21,7 @@ p_eff(hs,region,typ,ttot)             "technical efficiency of space heating tec
 p_renDepth(bs,bsr)                    "renovation depth"
 
 p_lccCon(cost,var,bs,hs,region,loc,typ,inc,ttot) "Estimate of life cycle cost of constructed housing in USD/m2"
-p_probDem(region,typ,ttot2,ttot)                 "probability of a building having reached its end of life"
+p_probDem(region,typ,ttotIn,ttot)                "probability of a building having reached its end of life"
 p_lifeTimeBS(region)                             "life time of building shell system in yr"
 p_lifeTimeHS(hs,region,typ)                      "life time of heating system in yr"
 
@@ -35,11 +35,11 @@ p_renovationHistBS(qty,bs,hs,bsr,vin,region,loc,typ,inc,ttot)   "historic flow o
 p_renovationHistHS(qty,bs,hs,hsr,vin,region,loc,typ,inc,ttot)   "historic flow of buildings with heating system repacement [million m2/yr]"
 p_demolitionHist(qty,bs,hs,vin,region,loc,typ,inc,ttot)         "historic flow of demolished buildings [million m2/yr]"
 
-p_shareDem(vin,region,typ,ttot)           "minimum share of demolition at end of life"
-p_shareRenBS(region,ttot,ttot)            "minimum share of renovation from the building shell reaching end of life"
-p_shareRenHS(hs,region,typ,ttot,ttot)     "minimum share of renovation from the heating system reaching end of life"
-p_shareRenBSinit(region,vin,ttot,ttot)        "minimum share of renovation from the building shell of initial stock reaching end of life"
-p_shareRenHSinit(hs,region,typ,vin,ttot,ttot) "minimum share of renovation from the heating system of initial stock reaching end of life"
+p_shareDem(vin,region,typ,ttot)                       "minimum share of demolition at end of life"
+p_shareRenBS(region,ttotIn,ttot)                      "minimum share of renovation from the building shell reaching end of life"
+p_shareRenHS(hs,region,typ,ttotIn,ttot)               "minimum share of renovation from the heating system reaching end of life"
+p_shareRenBSinit(region,vin,ttotIn,ttot)              "minimum share of renovation from the building shell of initial stock reaching end of life"
+p_shareRenHSinit(level,hs,region,typ,vin,ttotIn,ttot) "minimum share of renovation from the heating system of initial stock reaching end of life"
 
 p_discountRate(typ,ttot) "discount rate (incl. implicit discount) in 1/yr"
 p_discountFac(typ,ttot)  "discount factor w.r.t. t0"
@@ -90,6 +90,7 @@ v_statusQuoPref(region,loc,typ,inc,ttot)              "status quo preference whe
 
 v_slackRenBS(bs,vin,region,loc,typ,inc,ttot) "difference between actual and min required building shell replacement"
 v_slackRenHS(hs,vin,region,loc,typ,inc,ttot) "difference between actual and min required heating system replacement"
+v_shareRenHSinit(hs,region,typ,vin,ttotIn,ttot) "minimum share of renovation from the heating system of initial stock reaching end of life [1]"
 
 $ifthen.matching "%RUNTYPE%" == "matching"
 v_replacementDeviation "total deviation from technology replacement according to life time"
@@ -213,6 +214,8 @@ q_flowVariationRenBS(qty,bs,hs,bsr,region,loc,typ,inc,ttot)   "temporal variatio
 q_flowVariationRenHS(qty,bs,hs,hsr,region,loc,typ,inc,ttot)   "temporal variation of heating system replacement flow"
 q_flowVariationDem(qty,bs,hs,region,loc,typ,inc,ttot)         "temporal variation of demolition flow"
 
+q_shareRenHSinit(hs,region,typ,vin,ttot,ttot) "monotonously rising share of replaced heating system of initial stock"
+q_shareRenHSinitTot(region,typ,vin,ttot)      "total replacement of heating systems of initial stock"
 
 $ifthen.matching "%RUNTYPE%" == "matching"
 q_dwelSize_Odyssee(refVar,region,ttot) "dwelling size at the aggregation of Odyssee_dwelSize in m2/dwel"
@@ -225,6 +228,7 @@ q_refDeviation(reference,region,ttot)          "summed squared deviation from re
 q_refDeviationVar(reference,refVar,region,t)   "deviation from each variable in reference sources"
 q_refVals(reference,refVar,region,t)           "aggregate model variable to reference granularity"
 q_refValsBasic(reference,refVarGroup,region,t) "sum v_refVals to basic value of reference shares"
+
 
 q_matchingObj "matching objective: reference deviation and flow variation"
 $endif.matching
@@ -290,3 +294,5 @@ p_demolition(qty,bs,hs,vin,region,loc,typ,inc,ttot)         "target flow of demo
 p_stock(qty, bs, hs, vin, region, loc, typ, inc, ttot)      "target stock of buildings [million m2]"
 ;
 $endif.renCorrect
+
+scalar lifetimeHsIsFlexible "control switch" /0/;
