@@ -42,7 +42,7 @@ createInputData <- function(path,
   inputDir <- loadMadratData(config)
 
   if (identical(config$switches$RUNTYPE, "calibration")) {
-    loadCalibrationTarget(config)
+    loadCalibrationTarget(config, inputDir, path)
   }
 
   m <- Container$new()

@@ -226,3 +226,33 @@
   }
   as.numeric(as.character(x))
 }
+
+
+
+#' Normalise matching path
+#'
+#' @param matchingRun character either a subfolder in the brick matching madrat
+#'   source or an existing run path
+#' @returns path to a matching run
+
+.normaliseMatchingPath <- function(matchingRun) {
+  defaultTargetFolder <- file.path(madrat::getConfig("sourcefolder"), "BrickMatching")
+
+  if (is.null(matchingRun) || !is.character(matchingRun)) {
+    targetPath <- NULL
+  } else if (dir.exists(matchingRun)) {
+    targetPath <- matchingRun
+  } else {
+    targetPath <- file.path(defaultTargetFolder, matchingRun)
+    if (dir.exists(targetPath)) {
+      message("You did not specify a full path as 'matchingRun'. ",
+              "Calibration targets are read from ", targetPath, ".")
+    } else {
+      warning("You did not specify an existing full path as 'matchingRun' ",
+              "and 'matchingRun' is not a subdirectory of the default matching folder\n",
+              defaultTargetFolder, ".")
+      targetPath <- NULL
+    }
+  }
+  return(targetPath)
+}

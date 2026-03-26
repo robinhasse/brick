@@ -50,6 +50,13 @@ params "parameters of intangible cost adjustment"
   midpoint "point at which intangible costs are at 50% of toatal reduction"
   scale "speed at which intangible costs drop"
   /
+level "level of replacement of heating systems of the initial stock"
+  /
+  lower   "initial stock has been built with increasing installations"
+  central "initial stock has been built with constant installations"
+  upper   "initial stock has been built with decreasing installations"
+  matched "initial stock replacement follows matching result (within lower and upper)"
+  /
 
 *** model analytics
 solveinfo	"model and solver stats"

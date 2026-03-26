@@ -116,6 +116,8 @@ $ifthen.shell not "%ignoreShell%" == "TRUE"
   q_lifeTimeBS
 $endif.shell
   q_lifeTimeHS
+  q_shareRenHSinit
+  q_shareRenHSinitTot
 *  q_dwelSizeStock
 *  q_dwelSizeConstruction
 *  q_dwelSize_Odyssee
@@ -156,6 +158,7 @@ $ifthen.shell not "%ignoreShell%" == "TRUE"
   q_lifeTimeBS
 $endif.shell
   q_lifeTimeHS
+  q_shareRenHSinit
   /
 ;
 $endif.renCorrect
@@ -653,7 +656,15 @@ loop(region,
   reg(region) = yes;
   subs(region,loc,typ,inc) = yes;
 
+  lifetimeHsIsFlexible = 0;
   solve matching minimizing v_matchingObj using qcp;
+
+  p_stockHist(q,bs,hs,vin,subs,ttotIn)$(    tinit(ttotIn)
+                                        and vinExists(ttotIn,vin)) =
+    v_stock.l(q,bs,hs,vin,subs,ttotIn);
+  lifetimeHsIsFlexible = 1;
+  solve matching minimizing v_matchingObj using qcp;
+
 
   reg(region) = no;
   subs(region,loc,typ,inc) = no;

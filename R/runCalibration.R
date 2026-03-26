@@ -348,6 +348,7 @@ runCalibrationLogit <- function(path,
   # WRITE INTANGIBLE COSTS TO FILE -------------------------------------------------------------
 
   .writeStock(m, path)
+  .writeShareRen(m, path)
 
   fileNames <- list(
     construction = "costIntangCon.csv",
@@ -656,6 +657,7 @@ runCalibrationOptim <- function(path,
   # WRITE INTANGIBLE COSTS TO FILE -------------------------------------------------------------
 
   .writeStock(m, path)
+  .writeShareRen(m, path)
 
   fileNames <- list(
     construction = "costIntangCon.csv",
@@ -1539,6 +1541,21 @@ runCalibrationOptim <- function(path,
 
   write.csv(stock, file.path(path, "stockCalibration.csv"), row.names = FALSE)
 }
+
+
+#' Write the renovation share of heating systems to a csv file
+#'
+#' @param m Gams container with the calibration output.gdx
+#' @param path character, path to the calibration run
+#'
+#' @importFrom utils write.csv
+#'
+.writeShareRen <- function(m, path) {
+  shareRen <- readSymbol(m, symbol = "p_shareRenHSinit")
+
+  write.csv(shareRen, file.path(path, "shareRenHSinit.csv"), row.names = FALSE)
+}
+
 
 #' Write the intangible costs to a .csv file
 #'
