@@ -278,7 +278,7 @@ createSets <- function(m, config) {
 
     # read ban definition from config
     hsBanConfig <- hsBanConfig %>%
-      listToDf() %>%
+      listToDf(split = "\\.") %>%
       toModelResolution(m)
     hsBan <- expandSets(var, region, ttot, hs) %>%
       left_join(hsBanConfig,
