@@ -8,7 +8,7 @@ startyear: 2005
 calibperiods: [2005, 2010]
 regionmapping: ["regionmappingEU27as9.csv", "mredgebuildings"]
 regions: ["EWN", "ECS", "ESC", "ECE", "DEU", "ENC", "ESW", "FRA", "IRL"]
-matchingRun: 2025-12-13_fixedBuildings
+matchingRun: 2026-01-21_fixedBuildings_2
 ignoreShell: TRUE
 statusQuoPreference: 0
 reportingTemplate: lowGran_ignoreShell

@@ -137,8 +137,10 @@ runCalibrationLogit <- function(path,
     renovationBS = "p_specCostRenBS",
     renovationHS = "p_specCostRenHS"
   )
-  xinit <- lapply(costSym[variables], function(symb) {
-    filter(readSymbol(mInput, symb), .data$cost == "intangible")
+  xinit <- .namedLapply(variables, function(var) {
+    readSymbol(mInput, costSym[[var]]) %>%
+      filter(.data$cost == "intangible") %>%
+      .filter(renAllowed[[var]], if (var != "construction") vinExists else NULL)
   })
 
   # Brick only runs as standard scenario run
@@ -146,7 +148,7 @@ runCalibrationLogit <- function(path,
 
   # Initialise optimization variable and optimization objective data frames
   optimVar <- .namedLapply(variables, function(var) {
-    .initOptimVar(mInput, tcalib, dims[[var]], renAllowed[[var]])
+    .initOptimVar(mInput, tcalib, dims[[var]], renAllowed[[var]], if (var != "construction") vinExists else NULL)
   })
   outerObjective <- .initOuterObjective(mInput)
 
@@ -432,7 +434,9 @@ runCalibrationOptim <- function(path,
     renovationHS = "p_specCostRenHS"
   )
   xinit <- .namedLapply(variables, function(var) {
-    filter(readSymbol(mInput, costSym[[var]]), .data$cost == "intangible")
+    readSymbol(mInput, costSym[[var]]) %>%
+      filter(.data$cost == "intangible") %>%
+      .filter(renAllowed[[var]], if (var != "construction") vinExists else NULL)
   })
 
   switchesScenRun <- switches
@@ -440,7 +444,7 @@ runCalibrationOptim <- function(path,
 
   # Initialise optimization variable and optimization objective data frames
   optimVar <- .namedLapply(variables, function(var) {
-    .initOptimVar(mInput, tcalib, dims[[var]], renAllowed[[var]])
+    .initOptimVar(mInput, tcalib, dims[[var]], renAllowed[[var]], if (var != "construction") vinExists else NULL)
   })
   outerObjective <- .initOuterObjective(mInput)
 
@@ -698,16 +702,17 @@ runCalibrationOptim <- function(path,
 #' @param tcalib numeric, calibration time periods
 #' @param dims character, dimensions to initialize the data with
 #' @param renAllowed data frame with allowed renovation transitions
+#' @param vinExists data frame with allowed vintage and time period combinations
 #'
 #' @returns data frame of desired dimension with x = 0 (column to contain the optimzation variable)
 #'   and xA = 0.
 #'
 #' @importFrom dplyr %>% .data filter mutate right_join
 #'
-.initOptimVar <- function(mInput, tcalib, dims, renAllowed) {
+.initOptimVar <- function(mInput, tcalib, dims, renAllowed, vinExists) {
   do.call(expandSets, c(as.list(dims), .m = mInput)) %>%
     filter(.data[["ttot"]] %in% tcalib) %>%
-    .filter(renAllowed) %>%
+    .filter(renAllowed, vinExists) %>%
     mutate(x = 0, xA = 0)
 }
 

@@ -4,7 +4,7 @@
 \alias{.initOptimVar}
 \title{Initialize the data frame for the optimization variables}
 \usage{
-.initOptimVar(mInput, tcalib, dims, renAllowed)
+.initOptimVar(mInput, tcalib, dims, renAllowed, vinExists)
 }
 \arguments{
 \item{mInput}{Gamstransfer container with the input data}
@@ -14,6 +14,8 @@
 \item{dims}{character, dimensions to initialize the data with}
 
 \item{renAllowed}{data frame with allowed renovation transitions}
+
+\item{vinExists}{data frame with allowed vintage and time period combinations}
 }
 \value{
 data frame of desired dimension with x = 0 (column to contain the optimzation variable)
