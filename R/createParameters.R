@@ -212,6 +212,7 @@ createParameters <- function(m, config, inputDir) {
       right_join(p_carbonPrice,
                  by = setdiff(names(carbonPrice), "value"),
                  suffix = c("Config", "")) %>%
+      relocate("carrier", "ttot", "value") %>%
       mutate(value = .data$value + replace_na(.data$valueConfig, 0),
              .keep = "unused")
   }
