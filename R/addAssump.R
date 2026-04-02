@@ -12,7 +12,36 @@
 #' @importFrom utils read.csv2
 #' @importFrom dplyr %>% .data mutate left_join select
 
-addAssump <- function(df, assumpFile, key = NULL) {
+addAssump <- function(df, assumpFile, key = NULL, vinExists = NULL) {
+
+  .extrapolate_missing_vin <- function(df, vin, vinExists) {
+    if (is.null(vinExists) || !"vin" %in% colnames(df)) {
+      return(df)
+    }
+
+    vintages <- df %>%
+      select("vin") %>%
+      unique()
+
+    vinMax <- vintages %>%
+      mutate(to = as.numeric(sub(".*(\\d{4})$", "\\1", as.character(.data$vin)))) %>%
+      filter(.data$to == max(.data$to)) %>%
+      dplyr::pull(var = "vin") %>%
+      unique()
+
+    df %>%
+      select(-"vin", -"value") %>%
+      tidyr::crossing(vin = vin) %>%
+      left_join(df, by = setdiff(colnames(df), "value")) %>%
+      right_join(vinExists, by = c("ttot", "vin")) %>%
+      group_by(across(-all_of(c("vin", "value")))) %>%
+      mutate(value = ifelse(
+        .data[["vin"]] %in% vintages$vin,
+        .data[["value"]],
+        .data[["value"]][.data[["vin"]] == vinMax]
+      )) %>%
+      ungroup()
+  }
 
   if (is.list(assumpFile)) {
     if (is.null(key)) {
@@ -27,6 +56,7 @@ addAssump <- function(df, assumpFile, key = NULL) {
   }
 
   assump <- read.csv(assumpFile, stringsAsFactors = TRUE, na.strings = "", comment.char = "#")
+  if ("bsr" %in% colnames(assump)) assump[["bsr"]] <- as.character(assump[["bsr"]])
   assump[["value"]] <- .asNumeric(assump[["value"]], warn = FALSE)
 
   if (!is.null(key)) {
@@ -42,13 +72,17 @@ addAssump <- function(df, assumpFile, key = NULL) {
 
   df[["ttot"]] <- .asNumeric(df[["ttot"]], warn = FALSE)
   periods <- unique(df[["ttot"]])
+  vintages <- unique(df[["vin"]])
 
   if (!".chunk" %in% colnames(assump)) {
     # If the data contains no chunk column: Assume that this is the full data
 
     df <- assump %>%
       interpolate_missing_periods(ttot = periods, expand.values = TRUE) %>%
+      .extrapolate_missing_vin(vin = vintages, vinExists = vinExists) %>%
       right_join(df, by = colnames(df))
+    
+    browser()
 
     if (any(is.na(df$value))) {
       warning("Data on intangible costs is incomplete. First row with missing data: ",
