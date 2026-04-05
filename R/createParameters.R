@@ -120,7 +120,7 @@ createParameters <- function(m, config, inputDir) {
     .explicitZero()
   p_specCostRenBS_tang <- expandSets("bs", "hs", "bsr", "vin", "region",
                                      "loc", "typ", "inc", "ttot", .m = m) %>%
-    .filter(readSymbol(m, "renAllowedBS")) %>%
+    .filter(readSymbol(m, "renAllowedBS"), vinExists) %>%
     mutate(cost = "tangible", .before = 1) %>%
     left_join(p_specCostRenBS_tang,
               by = c("bs", "bsr", "vin", "region", "typ", "ttot"))
@@ -132,7 +132,7 @@ createParameters <- function(m, config, inputDir) {
     .explicitZero()
   p_specCostRenHS_tang <- expandSets("bs", "hs", "hsr", "vin", "region",
                                      "loc", "typ", "inc", "ttot", .m = m) %>%
-    .filter(readSymbol(m, "renAllowedHS")) %>%
+    .filter(readSymbol(m, "renAllowedHS"), vinExists) %>%
     mutate(cost = "tangible", .before = 1) %>%
     left_join(p_specCostRenHS_tang,
               by = c("bs", "hs", "hsr", "vin", "region", "typ", "ttot"))
@@ -146,12 +146,14 @@ createParameters <- function(m, config, inputDir) {
 
     p_specCostRenBS_intang <- expandSets("bs", "hs", "bsr", "vin", "region",
                                          "loc", "typ", "inc", "ttot", .m = m) %>%
+      .filter(readSymbol(m, "renAllowedBS"), vinExists) %>%
       mutate(cost = "intangible", .before = 1) %>%
-      addAssump(intangCostFiles[["ren"]], key = "BS", vinExists = vinExists)
+      addAssump(intangCostFiles[["ren"]], key = "BS")
     p_specCostRenHS_intang <- expandSets("bs", "hs", "hsr", "vin", "region",
                                          "loc", "typ", "inc", "ttot", .m = m) %>%
+      .filter(readSymbol(m, "renAllowedHS"), vinExists) %>%
       mutate(cost = "intangible", .before = 1) %>%
-      addAssump(intangCostFiles[["ren"]], key = "HS", vinExists = vinExists)
+      addAssump(intangCostFiles[["ren"]], key = "HS")
 
     p_specCostRenBS <- rbind(p_specCostRenBS_tang, p_specCostRenBS_intang)
     p_specCostRenHS <- rbind(p_specCostRenHS_tang, p_specCostRenHS_intang)
@@ -174,7 +176,7 @@ createParameters <- function(m, config, inputDir) {
     p_specCostRen_intang <- expandSets("bs", "hs", "bsr", "hsr", "vin", "region",
                                        "loc", "typ", "inc", "ttot", .m = m) %>%
       mutate(cost = "intangible", .before = 1) %>%
-      addAssump(intangCostFiles[["ren"]], vinExists = vinExists)
+      addAssump(intangCostFiles[["ren"]])
 
     p_specCostRen_tang <- full_join(p_specCostRenBS_tang, p_specCostRenHS_tang,
                                     by = c("cost", state, "vin", "region", "loc", "typ", "inc", "ttot"),

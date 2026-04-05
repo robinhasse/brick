@@ -56,7 +56,7 @@ A BibTeX entry for LaTeX users is
 @Misc{,
   title = {brick: Building sector model with heterogeneous renovation and construction of the stock},
   author = {Robin Hasse and Ricarda Rosemann},
-  date = {2026-03-31},
+  date = {2026-04-05},
   year = {2026},
   url = {https://github.com/pik-piam/brick},
   note = {Version: 0.13.6},

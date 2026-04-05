@@ -12,33 +12,26 @@
 #' @importFrom utils read.csv2
 #' @importFrom dplyr %>% .data mutate left_join select
 
-addAssump <- function(df, assumpFile, key = NULL, vinExists = NULL) {
+addAssump <- function(df, assumpFile, key = NULL) {
 
-  .extrapolate_missing_vin <- function(df, vin, vinExists) {
-    if (is.null(vinExists) || !"vin" %in% colnames(df)) {
+  # Extrapolate vintages: Fill NA values in df by extrapolating constantly from the last existing vintage
+  .extrapolateVintages <- function(df, vinWithVal) {
+    if (!"vin" %in% colnames(df)) {
       return(df)
     }
 
-    vintages <- df %>%
-      select("vin") %>%
-      unique()
-
-    vinMax <- vintages %>%
+    vinMax <- data.frame(vin = vinWithVal) %>%
       mutate(to = as.numeric(sub(".*(\\d{4})$", "\\1", as.character(.data$vin)))) %>%
       filter(.data$to == max(.data$to)) %>%
       dplyr::pull(var = "vin") %>%
       unique()
 
     df %>%
-      select(-"vin", -"value") %>%
-      tidyr::crossing(vin = vin) %>%
-      left_join(df, by = setdiff(colnames(df), "value")) %>%
-      right_join(vinExists, by = c("ttot", "vin")) %>%
       group_by(across(-all_of(c("vin", "value")))) %>%
       mutate(value = ifelse(
-        .data[["vin"]] %in% vintages$vin,
-        .data[["value"]],
-        .data[["value"]][.data[["vin"]] == vinMax]
+        .data$vin %in% vinWithVal,
+        .data$value,
+        .data$value[.data$vin == vinMax]
       )) %>%
       ungroup()
   }
@@ -72,17 +65,16 @@ addAssump <- function(df, assumpFile, key = NULL, vinExists = NULL) {
 
   df[["ttot"]] <- .asNumeric(df[["ttot"]], warn = FALSE)
   periods <- unique(df[["ttot"]])
-  vintages <- unique(df[["vin"]])
 
   if (!".chunk" %in% colnames(assump)) {
     # If the data contains no chunk column: Assume that this is the full data
 
+    vinAssump <- if ("vin" %in% colnames(assump)) unique(assump$vin) else NULL
+
     df <- assump %>%
       interpolate_missing_periods(ttot = periods, expand.values = TRUE) %>%
-      .extrapolate_missing_vin(vin = vintages, vinExists = vinExists) %>%
-      right_join(df, by = colnames(df))
-    
-    browser()
+      right_join(df, by = colnames(df)) %>%
+      .extrapolateVintages(vinWithVal = vinAssump)
 
     if (any(is.na(df$value))) {
       warning("Data on intangible costs is incomplete. First row with missing data: ",
