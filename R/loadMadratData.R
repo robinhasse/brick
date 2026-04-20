@@ -74,6 +74,21 @@ loadMadratData <- function(config) {
 
 
 
+  # hack -----------------------------------------------------------------------
+
+  regMap <- sub("\\.csv$", "", config[["regionmapping"]][1])
+  granularity <- config[["granularity"]]
+  file <- file.path(
+    getConfig("outputfolder"),
+    regMap,
+    if (is.null(granularity)) NULL else granularity,
+    "f_lifetimeHeatingSystem.cs4r"
+  )
+  file.copy(file, inputDir, overwrite = TRUE)
+  message("hack: f_lifetimeHeatingSystem.cs4r overwritten with ", file)
+
+
+
   # return ---------------------------------------------------------------------
 
   return(invisible(inputDir))
