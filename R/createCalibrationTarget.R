@@ -46,7 +46,8 @@ createCalibrationTarget <- function(path,
 
   # build mapping between matching and calibration periods
   .buildPeriodMap <- function(cfgCalib, cfgMatching) {
-    periods <- cfgCalib$calibperiods
+    periods <- cfgCalib$periods
+    periods <- periods[periods <= max(cfgCalib$calibperiods) & periods >= cfgCalib$startyear]
 
     dt <- data.frame(ttotAgg = periods, dt = c(diff(periods)[1], diff(periods)))
 
@@ -116,8 +117,8 @@ createCalibrationTarget <- function(path,
   }
 
 
-  .subsetWithPrev <- function(periods, calibperiods) {
-    from <- min(calibperiods)
+  .subsetWithPrev <- function(periods, calibperiods, startyear) {
+    from <- min(c(calibperiods, startyear))
     to <- max(calibperiods)
     periods <- sort(periods)
     periods[(which(periods == from) - 1):which(periods == to)]
@@ -248,7 +249,7 @@ createCalibrationTarget <- function(path,
   cfg[["switches"]][["CALIBRATIONMETHOD"]] <- NULL
   cfg[["title"]] <- paste(basename(path), "for", basename(calibConfig), sep = "_")
   cfg[["matchingRun"]] <- normalizePath(path)
-  cfg[["periods"]] <- .subsetWithPrev(cfgCalib$periods, cfgCalib$calibperiods)
+  cfg[["periods"]] <- .subsetWithPrev(cfgCalib$periods, cfgCalib$calibperiods, cfgCalib$startyear)
   cfg[["boilerBan"]] <- cfgMatching[["boilerBan"]]
 
   runPath <- initModel(config = cfg,
