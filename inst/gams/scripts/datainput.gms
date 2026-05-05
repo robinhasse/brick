@@ -65,8 +65,9 @@ $endIf.lowop
 
 *** starting point -------------------------------------------------------------
 
-v_stock.l(qty,state,vin,subs,thist)$vinExists(thist,vin) =
-  p_stockHist(qty,state,vin,subs,thist);
+* TODO: revisit this
+p_stockHist("area",state,vin,subs,thist)$vinExists(thist,vin) = 0;
+
 $if exist "start.gdx" execute_loadpoint "start";
 
 
