@@ -154,6 +154,13 @@ popScenario: SSP2
   # SDP_EI, SDP_MC, SDP_RC
 fsScenario: SSP2
 
+### energy enduses ###
+# energy enduses considered in the operation of buildings
+  # space_heating
+  # water_heating
+  # [space_heating, water_heating]
+enduses: space_heating
+
 ### ban heating systems ###
 # named list of a data.frame with last period of allowed installation as value
 # allowed column names: var, region, ttot, hs
