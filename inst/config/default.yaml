@@ -105,7 +105,7 @@ tasks32: FALSE
 # data -------------------------------------------------------------------------
 
 ### input data revision ###
-inputRevision: "0.8.11"
+inputRevision: "0.9.0"
 
 ### force download ###
 # force the model to download new input data even though it seems unchanged
@@ -153,6 +153,13 @@ popScenario: SSP2
   # SSP1 - SSP5
   # SDP_EI, SDP_MC, SDP_RC
 fsScenario: SSP2
+
+### energy enduses ###
+# energy enduses considered in the operation of buildings
+  # space_heating
+  # water_heating
+  # [space_heating, water_heating]
+enduses: space_heating
 
 ### ban heating systems ###
 # named list of a data.frame with last period of allowed installation as value

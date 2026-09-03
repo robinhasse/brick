@@ -210,6 +210,18 @@ createSets <- function(m, config) {
     description = "renovated heating system"
   )
 
+  enduse <- config[["enduses"]]
+  availableEnduses <- c("space_heating", "water_heating")
+  if (any(!enduse %in% availableEnduses)) {
+    stop("enduses have to be one or more out of ",
+         paste(availableEnduses, collapse = ", "), ".")
+  }
+  enduse <- m$addSet(
+    name = "enduse",
+    records = enduse,
+    description = "energy enduse"
+  )
+
   carrier <- hsMap %>%
     getElement("carrier") %>%
     unique()
