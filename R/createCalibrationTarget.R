@@ -244,13 +244,13 @@ createCalibrationTarget <- function(path,
   header <- c(paste0("* matching run: ", path),
               paste0("* calibration config: ", calibConfig),
               paste0("* correction run", if (rmCorrectionRun) " (deleted)", ": ", runPath))
-  outFiles <- lapply(names(vCorrected), function(var) {
+  outFiles <- unlist(lapply(names(vCorrected), function(var) {
     outFile <- file.path(runPath, paste0("f_", var, "CalibTarget.cs4r"))
     writeLines(header, outFile)
     write.table(vCorrected[[var]], outFile, append = TRUE, quote = FALSE, sep = ",",
                 row.names = FALSE, col.names = FALSE)
     outFile
-  })
+  }))
 
   # copy files to given directory
   if (!is.null(outDir)) {
