@@ -37,11 +37,11 @@ p_renovationHistBS(qty,bs,hs,bsr,vin,region,loc,typ,inc,ttot)   "historic flow o
 p_renovationHistHS(qty,bs,hs,hsr,vin,region,loc,typ,inc,ttot)   "historic flow of buildings with heating system repacement [million m2/yr]"
 p_demolitionHist(qty,bs,hs,vin,region,loc,typ,inc,ttot)         "historic flow of demolished buildings [million m2/yr]"
 
-p_shareDem(vin,region,typ,ttot)           "minimum share of demolition at end of life"
-p_shareRenBS(region,ttot,ttot)            "minimum share of renovation from the building shell reaching end of life"
-p_shareRenHS(hs,region,typ,ttot,ttot)     "minimum share of renovation from the heating system reaching end of life"
-p_shareRenBSinit(region,vin,ttot,ttot)        "minimum share of renovation from the building shell of initial stock reaching end of life"
-p_shareRenHSinit(hs,region,typ,vin,ttot,ttot) "minimum share of renovation from the heating system of initial stock reaching end of life"
+p_shareDem(vin,region,typ,ttot)                 "minimum share of demolition at end of life"
+p_shareRenBS(region,ttotIn,ttot)                "minimum share of renovation from the building shell reaching end of life"
+p_shareRenHS(hs,region,typ,ttotIn,ttot)         "minimum share of renovation from the heating system reaching end of life"
+p_shareRenBSinit(region,vin,ttotIn,ttot)        "minimum share of renovation from the building shell of initial stock reaching end of life"
+p_shareRenHSinit(hs,region,typ,vin,ttotIn,ttot) "minimum share of renovation from the heating system of initial stock reaching end of life"
 
 p_discountRate(typ,ttot) "discount rate (incl. implicit discount) in 1/yr"
 p_discountFac(typ,ttot)  "discount factor w.r.t. t0"
@@ -105,11 +105,13 @@ v_refDeviationVar(reference,refVar,region,ttot) "deviation from each variable in
 v_matchingObj                                   "matching objective: reference deviation and flow variation"
 
 v_flowVariation(varFLow,qty,region,loc,typ,inc,ttot)        "2nd order temporal variation of flows [million m2/yr3]"
-v_flowVariationCon(qty,bs,hs,region,loc,typ,inc,t)          "2nd order temporal variation of construction flow [million m2/yr3]"
+v_flowVariationCon(qty,bs,hs,region,loc,typ,inc,ttot)       "2nd order temporal variation of construction flow [million m2/yr3]"
 v_flowVariationRenBS(qty,bs,hs,bsr,region,loc,typ,inc,ttot) "2nd order temporal variation of building shell retrofit flow [million m2/yr3]"
 v_flowVariationRenHS(qty,bs,hs,hsr,region,loc,typ,inc,ttot) "2nd order temporal variation of heating system replacement flow [million m2/yr3]"
-v_flowVariationDem(qty,bs,hs,region,loc,typ,inc,t)          "2nd order temporal variation of demolition flow [million m2/yr3]"
+v_flowVariationDem(qty,bs,hs,region,loc,typ,inc,ttot)       "2nd order temporal variation of demolition flow [million m2/yr3]"
 $endif.matching
+
+v_instVariationHS(hs,region,loc,typ,inc,ttot) "1st order temporal variation of heating system installation flows [million m2/yr2]"
 
 v_sysCost(region,loc,typ,inc,ttot) "system cost cost cash flow in USD/yr"
 v_conCost(region,loc,typ,inc,ttot) "construction cost cash flow in USD/yr"
@@ -132,6 +134,8 @@ v_specCostRenHS(cost,bs,hs,hsr,vin,region,loc,typ,inc,ttot)   "floor-space speci
 
 v_opeCost(enduse,region,loc,typ,inc,ttot) "operational cost cash flow in USD/yr"
 v_demCost(region,loc,typ,inc,ttot) "demolition cost cash flow in USD/yr"
+v_adjCost(region,loc,typ,inc,ttot) "adjustment cost cash flow [USD/yr]"
+v_adjCostHS(region,loc,typ,inc,ttot) "heating system installation adjustment cost cash flow [USD/yr]"
 
 v_stock(qty,bs,hs,vin,region,loc,typ,inc,ttot)              "stock of buildings in [million m2/yr]"
 v_construction(qty,bs,hs,region,loc,typ,inc,ttot)           "flow of new buildings in [million m2/yr]"
@@ -213,10 +217,10 @@ q_dwelSizeRenovationBS(vin,region,loc,typ,inc,ttot) "dwelling size of buildings 
 q_dwelSizeRenovationHS(vin,region,loc,typ,inc,ttot) "dwelling size of buildings with heating system replacement [m2/dwel]"
 q_dwelSizeDemolition(vin,region,loc,typ,inc,ttot) "dwelling size of demolished buildings [m2/dwel]"
 
-q_minDivConBS(bs,hsr,region,loc,typ,inc,t)             "minimum building shell diversity in construction"
-q_minDivConHS(bs,hsr,region,loc,typ,inc,t)             "minimum heating system diversity in construction"
-q_minDivRenBS(bs,hsr,bsr,hsr,vin,region,loc,typ,inc,t) "minimum building shell diversity in renovation"
-q_minDivRenHS(bs,hsr,bsr,hsr,vin,region,loc,typ,inc,t) "minimum heating system diversity in renovation"
+q_minDivConBS(bs,hs,region,loc,typ,inc,t)             "minimum building shell diversity in construction"
+q_minDivConHS(bs,hs,region,loc,typ,inc,t)             "minimum heating system diversity in construction"
+q_minDivRenBS(bs,hs,bsr,hsr,vin,region,loc,typ,inc,t) "minimum building shell diversity in renovation"
+q_minDivRenHS(bs,hs,bsr,hsr,vin,region,loc,typ,inc,t) "minimum heating system diversity in renovation"
 
 q_maxRenRate(region,ttot) "Maximum renovation rate"
 
@@ -229,6 +233,10 @@ q_flowVariationCon(qty,bs,hs,region,loc,typ,inc,ttot)         "temporal variatio
 q_flowVariationRenBS(qty,bs,hs,bsr,region,loc,typ,inc,ttot)   "temporal variation of building shell retrofit flow"
 q_flowVariationRenHS(qty,bs,hs,hsr,region,loc,typ,inc,ttot)   "temporal variation of heating system replacement flow"
 q_flowVariationDem(qty,bs,hs,region,loc,typ,inc,ttot)         "temporal variation of demolition flow"
+
+q_instVariationHS(hs,region,loc,typ,inc,ttot) "temporal variation of heating system installation flows"
+q_adjCost(region,loc,typ,inc,ttot)       "adjustment cost cash flow"
+q_adjCostHS(region,loc,typ,inc,ttot)   "heating system installation adjustment cost cash flow"
 
 
 $ifthen.matching "%RUNTYPE%" == "matching"

@@ -355,6 +355,11 @@ switches:
   MINSTATUSQUORES: 0 # residential
   MINSTATUSQUOCOM: 0 # commercial
 
+  ### Adjustment cost factor
+  # share of installation cost paid as adjustment cost if yearly installation
+  #  change is as big as the initial stock
+  ADJCOSTFACTOR: 0
+
 
 # gams parameters --------------------------------------------------------------
 # passed to gams

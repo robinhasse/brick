@@ -50,10 +50,15 @@ model fullSysNLP "full system linear optimisation"
   q_renCost
   q_opeCost
   q_demCost
+$ifthenE.adjCost (%ADJCOSTFACTOR%>0)
+  q_adjCost
+  q_adjCostHS
+  q_instVariationHS
+$endif.adjCost
   q_factorIntangCostHeatPump
   q_factorIntangCostHeatPumpNorm
   q_shareHeatPump
-$ifthen.sequentialRen  "%SEQUENTIALREN%" == "TRUE"
+$ifthen.sequentialRen "%SEQUENTIALREN%" == "TRUE"
   q_stockBal1
   q_stockBal2
   q_stockBal3
