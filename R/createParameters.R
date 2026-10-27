@@ -752,7 +752,8 @@ createParameters <- function(m, config, inputDir) {
 
 #' Freeze Parameters
 #'
-#' Select parameters and freeze them to the value in a selected period
+#' Select parameters and freeze them to the value in a selected period or the
+#' closest period that exists
 #'
 #' @param m gamstransfer Container with parameters
 #' @param params character vector of parameter names
@@ -775,7 +776,10 @@ createParameters <- function(m, config, inputDir) {
     }
     records <- param$records %>%
       group_by(across(-all_of(c("ttot", "value")))) %>%
-      mutate(value = .data$value[.asNumeric(.data$ttot) == period]) %>%
+      mutate(value = ifelse(
+        is.na(.data$value),
+        NA,
+        .data$value[which.min(abs(.asNumeric(.data$ttot) - period))])) %>%
       ungroup()
     param$setRecords(records)
   }
