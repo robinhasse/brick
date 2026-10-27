@@ -24,6 +24,8 @@
 #'   \item \code{"createMatching"} to recreate the matching data
 #'   \item \code{"reweightMatching"} to update the matching reference selection and weighting
 #'   \item \code{"useAsStart"} to use the run from which we restart as the starting point
+#'   \item \code{"copyStart"} copy gdx of starting point to run folder (irrelevant if ["useAsStart] is set)
+#'   \item \code{"copyHistory"} copy gdx of historic run to run folder
 #'   \item \code{"none"} (or any other string) to do none of the above
 #'  }
 #' @param runReporting logical, whether to run the reporting, i.e. write the mif
@@ -162,7 +164,7 @@ initModel <- function(config = NULL,
       message("No restart options were specified. ",
               "Default options are applied: Copy Gams files, recreate input data, ",
               "recreate and reweight matching if applicable, and use output gdx as starting point if existent.")
-      restart <- c("copyGams", "createInput", "createMatching", "reweightMatching", "useAsStart")
+      restart <- c("copyGams", "createInput", "createMatching", "reweightMatching", "useAsStart", "copyStart", "copyHistory")
     }
 
     if (!is.null(config)) {
@@ -233,9 +235,14 @@ initModel <- function(config = NULL,
     cfg[["startingPoint"]] <- file.path(path, "output.gdx")
     message("Using the output-gdx of the restarted run as starting point.")
   }
-  copyInitialGdx(path, cfg[["startingPoint"]], outputFolder)
+  if (isFALSE(restart) || any(c("copyStart", "useAsStart") %in% restart)) {
+    copyInitialGdx(path, cfg[["startingPoint"]], outputFolder)
+  }
 
-  copyHistoryGdx(path, outputFolder, cfg)
+  # Copy historic gdx
+  if (isFALSE(restart) || "copyHistory" %in% restart) {
+    copyHistoryGdx(path, outputFolder, cfg)
+  }
 
   # In matching run: Save references to csv
   if (cfg[["switches"]][["RUNTYPE"]] == "matching") {

@@ -43,6 +43,8 @@ BRICK-internal config folder is used.}
  \item \code{"createMatching"} to recreate the matching data
  \item \code{"reweightMatching"} to update the matching reference selection and weighting
  \item \code{"useAsStart"} to use the run from which we restart as the starting point
+ \item \code{"copyStart"} copy gdx of starting point to run folder (irrelevant if ["useAsStart] is set)
+ \item \code{"copyHistory"} copy gdx of historic run to run folder
  \item \code{"none"} (or any other string) to do none of the above
 }}
 
