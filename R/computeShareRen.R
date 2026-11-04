@@ -57,19 +57,8 @@ computeShareRen <- function(params, m,
   .probXleqY <- function(shift, shape, scale, hs, maxAge) {
 
     # Set function to integrate over as the density of Y multiplied with the Weibull distribution function
-    if (hs == "ehp1") {
-      func <- .decreasingBeta
-      distrLength <- min(25, maxAge)
-    } else if (hs %in% c("libo", "sobo")) {
-      func <- .increasingBeta
-      distrLength <- min(25, maxAge)
-    } else if (hs == "libo") {
-      func <- .increasingBeta
-      distrLength <- min(20, maxAge)
-    } else {
-      func <- .shiftedPweibull
-      distrLength <- maxAge
-    }
+    func <- .shiftedPweibull
+    distrLength <- maxAge
 
     # Numerically integrate over the density function
     res <- stats::integrate(
