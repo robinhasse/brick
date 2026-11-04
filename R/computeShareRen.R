@@ -143,15 +143,29 @@ computeShareRen <- function(params, m,
 
     # for renovations/construction ====
 
-    # average past flow activity happened dt/2 before nominal time step ttotIn
+    # Weibull for age = ttotOut - ttotIn
+    # assuming ttotIn is equally distributed across dt until nominal ttotIn
+    .pWeibullSegment <- function(ttotIn, ttotOut, dt, shape, scale) {
+      lower = ttotOut - ttotIn
+      upper = ttotOut - (ttotIn - dt)
+      res <- stats::integrate(f = pweibull, lower = lower, upper = upper,
+                              shape = shape, scale = scale)
+      res$value / dt
+    }
+
+    # average past flow activity happened equally distributed across the dt until ttotIn
     share %>%
       left_join(readSymbol(m, "p_dt") %>%
                   rename(dt = "value"),
                 by = c(ttotIn = "ttot")) %>%
       filter(!is.na(.data$dt)) %>%
-      mutate(lt = .data$ttotOut - (.data$ttotIn - .data$dt / 2),
-             p0 = 0,
-             p  = pweibull(.data$lt, .data$shape, .data$scale))
+      mutate(p0 = 0,
+             p = unlist(Map(.pWeibullSegment,
+                            ttotIn = .data$ttotIn,
+                            ttotOut = .data$ttotOut,
+                            dt = .data$dt,
+                            shape = .data$shape,
+                            scale = .data$scale)))
   }
 
   share %>%
