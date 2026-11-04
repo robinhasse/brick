@@ -295,7 +295,7 @@ createParameters <- function(m, config, inputDir) {
   # Life time ------------------------------------------------------------------
 
   # cut off Weibull above this value and assume 1 for technology life time
-  cutOffShare <- 0.95
+  cutOffShare <- 1
 
   # read Weibull life time parameters
   lt   <- readInput("f_lifetimeBuilding.cs4r",      c("region", "typ", "variable"),       inputDir)
