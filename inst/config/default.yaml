@@ -186,6 +186,13 @@ boilerBan: []
   #      value:   [       80,       150,    0,  100]
 carbonPrice: []
 
+### ignore vintage age ###
+# ignore vintage age in the assumption of when the initial stock of building ´
+#  shells and heating systems was installed?
+  # TRUE:  less oscillations in young vintages
+  # FALSE: physically correct - assets can't be older that their building
+ignoreVinAge: TRUE
+
 ### shift of heating system life time ###
 # named list with the shift in the Weibull scale parameter in yr
   # e.g. {sobo: 3, libo: 2}

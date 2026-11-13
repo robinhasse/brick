@@ -294,6 +294,10 @@ createParameters <- function(m, config, inputDir) {
 
   # Life time ------------------------------------------------------------------
 
+  # ignore vintage age in assumption of when initial stock was installed?
+  # this avoids oscillations
+  ignoreVinAge <- config[["ignoreVinAge"]]
+
   # cut off Weibull above this value and assume 1 for technology life time
   cutOffShare <- 1
 
@@ -384,7 +388,9 @@ createParameters <- function(m, config, inputDir) {
     description = "minimum share of renovation from the building shell reaching end of life"
   )
 
-  p_shareRenBSinit <- computeShareRen(ltBs, m, standingLifeTime = TRUE, vintages = vintages) %>%
+  p_shareRenBSinit <- computeShareRen(ltBs, m, standingLifeTime = TRUE,
+                                      vintages = vintages,
+                                      ignoreVinAge = ignoreVinAge) %>%
     select("region", "vin", "ttotIn", "ttotOut", "value") %>%
     toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
   p_shareRenBSinit <- m$addParameter(
@@ -418,7 +424,9 @@ createParameters <- function(m, config, inputDir) {
     description = "minimum share of renovation from the heating system reaching end of life"
   )
 
-  p_shareRenHSinit <- computeShareRen(ltHs, m, standingLifeTime = TRUE, vintages = vintages) %>%
+  p_shareRenHSinit <- computeShareRen(ltHs, m, standingLifeTime = TRUE,
+                                      vintages = vintages,
+                                      ignoreVinAge = ignoreVinAge) %>%
     select("hs", "region", "typ", "vin", "ttotIn", "ttotOut", "value") %>%
     toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
   p_shareRenHSinit <- m$addParameter(
@@ -454,7 +462,8 @@ createParameters <- function(m, config, inputDir) {
     m,
     standingLifeTime = TRUE,
     timePeriods = timePeriodsFullInit,
-    vintages = vintages
+    vintages = vintages,
+    ignoreVinAge = ignoreVinAge
   ) %>%
     select("hs", "region", "typ", "vin", "ttotIn", "ttotOut", "value") %>%
     toModelResolution(m, unfilteredDims = c("ttotIn", "ttotOut"))
