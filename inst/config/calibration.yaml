@@ -1,5 +1,4 @@
 ---
-title: "calibration"
 basedOn: "default.yaml"
 # scope and resolution
 granularity: lowGran

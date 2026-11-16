@@ -1,5 +1,4 @@
 ---
-title: "calibration-stockszeroF"
 basedOn: "calibration.yaml"
 slurmQOS: medium
 # switches
