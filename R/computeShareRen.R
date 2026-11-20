@@ -58,16 +58,7 @@ computeShareRen <- function(params, m,
 
   # identical replacement profile multiplied with shifted Weibull distribution function
   if (!ignoreVinAge && standingLifeTime) {
-    .installationProfile <- computeInstallationProfiles(params, vintages, until = tinit)
-    .identReplCycle <- function(x, shift, shape, scale, support, from, to, justProfile = FALSE) {
-      .installationProfile(tinit - x, shape, scale, from = from, to = to) * if (justProfile) {
-        1
-      } else {
-        .shiftedPweibull(x, shift, shape, scale)
-      }
-    }
-  } else {
-    .identReplCycle <- NULL
+    installationProfiles <- computeInstallationProfiles(params, vintages, until = tinit)
   }
 
   # Probability of X <= Y + shift with Weibull-distributed X and uniformly distributed Y on [0, maxAge],
@@ -85,7 +76,31 @@ computeShareRen <- function(params, m,
       func <- .shiftedPweibull
       profileWeight <- distrLength
     } else {
-      func <- .identReplCycle
+      installationProfile <- function(year, shape, scale, from, to) {
+
+        if (from >= tinit) return(rep(1, length(year)))
+
+        data <- installationProfiles %>%
+          filter(.data$shape == shape,
+                 .data$scale == scale,
+                 .data$from == from,
+                 .data$to == to)
+
+        if (nrow(data) == 0) {
+          stop("No profile for this case.")
+        }
+
+        approx(x = data$x, y = data$profile, xout = year, yleft = 0, rule = 2)$y
+      }
+
+      func <- function(x, shift, shape, scale, support, from, to, justProfile = FALSE) {
+        installationProfile(tinit - x, shape, scale, from = from, to = to) * if (justProfile) {
+          1
+        } else {
+          .shiftedPweibull(x, shift, shape, scale)
+        }
+      }
+
       profileWeight <- stats::integrate(
         func,
         lower = 0,
@@ -113,9 +128,7 @@ computeShareRen <- function(params, m,
       to = to
     )
 
-    # Rescale result by the length of the support of the density
-    # TODO: this normalisation is not effective for identReplProfile as the
-    # magnitude of installation profiles is uncontrolled.
+    # Rescale result by the profile weight
     1 / profileWeight * res$value
   }
 

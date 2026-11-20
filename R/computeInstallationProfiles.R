@@ -42,8 +42,6 @@ computeInstallationProfiles <- function(params, vintages, until) {
       deinstallation <- fCumDeinstallations(t)
       repl <- deinstallation - tail(deinstallations, 1)
 
-      if (repl < 0) browser()
-
       installation <- inst + repl
 
       deinstallations <- c(deinstallations, deinstallation)
@@ -57,23 +55,7 @@ computeInstallationProfiles <- function(params, vintages, until) {
                x = tail(years, -1))
   }
 
-  p <- cases %>%
+  cases %>%
     group_by(across(everything())) %>%
     dplyr::group_modify(.iterateProfil)
-
-  function(year, shape, scale, from, to) {
-
-    if (from >= until) return(rep(1, length(year)))
-
-    data <- p[  p$shape == shape
-              & p$scale == scale
-              & p$from == from
-              & p$to == to, ]
-
-    if (nrow(data) == 0) {
-      stop("No profile for this case.")
-    }
-
-    approx(x = data$x, y = data$profile, xout = year, yleft = 0, rule = 2)$y
-  }
 }
