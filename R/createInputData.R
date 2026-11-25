@@ -43,7 +43,7 @@ createInputData <- function(path,
   file.copy(file.path(inputDir, "historicalBuildings.mif"), path)
 
   if (identical(config$switches$RUNTYPE, "calibration")) {
-    loadCalibrationTarget(config)
+    loadCalibrationTarget(config, path)
   }
 
   m <- Container$new()

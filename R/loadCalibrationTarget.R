@@ -3,14 +3,11 @@
 #' @author Ricarda Rosemann
 #'
 #' @param config named list with run configuration
-#' @returns directory of input folder
+#' @param path character vector with folders to write input data into
 #'
-loadCalibrationTarget <- function(config) {
+loadCalibrationTarget <- function(config, path) {
 
   defaultTargetFolder <- file.path(madrat::getConfig("sourcefolder"), "BrickMatching")
-
-  # find package directory
-  inputDir <- brick.file("input", mustWork = FALSE)
 
   # read path with calibration targets from switch
   if (is.null(config$matchingRun) || !is.character(config$matchingRun)) {
@@ -48,17 +45,17 @@ loadCalibrationTarget <- function(config) {
   # Do not copy files if matchingRun switch is NULL or specified path/folder does not exist
   if (is.null(targetPath)) {
     targetFilesExist <- lapply(vars, function(v) {
-      filePath <- file.path(inputDir, paste0("f_", v, "CalibTarget.cs4r"))
+      filePath <- file.path(path, paste0("f_", v, "CalibTarget.cs4r"))
       file.exists(filePath)
     })
     if (all(targetFilesExist)) {
       message("No valid matching path specified, but all required calibration target files are",
-              "already in the input directory\n", inputDir, ".\n",
+              "already in the run folder\n", path, ".\n",
               "No files are copied, the calibration is executed based on the existing files.")
       return(invisible(NULL))
     } else {
       stop("No valid matching path specified and at least one calibration target file ",
-           "is missing in the input directory\n", inputDir, ".")
+           "is missing in the run folder\n", path, ".")
     }
   }
 
@@ -67,12 +64,12 @@ loadCalibrationTarget <- function(config) {
     fileName <- paste0("f_", v, "CalibTarget.cs4r")
     filePath <- file.path(targetPath, fileName)
     if (file.exists(filePath)) {
-      file.copy(filePath, inputDir, overwrite = TRUE)
+      file.copy(filePath, path, overwrite = TRUE)
     } else {
       stop("The file ", fileName, " does not exist in the directory ", targetPath, ".")
     }
   })
-  message("Copied all calibration target files from ", targetPath, " to ", inputDir, ".")
+  message("Copied all calibration target files from ", targetPath, " to ", path, ".")
 
   return(invisible(NULL))
 

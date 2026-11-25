@@ -4,7 +4,7 @@
 \alias{readInput}
 \title{Read madrat input files from input folder}
 \usage{
-readInput(filename, dims, inputDir = NULL)
+readInput(filename, dims, inputDir)
 }
 \arguments{
 \item{filename}{character, filename}
