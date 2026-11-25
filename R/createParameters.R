@@ -480,7 +480,7 @@ createParameters <- function(m, config, inputDir) {
 
   ## discount rate ====
 
-  p_discountRate <- readInput("f_discountRate.cs4r", "typ")
+  p_discountRate <- readInput("f_discountRate.cs4r", "typ", inputDir)
   p_discountRate <- expandSets("typ", "ttot", .m = m) %>%
     left_join(p_discountRate, by = "typ")
   m$addParameter(

@@ -10,11 +10,7 @@
 #' @importFrom utils read.csv
 #' @export
 
-readInput <- function(filename, dims, inputDir = NULL) {
-
-  if (is.null(inputDir)) {
-    inputDir <- brick.file("input")
-  }
+readInput <- function(filename, dims, inputDir) {
 
   out <- read.csv(file.path(inputDir, filename),
                   header = FALSE,

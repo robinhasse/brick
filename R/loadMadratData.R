@@ -24,8 +24,12 @@ loadMadratData <- function(config) {
 
   # Identify madrat tgz files --------------------------------------------------
 
-  # find package directory
-  inputDir <- brick.file("input", mustWork = FALSE)
+  # directory outside the BRICK installation with writing permission
+  brickDataDir <- tools::R_user_dir("brick", which = "data")
+  inputDir <- file.path(brickDataDir, "input")
+  if (!dir.exists(inputDir)) {
+    dir.create(inputDir, recursive = TRUE)
+  }
 
   # where are the old files from?
   sourceFiles <- file.path(inputDir, "source_files.log")
@@ -68,7 +72,7 @@ loadMadratData <- function(config) {
     names(repositories) <- getConfig("outputfolder")
 
     # load tgz file and unpack it in input folder
-    download_distribute(madratNew, repositories, brick.file(""))
+    download_distribute(madratNew, repositories, brickDataDir)
 
   } else {
     message("No input data downloaded and distributed. To enable that, ",

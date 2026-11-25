@@ -168,7 +168,7 @@ runCalibrationLogit <- function(path,
 
   gdxOutput <- file.path(path, "output.gdx")
 
-  p_calibTarget <- .readCalibTarget(dims, mInput)
+  p_calibTarget <- .readCalibTarget(dims, mInput, path)
   .addTargetsToInput(mInput, path, p_calibTarget, dims)
 
   p_calibTarget <- lapply(p_calibTarget[variables], .pick, qty = "area")
@@ -467,7 +467,7 @@ runCalibrationOptim <- function(path,
 
   gdxOutput <- file.path(path, "output.gdx")
 
-  p_calibTarget <- .readCalibTarget(dims, mInput)
+  p_calibTarget <- .readCalibTarget(dims, mInput, path)
   .addTargetsToInput(mInput, path, p_calibTarget, dims)
 
   p_calibTarget <- lapply(p_calibTarget[varCalib], .pick, qty = "area")
@@ -682,15 +682,16 @@ runCalibrationOptim <- function(path,
 #'
 #' @param dims named character, dimensions of each variable of the calibration
 #' @param mInput gamstransfer container with the input.gdx
+#' @param path character vector with folders to run gams in
 #'
 #' @returns list of data frames with calibration targets for each variable
 #'
 #' @importFrom dplyr %>% .data filter mutate
 #'
-.readCalibTarget <- function(dims, mInput) {
+.readCalibTarget <- function(dims, mInput, path) {
   .namedLapply(names(dims), function(var) {
     file <- paste0("f_", var, "CalibTarget.cs4r")
-    readInput(file, c("qty", dims[[var]], "target")) %>%
+    readInput(file, c("qty", dims[[var]], "target"), inputDir = path) %>%
       toModelResolution(mInput, value = "target", unfilteredDims = "ttot") %>%
       mutate(across(-all_of(c("target", "ttot")), as.character))
   })
