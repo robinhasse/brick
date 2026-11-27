@@ -790,7 +790,7 @@ q_flowVariationTot..
   v_flowVariationTot
   =e=
   sum(varFlow$(not(sameas(varFlow,"demolition"))),
-    sum((subs,t)$(ord(t) gt 1),
+    sum((subs,t)$(ord(t) gt 2),
       v_flowVariation(varFlow,"area",subs,t)
     )
   )
@@ -799,7 +799,7 @@ q_flowVariationTot..
 
 * Square of temporal variations in each flow
 
-q_flowVariation(varFlow,q,subs,t)$(ord(t) gt 1)..
+q_flowVariation(varFlow,q,subs,t)$(ord(t) gt 2)..
   v_flowVariation(varFlow,q,subs,t)
   =e=
   sum(state,
